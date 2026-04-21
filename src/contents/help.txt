@@ -1,0 +1,93 @@
+===========================================
+# Update at 20/04/2026
+# Repo Link: https://github.com/codevcn/tools-box.git
+===========================================
+# Help for runner command:
+
+# Usage:
+runner [[-h] | <type> <action> [<value> [<extra>]] [-m "message"] [-a] [-p] [--des] [-d] [--file]]
+
+# Available flags:
+-h, --help        :print this help.
+-m, --message     :input message for external script.
+-a                :using Antigravity IDE instead of VSCode.
+-p                :only open in PowerShell, not IDE.
+--des             :print description of typing commands.
+-d, --deep        :deep recursive action (e.g. for gdrive list).
+-f, --file        :list files instead of folders (for gdrive list).
+
+# Available types:
+open              :to open in system folder.
+code              :to open in vscode.
+run               :to execute something.
+edit              :to edit helper targets.
+print             :to print something.
+git               :to run git command.
+gdrive            :to operate with Google Drive via rclone.
+init              :to run init.cmd script.
+py                :to run python helpers.
+
+# Available actions:
+## open:
+                  :open runner files in vscode.
+   ws             :open working workspaces in system folder.
+   env            :open enviroment variables in system folder.
+   proms          :open prompts folder in system folder (Template Replacer Extension).
+## code:
+                  :open runner files in vscode.
+   test           :open testing folder in vscode.
+   ws             :open working workspace in vscode and cd to working folder in CLI.
+   ts-template    :open typescript template in vscode.
+   js             :open testing javascript folder in vscode.
+   ts             :open testing typescript folder in vscode.
+   nestjs         :open testing nestjs folder in vscode.
+   py             :open testing python folder in vscode.
+   ext            :open extensions folder in vscode.
+## edit:
+   proms          :edit prompts in prompts folder in notepad (Template Replacer Extension).
+   to             :edit to command in notepad (Template Replacer Extension).
+## git:
+   commit         :add all files and commit with a message and push with upstream.
+## run:
+   test-bat       :run runner smoke test script.
+   unikey         :run unikey.
+   cr-files       :create files in standing folder in CLI.
+   dld-path       :set download path in Chrome.
+   fm-sub         :format subtitle txt file to srt file.
+   rn-files       :rename files in specified folder with specified prefix.
+                  // Example: runner run rn-files "D:/D-Documents/Làm về TikTok" "tiktok"
+   del-files      :delete files in specified folder with specified extensions (comma-separated).
+                  // Example: runner run del-files "D:/D-Documents/Làm về TikTok" "txt,jpg,png"
+   keep-files     :keep files in specified folder with specified extension, delete others.
+                  // Example: runner run keep-files "D:/D-Documents/Làm về TikTok" "png"
+## print:
+   os             :print OS info.
+   stts           :print runner-status description.
+   ws             :print the folder vscode workspace.
+   curl           :print CRUD of cURL command.
+   dir            :print path of runner folder in system.
+   cmds           :print some useful commands.
+
+## gdrive:
+   sync           :sync a local folder to a gdrive folder.
+                  // Example: runner gdrive sync "D:/D-Documents/tool" "mac_sync/tool"
+   list           :list folders on gdrive remote. Use -d for deep recursive listing, --file for files.
+                  // Example: runner gdrive list "mac_sync" -d
+   remote         :print selected remote info.
+   del-fd         :delete a folder on gdrive remote.
+   url            :get share URL for a remote path.
+   reset          :reset rclone configurations.
+   guide          :display Google Drive authentication guide.
+
+## init:
+   (no action)     :run init.cmd script.
+
+## py:
+   env            :setup python venv in current project.
+
+# Example:
+The command `runner open ws` will open the working workspaces in system folder.
+The command `runner run rn-files "D:/D-Documents/Làm về TikTok" "tiktok"` will rename files with prefix "tiktok" in folder "D:/D-Documents/Làm về TikTok".
+The command `runner git commit -m "update git command"` will execute git add all files and commit with a message and push with upstream.
+The command `runner run del-files --des` will print description of del-files command.
+===========================================
