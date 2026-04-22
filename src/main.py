@@ -40,6 +40,7 @@ RUNNER_FORMAT_SUBTITLE_TXT_TO_SRT = "fm-sub"
 RUNNER_RENAME_FILES = "rn-files"
 RUNNER_DELETE_FILES = "del-files"
 RUNNER_KEEP_FILES = "keep-files"
+RUNNER_GEN_QR_IMAGE = "gen-qr"
 # edit
 RUNNER_EDIT_PROMPTS = "proms"
 RUNNER_EDIT_TO_COMMAND = "to"
@@ -392,6 +393,15 @@ def edit_to_command():
     sys.exit(0)
 
 
+def gen_qr_image():
+    cmd_args = [
+        "python",
+        f"{RUNNER_USEFUL_CODES_FOLDER_PATH}/gen_qr_image.py",
+    ]
+    subprocess.run(cmd_args, shell=True)
+    sys.exit(0)
+
+
 # --- Main ---
 
 if __name__ == "__main__":
@@ -553,6 +563,8 @@ if __name__ == "__main__":
                 delete_files(value_included, extra_included)
             elif action_included == RUNNER_KEEP_FILES:
                 keep_files(value_included, extra_included)
+            elif action_included == RUNNER_GEN_QR_IMAGE:
+                gen_qr_image()
             elif action_included == None:
                 raise Exception(RUNNER_WARNING_ACTION_MISSING)
             else:

@@ -1,0 +1,48 @@
+import qrcode
+from dotenv import load_dotenv
+import os
+from datetime import datetime
+
+# Tải biến môi trường
+load_dotenv(dotenv_path="D:/D-Documents/TOOLs/runner/.env")
+
+# Lấy giá trị và kiểm tra kiểu dữ liệu
+data_folder_path = os.getenv("RUNNER_APPDATA_FOLDER_PATH")
+
+if data_folder_path is None:
+    print("Cảnh báo: Không tìm thấy RUNNER_APPDATA_FOLDER_PATH trong tệp .env")
+else:
+    link = input("Nhập text cần tạo QR: ").strip()
+
+    if not link:
+        print("Cảnh báo: Text không được để trống.")
+        exit(1)
+
+    # Tạo đối tượng QR code
+    img = qrcode.make(link)
+
+    try:
+        # 1. Tạo timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"qr_{timestamp}.png"
+
+        # 2. Tạo đường dẫn và chuẩn hóa dấu "/"
+        # os.path.join sẽ dùng "\" trên Windows, nên ta replace nó ngay lập tức
+        full_file_path = os.path.join(data_folder_path, filename).replace("\\", "/")
+
+        with open(full_file_path, "wb") as qr_file:
+            img.save(qr_file)
+
+        print(f"Đã tạo thành công mã QR tại: {full_file_path}")
+
+        # --- Hỏi người dùng có muốn mở thư mục không ---
+        ask_open = (
+            input("Mở thư mục lưu mã QR khi đã tạo xong mã QR? [y/n]: ").strip().lower()
+        )
+
+        if ask_open == "y":
+            # Khi mở thư mục bằng startfile, Windows vẫn hiểu tốt cả "/" và "\"
+            os.startfile(data_folder_path)
+
+    except Exception as e:
+        print(f"Đã xảy ra lỗi: {e}")

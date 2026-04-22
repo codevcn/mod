@@ -298,6 +298,17 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def step_create_ins_cmd(project_dir: Path):
+    """Bước 7 - Tạo file ins.cmd để cài requirements nhanh."""
+    step("Bước 7: Tạo file ins.cmd")
+    ins_cmd_file = project_dir / "ins.cmd"
+
+    ins_cmd_file.write_text("pip install -r requirements.txt\n", encoding="utf-8")
+
+    success(f"Đã tạo: {ins_cmd_file}")
+    info("Nội dung: pip install -r requirements.txt")
+
+
 def main():
     enable_ansi_windows()
 
@@ -343,6 +354,7 @@ def main():
 
     step_show_activate_guide(venv_dir, project_dir)
     step_create_venv_cmd(venv_dir, project_dir)
+    step_create_ins_cmd(project_dir)
 
     # ── Footer ──────────────────────────────────
     print(f"{C.BOLD}{C.GREEN}{'═' * 56}{C.RESET}")

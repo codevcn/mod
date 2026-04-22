@@ -60,6 +60,8 @@ py                :to run python helpers.
                   // Example: runner run del-files "D:/D-Documents/Làm về TikTok" "txt,jpg,png"
    keep-files     :keep files in specified folder with specified extension, delete others.
                   // Example: runner run keep-files "D:/D-Documents/Làm về TikTok" "png"
+   gen-qr         :generate QR code image from input data.
+                  // Example: runner run gen-qr
 ## print:
    os             :print OS info.
    stts           :print runner-status description.
