@@ -3,7 +3,7 @@ import re
 import sys
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path="D:/D-Documents/TOOLs/runner/.env")
+load_dotenv(dotenv_path="D:/D-Documents/TOOLs/mod/.env")
 
 
 def main():

@@ -4,8 +4,8 @@ import argparse
 from dotenv import load_dotenv
 import yaml
 
-load_dotenv(dotenv_path="D:/D-Documents/TOOLs/runner/.env")
-RUNNER_ROOT_FOLDER = os.getenv("ROOT_FOLDER_PATH")
+load_dotenv(dotenv_path="D:/D-Documents/TOOLs/mod/.env")
+MOD_ROOT_FOLDER = os.getenv("ROOT_FOLDER_PATH")
 
 
 def warn_user_error(warning_message: str):
@@ -15,7 +15,7 @@ def warn_user_error(warning_message: str):
 
 def print_feature_description(cmd_type: str | None, action: str | None):
     yaml_path = os.path.join(
-        RUNNER_ROOT_FOLDER or "", "src", "contents", "app_features.yml"
+        MOD_ROOT_FOLDER or "", "src", "contents", "app_features.yml"
     )
     if not os.path.exists(yaml_path):
         warn_user_error(f"Cannot find feature definitions: {yaml_path}")
@@ -24,7 +24,7 @@ def print_feature_description(cmd_type: str | None, action: str | None):
         with open(yaml_path, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
 
-        types = data.get("runner_tool", {}).get("types", [])
+        types = data.get("mod_tool", {}).get("types", [])
 
         for t in types:
             if cmd_type and t.get("name") != cmd_type:
@@ -37,7 +37,7 @@ def print_feature_description(cmd_type: str | None, action: str | None):
                 for cmd in cmds:
                     cmd_parts = cmd.split()
 
-                    if cmd_parts and cmd_parts[0] == "runner":
+                    if cmd_parts and cmd_parts[0] == "mod":
                         cmd_parts = cmd_parts[1:]
 
                     yaml_type = cmd_parts[0] if len(cmd_parts) > 0 else None
@@ -69,7 +69,7 @@ def print_feature_description(cmd_type: str | None, action: str | None):
                         print(f"+) Điều kiện:\t{a.get('conditions')}\n")
                         sys.exit(0)
 
-        cmd_str = f"runner {cmd_type or ''} {action or ''}".strip()
+        cmd_str = f"mod {cmd_type or ''} {action or ''}".strip()
         warn_user_error(f"Không tìm thấy mô tả cho lệnh: `{cmd_str}`")
 
     except ImportError:

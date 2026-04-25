@@ -1,8 +1,8 @@
 # Kiến trúc Code: `src/main.py`
 
-> **Project:** Runner Tool — công cụ CLI tự động hóa tác vụ phát triển trên Windows  
+> **Project:** Mod Tool — công cụ CLI tự động hóa tác vụ phát triển trên Windows  
 > **File phân tích:** `src/main.py` (509 dòng)  
-> **Entry point:** `runner.cmd` → gọi `py .../src/main.py %*`
+> **Entry point:** `mod.cmd` → gọi `py .../src/main.py %*`
 
 ---
 
@@ -14,7 +14,7 @@
 người dùng gõ lệnh
         │
         ▼
-  runner.cmd  (entry point)
+  mod.cmd  (entry point)
           │  py main.py <args>
         ▼
         src/main.py  ◄── file phân tích này
@@ -35,10 +35,10 @@ main.py
 │
 ├── [L1–8]    Imports & load .env
 ├── [L9–70]   Hằng số (Constants)
-│   ├── RUNNER_TYPE_*       (9 types)
-│   ├── RUNNER_*_ACTION_*   (actions cho mỗi type)
-│   ├── RUNNER_FLAG_*       (flag names)
-│   └── RUNNER_WARNING_*    (mã cảnh báo lỗi)
+│   ├── MOD_TYPE_*       (9 types)
+│   ├── MOD_*_ACTION_*   (actions cho mỗi type)
+│   ├── MOD_FLAG_*       (flag names)
+│   └── MOD_WARNING_*    (mã cảnh báo lỗi)
 ├── [L71–75]  Biến môi trường (từ .env)
 ├── [L79–381] Các hàm handler
 └── [L383–583] Khối __main__ (dispatcher chính)
@@ -51,89 +51,89 @@ main.py
 
 ## 3. Hệ thống hằng số (Constants)
 
-### 3.1 — Runner Types (9 loại lệnh chính)
+### 3.1 — Mod Types (9 loại lệnh chính)
 
 | Hằng số              | Giá trị    | Ý nghĩa                               |
 | -------------------- | ---------- | ------------------------------------- |
-| `RUNNER_TYPE_OPEN`   | `"open"`   | Mở file/thư mục trong System Explorer |
-| `RUNNER_TYPE_CODE`   | `"code"`   | Mở dự án trong IDE                    |
-| `RUNNER_TYPE_RUN`    | `"run"`    | Thực thi script/ứng dụng              |
-| `RUNNER_TYPE_EDIT`   | `"edit"`   | Mở/chỉnh sửa helper tiện ích          |
-| `RUNNER_TYPE_PRINT`  | `"print"`  | In thông tin ra terminal              |
-| `RUNNER_TYPE_GIT`    | `"git"`    | Thực hiện thao tác Git                |
-| `RUNNER_TYPE_GDRIVE` | `"gdrive"` | Thao tác với Google Drive qua rclone  |
-| `RUNNER_TYPE_INIT`   | `"init"`   | Khởi tạo môi trường                   |
-| `RUNNER_TYPE_PY`     | `"py"`     | Công cụ cho Python                    |
+| `MOD_TYPE_OPEN`   | `"open"`   | Mở file/thư mục trong System Explorer |
+| `MOD_TYPE_CODE`   | `"code"`   | Mở dự án trong IDE                    |
+| `MOD_TYPE_RUN`    | `"run"`    | Thực thi script/ứng dụng              |
+| `MOD_TYPE_EDIT`   | `"edit"`   | Mở/chỉnh sửa helper tiện ích          |
+| `MOD_TYPE_PRINT`  | `"print"`  | In thông tin ra terminal              |
+| `MOD_TYPE_GIT`    | `"git"`    | Thực hiện thao tác Git                |
+| `MOD_TYPE_GDRIVE` | `"gdrive"` | Thao tác với Google Drive qua rclone  |
+| `MOD_TYPE_INIT`   | `"init"`   | Khởi tạo môi trường                   |
+| `MOD_TYPE_PY`     | `"py"`     | Công cụ cho Python                    |
 
 ### 3.2 — Actions theo từng Type
 
 **`open` actions:**
 | Hằng số | Giá trị | Lệnh |
 |---|---|---|
-| `RUNNER_OPEN_ENV` | `"env"` | `runner open env` |
-| `RUNNER_OPEN_PROMPTS_FOLDER` | `"proms"` | `runner open proms` |
+| `MOD_OPEN_ENV` | `"env"` | `mod open env` |
+| `MOD_OPEN_PROMPTS_FOLDER` | `"proms"` | `mod open proms` |
 
 **`code` actions:**
 | Hằng số | Giá trị | Lệnh |
 |---|---|---|
-| `RUNNER_CODE_VSCODE_WORKSPACE` | `"ws"` | `runner code ws <value>` |
-| `RUNNER_CODE_TEST` | `"test"` | `runner code test` |
-| `RUNNER_CODE_TYPESCRIPT_TEMPLATE` | `"ts-template"` | `runner code ts-template` |
-| `RUNNER_CODE_JS` | `"js"` | `runner code js` |
-| `RUNNER_CODE_TS` | `"ts"` | `runner code ts` |
-| `RUNNER_CODE_NESTJS` | `"nestjs"` | `runner code nestjs` |
-| `RUNNER_CODE_PY` | `"py"` | `runner code py` |
-| `RUNNER_CODE_EXTENSIONS` | `"ext"` | `runner code ext` |
+| `MOD_CODE_VSCODE_WORKSPACE` | `"ws"` | `mod code ws <value>` |
+| `MOD_CODE_TEST` | `"test"` | `mod code test` |
+| `MOD_CODE_TYPESCRIPT_TEMPLATE` | `"ts-template"` | `mod code ts-template` |
+| `MOD_CODE_JS` | `"js"` | `mod code js` |
+| `MOD_CODE_TS` | `"ts"` | `mod code ts` |
+| `MOD_CODE_NESTJS` | `"nestjs"` | `mod code nestjs` |
+| `MOD_CODE_PY` | `"py"` | `mod code py` |
+| `MOD_CODE_EXTENSIONS` | `"ext"` | `mod code ext` |
 
 **`run` actions:**
 | Hằng số | Giá trị | Lệnh |
 |---|---|---|
-| `RUNNER_RUN_TEST_BAT` | `"test-bat"` | `runner run test-bat` |
-| `RUNNER_RUN_UNIKEY_APP` | `"unikey"` | `runner run unikey` |
-| `RUNNER_RUN_CREATE_FILES_IN_FOLDER` | `"cr-files"` | `runner run cr-files` |
-| `RUNNER_RUN_SET_DOWNLOAD_PATH_IN_CHROME` | `"dld-path"` | `runner run dld-path [<folder>]` |
-| `RUNNER_FORMAT_SUBTITLE_TXT_TO_SRT` | `"fm-sub"` | `runner run fm-sub <value>` |
-| `RUNNER_RENAME_FILES` | `"rn-files"` | `runner run rn-files <path> [<prefix>]` |
-| `RUNNER_DELETE_FILES` | `"del-files"` | `runner run del-files <path> <exts>` |
-| `RUNNER_KEEP_FILES` | `"keep-files"` | `runner run keep-files <path> <ext>` |
+| `MOD_RUN_TEST_BAT` | `"test-bat"` | `mod run test-bat` |
+| `MOD_RUN_UNIKEY_APP` | `"unikey"` | `mod run unikey` |
+| `MOD_RUN_CREATE_FILES_IN_FOLDER` | `"cr-files"` | `mod run cr-files` |
+| `MOD_RUN_SET_DOWNLOAD_PATH_IN_CHROME` | `"dld-path"` | `mod run dld-path [<folder>]` |
+| `MOD_FORMAT_SUBTITLE_TXT_TO_SRT` | `"fm-sub"` | `mod run fm-sub <value>` |
+| `MOD_RENAME_FILES` | `"rn-files"` | `mod run rn-files <path> [<prefix>]` |
+| `MOD_DELETE_FILES` | `"del-files"` | `mod run del-files <path> <exts>` |
+| `MOD_KEEP_FILES` | `"keep-files"` | `mod run keep-files <path> <ext>` |
 
 **`edit` actions:**
 | Hằng số | Giá trị | Lệnh |
 |---|---|---|
-| `RUNNER_EDIT_PROMPTS` | `"proms"` | `runner edit proms` |
-| `RUNNER_EDIT_TO_COMMAND` | `"to"` | `runner edit to` |
+| `MOD_EDIT_PROMPTS` | `"proms"` | `mod edit proms` |
+| `MOD_EDIT_TO_COMMAND` | `"to"` | `mod edit to` |
 
 **`git` actions:**
 | Hằng số | Giá trị | Lệnh |
 |---|---|---|
-| `RUNNER_GIT_COMMIT_AND_PUSH` | `"commit"` | `runner git commit -m "message"` |
+| `MOD_GIT_COMMIT_AND_PUSH` | `"commit"` | `mod git commit -m "message"` |
 
 **`print` actions:**
 | Hằng số | Giá trị | Lệnh |
 |---|---|---|
-| `RUNNER_PRINT_OS_INFO` | `"os"` | `runner print os` |
-| `RUNNER_PRINT_STATUSES_INFO` | `"stts"` | `runner print stts` |
-| `RUNNER_PRINT_VSCODE_WORKSPACES` | `"ws"` | `runner print ws` |
-| `RUNNER_PRINT_CURL` | `"curl"` | `runner print curl` |
-| `RUNNER_PRINT_DIRECTORY` | `"dir"` | `runner print dir` |
-| `RUNNER_PRINT_USEFUL_COMMANDS` | `"cmds"` | `runner print cmds` |
+| `MOD_PRINT_OS_INFO` | `"os"` | `mod print os` |
+| `MOD_PRINT_STATUSES_INFO` | `"stts"` | `mod print stts` |
+| `MOD_PRINT_VSCODE_WORKSPACES` | `"ws"` | `mod print ws` |
+| `MOD_PRINT_CURL` | `"curl"` | `mod print curl` |
+| `MOD_PRINT_DIRECTORY` | `"dir"` | `mod print dir` |
+| `MOD_PRINT_USEFUL_COMMANDS` | `"cmds"` | `mod print cmds` |
 
 ### 3.3 — Warning Codes (mã lỗi nội bộ)
 
 ```python
-RUNNER_WARNING_TYPE_WRONG    = "WRONG-TYPE"      # Type không tồn tại
-RUNNER_WARNING_TYPE_MISSING  = "MISSING-TYPE"    # Thiếu type
-RUNNER_WARNING_ACTION_WRONG  = "WRONG-ACTION"    # Action không tồn tại
-RUNNER_WARNING_ACTION_MISSING= "MISSING-ACTION"  # Thiếu action
-RUNNER_WARNING_FLAG_WRONG    = "WRONG-FLAG"      # Flag không hợp lệ
-RUNNER_WARNING_FLAG_MISSING  = "MISSING-FLAG"    # Thiếu flag
+MOD_WARNING_TYPE_WRONG    = "WRONG-TYPE"      # Type không tồn tại
+MOD_WARNING_TYPE_MISSING  = "MISSING-TYPE"    # Thiếu type
+MOD_WARNING_ACTION_WRONG  = "WRONG-ACTION"    # Action không tồn tại
+MOD_WARNING_ACTION_MISSING= "MISSING-ACTION"  # Thiếu action
+MOD_WARNING_FLAG_WRONG    = "WRONG-FLAG"      # Flag không hợp lệ
+MOD_WARNING_FLAG_MISSING  = "MISSING-FLAG"    # Thiếu flag
 ```
 
 ### 3.4 — Biến môi trường (đọc từ `.env`)
 
 | Biến                            | Mục đích                                         |
 | ------------------------------- | ------------------------------------------------ |
-| `ROOT_FOLDER_PATH`              | Đường dẫn gốc của runner project                 |
+| `ROOT_FOLDER_PATH`              | Đường dẫn gốc của mod project                 |
 | `USEFUL_CODES_FOLDER_PATH`      | Đường dẫn đến `src/useful-codes/`                |
 | `CONTENTS_FOLDER_PATH`          | Đường dẫn đến `src/contents/`                    |
 | `TEMPLATE_REPLACER_FOLDER_PATH` | Đường dẫn đến VSCode Extension Template Replacer |
@@ -164,7 +164,7 @@ Args     : gdrive_command (action) + value + extra + flags (-d, --file)
 
 ```
 Mục đích : Script lõi để in bất kỳ file .txt nào trong thư mục contents/
-Script   : system-codes/runner_print_content.py
+Script   : system-codes/mod_print_content.py
 Dùng bởi : print_help(), print_useful_commands()
 ```
 
@@ -197,7 +197,7 @@ In     : systeminfo, wmic cpu, ipconfig (Windows only)
 #### `print_statuses_info()` — L154
 
 ```
-Script : system-codes/runner_statuses.py
+Script : system-codes/mod_statuses.py
 In     : contents/statuses.txt
 ```
 
@@ -208,7 +208,7 @@ Script : useful-codes/print_vcnbat_folder.py
 In     : danh sách .code-workspace files
 ```
 
-#### `print_runner_files_root_dir()` — L125
+#### `print_mod_files_root_dir()` — L125
 
 ```
 In trực tiếp : os.path.dirname(os.path.abspath(__file__))
@@ -234,10 +234,10 @@ Lệnh : start <TEMPLATE_REPLACER_FOLDER_PATH>/Prompts
 Lệnh : start D:/D-Documents/VSCode-Workspaces
 ```
 
-#### `open_runner_file_in_system_folder()` — L149
+#### `open_mod_file_in_system_folder()` — L149
 
 ```
-Lệnh : start <RUNNER_ROOT_FOLDER>
+Lệnh : start <MOD_ROOT_FOLDER>
 ```
 
 ### 4.4 — Nhóm `code` (mở trong IDE)
@@ -253,10 +253,10 @@ Value  : "ptb" → Photobooth project
 Chức năng: Mở terminal tabs + IDE + Chrome tabs theo workspace preset
 ```
 
-#### `open_runner_files_in_vscode(ide_prefix)` — L223
+#### `open_mod_files_in_vscode(ide_prefix)` — L223
 
 ```
-Lệnh : <ide_prefix> <RUNNER_ROOT_FOLDER>
+Lệnh : <ide_prefix> <MOD_ROOT_FOLDER>
 ```
 
 #### `open_testing_folder_in_vscode(ide_prefix)` — L120
@@ -300,7 +300,7 @@ Lệnh : <ide_prefix> D:/D-Documents/Browser-Extensions
 #### `run_git_command(git_type, user_message)` — L134
 
 ```
-Script : system-codes/runner_git.py
+Script : system-codes/mod_git.py
 Hỗ trợ: "commit" → mở Windows Terminal tab mới, chạy:
          git add . && git commit -m "..." && git push origin main
 ```
@@ -310,7 +310,7 @@ Hỗ trợ: "commit" → mở Windows Terminal tab mới, chạy:
 #### `run_test_bat(*args)` — L233
 
 ```
-Script : src/runner_test.py (test file)
+Script : src/mod_test.py (test file)
 ```
 
 #### `run_Unikey_app()` — L251
@@ -424,7 +424,7 @@ argparse.parse_args()
         │     ──► gdrive_execute(action, *args)
         │
         ├─ type == "code"
-        │     None          ──► open_runner_files_in_vscode
+        │     None          ──► open_mod_files_in_vscode
         │     "ws"          ──► open_working_vscode(ide, value, ps_only)
         │     "test"        ──► open_testing_folder_in_vscode
         │     "ts-template" ──► open_typescript_template_in_cursor
@@ -452,7 +452,7 @@ argparse.parse_args()
         │     else          ──► raise WRONG-ACTION
         │
         ├─ type == "open"
-        │     None    ──► open_runner_files_in_vscode
+        │     None    ──► open_mod_files_in_vscode
         │     "env"   ──► open_environment_variables_panel()
         │     "proms" ──► open_prompts_folder()
         │     "ws"    ──► open_vscode_workspaces_in_system_folder()
@@ -461,7 +461,7 @@ argparse.parse_args()
         ├─ type == "print"
         │     "os"    ──► print_os_info()
         │     "ws"    ──► print_vscode_workspaces(...)
-        │     "dir"   ──► print_runner_files_root_dir()
+        │     "dir"   ──► print_mod_files_root_dir()
         │     "cmds"  ──► print_useful_commands()
         │     "curl"  ──► print_cURL()
         │     "stts"  ──► print_statuses_info()
@@ -496,8 +496,8 @@ default_ide_prefix = "anti" if antigravity_included else "code"
 
 Logic này cho phép chạy cùng lệnh nhưng mở trong IDE khác nhau:
 
-- `runner code ws ptb` → mở bằng VSCode (`code`)
-- `runner code ws ptb -a` → mở bằng Antigravity IDE (`anti`)
+- `mod code ws ptb` → mở bằng VSCode (`code`)
+- `mod code ws ptb -a` → mở bằng Antigravity IDE (`anti`)
 
 ### 5.4 — Xử lý lỗi
 
@@ -512,16 +512,16 @@ except Exception as e:
     sys.exit(1)
 ```
 
-Lỗi được raise qua `raise Exception(RUNNER_WARNING_*)` và được bắt ở cùng khối `try/except`.
+Lỗi được raise qua `raise Exception(MOD_WARNING_*)` và được bắt ở cùng khối `try/except`.
 
 ---
 
 ## 6. Kiến trúc hệ thống file đầy đủ
 
 ```
-runner/                             ← ROOT_FOLDER_PATH
+mod/                             ← ROOT_FOLDER_PATH
 ├── .env                            ← Config biến môi trường
-├── runner.cmd                      ← Entry point (gọi src/main.py)
+├── mod.cmd                      ← Entry point (gọi src/main.py)
 ├── requirements.txt                ← python-dotenv, PyYAML
 │
 └── src/
@@ -539,9 +539,9 @@ runner/                             ← ROOT_FOLDER_PATH
     │   └── statuses.txt            ← Mô tả các status code
     │
     ├── system-codes/               ← Scripts hệ thống nội bộ
-    │   ├── runner_git.py           ← Thực thi git commit/push qua Windows Terminal
-    │   ├── runner_print_content.py ← Đọc và in file từ contents/
-    │   └── runner_statuses.py      ← In statuses.txt
+    │   ├── mod_git.py           ← Thực thi git commit/push qua Windows Terminal
+    │   ├── mod_print_content.py ← Đọc và in file từ contents/
+    │   └── mod_statuses.py      ← In statuses.txt
     │
     └── useful-codes/               ← Scripts tiện ích mở rộng
       ├── open_main_ws.py         ← Mở workspace environment phức tạp
@@ -582,38 +582,38 @@ Toàn bộ routing dùng string constants thay vì hardcode string literal trong
 
 ### Pattern 4: Always Exit
 
-Mọi hàm handler đều kết thúc bằng `sys.exit(0)`. Nếu code "lọt" qua tất cả nhánh mà không exit, `RUNNER_STATUS` được set thành `"OUT-OF-MAIN-SECTION"` và exit code là 1.
+Mọi hàm handler đều kết thúc bằng `sys.exit(0)`. Nếu code "lọt" qua tất cả nhánh mà không exit, `MOD_STATUS` được set thành `"OUT-OF-MAIN-SECTION"` và exit code là 1.
 
 ---
 
 ## 8. Luồng thực thi ví dụ
 
-### Ví dụ 1: `runner git commit -m "fix bug"`
+### Ví dụ 1: `mod git commit -m "fix bug"`
 
 ```
-runner.cmd
+mod.cmd
   → py main.py git commit -m "fix bug"
   → argparse: type="git", action="commit", user_message="fix bug"
-  → type == RUNNER_TYPE_GIT
-  → action == RUNNER_GIT_COMMIT_AND_PUSH ✓
+  → type == MOD_TYPE_GIT
+  → action == MOD_GIT_COMMIT_AND_PUSH ✓
   → user_message = "fix bug" ✓ (không raise exception)
   → run_git_command("commit", "fix bug")
-    → subprocess.run(["python", "system-codes/runner_git.py", "commit", "fix bug"])
-      → runner_git.py nhận sys.argv = ["commit", "fix bug"]
+    → subprocess.run(["python", "system-codes/mod_git.py", "commit", "fix bug"])
+      → mod_git.py nhận sys.argv = ["commit", "fix bug"]
         → cmd = 'wt nt -d "<ROOT>" cmd /k "git add . && git commit -m \"fix bug\" && git push origin main"'
         → subprocess.run(cmd, shell=True)
   → sys.exit(0)
 ```
 
-### Ví dụ 2: `runner code ws ptb -a -p`
+### Ví dụ 2: `mod code ws ptb -a -p`
 
 ```
-runner.cmd
+mod.cmd
   → py main.py code ws ptb -a -p
   → argparse: type="code", action="ws", value="ptb", antigravity_IDE=True, powershell_only=True
   → default_ide_prefix = "anti"
-  → type == RUNNER_TYPE_CODE
-  → action == RUNNER_CODE_VSCODE_WORKSPACE
+  → type == MOD_TYPE_CODE
+  → action == MOD_CODE_VSCODE_WORKSPACE
   → open_working_vscode("anti", "ptb", True)
     → subprocess.run(["python", "useful-codes/open_main_ws.py", "anti", "ptb", "-p"])
       → open_main_ws.py: value="ptb" → open_working_workspace_photobooth("anti", powershell_only=True)
@@ -622,10 +622,10 @@ runner.cmd
   → sys.exit(0)
 ```
 
-### Ví dụ 3: `runner run del-files --des`
+### Ví dụ 3: `mod run del-files --des`
 
 ```
-runner.cmd
+mod.cmd
   → py main.py run del-files --des
   → argparse: type="run", action="del-files", des=True
   → args.des == True → print_feature_description("run", "del-files")
@@ -644,4 +644,4 @@ runner.cmd
 | **Windows-only**           | Tool phụ thuộc hoàn toàn vào Windows (`wt`, `rundll32`, `tasklist`, `start`)                                      |
 | **Shell=True**             | Nhiều subprocess dùng `shell=True` → tiềm ẩn rủi ro injection nếu input từ user không được sanitize               |
 | **sys.exit(0) pattern**    | Mọi handler đều exit ngay sau khi chạy — không có cơ chế callback hay chain lệnh                                  |
-| **`RUNNER_STATUS` global** | Biến `RUNNER_STATUS` được khai báo global nhưng chỉ được dùng ở cuối để detect "out of flow"                      |
+| **`MOD_STATUS` global** | Biến `MOD_STATUS` được khai báo global nhưng chỉ được dùng ở cuối để detect "out of flow"                      |

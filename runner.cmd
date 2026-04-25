@@ -1,1 +1,0 @@
-py D:/D-Documents/TOOLs/runner/src/main.py %*

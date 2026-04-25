@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path="D:/D-Documents/TOOLs/runner/.env")
+load_dotenv(dotenv_path="D:/D-Documents/TOOLs/mod/.env")
 
 CONTENTS_FOLDER_PATH = os.getenv("CONTENTS_FOLDER_PATH")
 statuses_file = rf"{CONTENTS_FOLDER_PATH}/statuses.txt"

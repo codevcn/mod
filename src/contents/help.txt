@@ -2,10 +2,10 @@
 # Update at 20/04/2026
 # Repo Link: https://github.com/codevcn/tools-box.git
 ===========================================
-# Help for runner command:
+# Help for mod command:
 
 # Usage:
-runner [[-h] | <type> <action> [<value> [<extra>]] [-m "message"] [-a] [-p] [--des] [-d] [--file]]
+mod [[-h] | <type> <action> [<value> [<extra>]] [-m "message"] [-a] [-p] [--des] [-d] [--file]]
 
 # Available flags:
 -h, --help        :print this help.
@@ -29,12 +29,12 @@ py                :to run python helpers.
 
 # Available actions:
 ## open:
-                  :open runner files in vscode.
+                  :open mod files in vscode.
    ws             :open working workspaces in system folder.
    env            :open enviroment variables in system folder.
    proms          :open prompts folder in system folder (Template Replacer Extension).
 ## code:
-                  :open runner files in vscode.
+                  :open mod files in vscode.
    test           :open testing folder in vscode.
    ws             :open working workspace in vscode and cd to working folder in CLI.
    ts-template    :open typescript template in vscode.
@@ -49,32 +49,32 @@ py                :to run python helpers.
 ## git:
    commit         :add all files and commit with a message and push with upstream.
 ## run:
-   test-bat       :run runner smoke test script.
+   test-bat       :run mod smoke test script.
    unikey         :run unikey.
    cr-files       :create files in standing folder in CLI.
    dld-path       :set download path in Chrome.
    fm-sub         :format subtitle txt file to srt file.
    rn-files       :rename files in specified folder with specified prefix.
-                  // Example: runner run rn-files "D:/D-Documents/Làm về TikTok" "tiktok"
+                  // Example: mod run rn-files "D:/D-Documents/Làm về TikTok" "tiktok"
    del-files      :delete files in specified folder with specified extensions (comma-separated).
-                  // Example: runner run del-files "D:/D-Documents/Làm về TikTok" "txt,jpg,png"
+                  // Example: mod run del-files "D:/D-Documents/Làm về TikTok" "txt,jpg,png"
    keep-files     :keep files in specified folder with specified extension, delete others.
-                  // Example: runner run keep-files "D:/D-Documents/Làm về TikTok" "png"
+                  // Example: mod run keep-files "D:/D-Documents/Làm về TikTok" "png"
    gen-qr         :generate QR code image from input data.
-                  // Example: runner run gen-qr
+                  // Example: mod run gen-qr
 ## print:
    os             :print OS info.
-   stts           :print runner-status description.
+   stts           :print mod-status description.
    ws             :print the folder vscode workspace.
    curl           :print CRUD of cURL command.
-   dir            :print path of runner folder in system.
+   dir            :print path of mod folder in system.
    cmds           :print some useful commands.
 
 ## gdrive:
    sync           :sync a local folder to a gdrive folder.
-                  // Example: runner gdrive sync "D:/D-Documents/tool" "mac_sync/tool"
+                  // Example: mod gdrive sync "D:/D-Documents/tool" "mac_sync/tool"
    list           :list folders on gdrive remote. Use -d for deep recursive listing, --file for files.
-                  // Example: runner gdrive list "mac_sync" -d
+                  // Example: mod gdrive list "mac_sync" -d
    remote         :print selected remote info.
    del-fd         :delete a folder on gdrive remote.
    url            :get share URL for a remote path.
@@ -88,8 +88,8 @@ py                :to run python helpers.
    env            :setup python venv in current project.
 
 # Example:
-The command `runner open ws` will open the working workspaces in system folder.
-The command `runner run rn-files "D:/D-Documents/Làm về TikTok" "tiktok"` will rename files with prefix "tiktok" in folder "D:/D-Documents/Làm về TikTok".
-The command `runner git commit -m "update git command"` will execute git add all files and commit with a message and push with upstream.
-The command `runner run del-files --des` will print description of del-files command.
+The command `mod open ws` will open the working workspaces in system folder.
+The command `mod run rn-files "D:/D-Documents/Làm về TikTok" "tiktok"` will rename files with prefix "tiktok" in folder "D:/D-Documents/Làm về TikTok".
+The command `mod git commit -m "update git command"` will execute git add all files and commit with a message and push with upstream.
+The command `mod run del-files --des` will print description of del-files command.
 ===========================================

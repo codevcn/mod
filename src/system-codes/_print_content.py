@@ -7,7 +7,7 @@ if not content_filename:
     print(">>> Error: No content filename provided.")
     sys.exit(1)
 
-load_dotenv(dotenv_path="D:/D-Documents/TOOLs/runner/.env")
+load_dotenv(dotenv_path="D:/D-Documents/TOOLs/mod/.env")
 CONTENTS_FOLDER_PATH = os.getenv("CONTENTS_FOLDER_PATH")
 help_file = f"{CONTENTS_FOLDER_PATH}/{content_filename}"
 

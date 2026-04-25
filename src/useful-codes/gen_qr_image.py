@@ -4,13 +4,13 @@ import os
 from datetime import datetime
 
 # Tải biến môi trường
-load_dotenv(dotenv_path="D:/D-Documents/TOOLs/runner/.env")
+load_dotenv(dotenv_path="D:/D-Documents/TOOLs/mod/.env")
 
 # Lấy giá trị và kiểm tra kiểu dữ liệu
-data_folder_path = os.getenv("RUNNER_APPDATA_FOLDER_PATH")
+data_folder_path = os.getenv("MOD_APPDATA_FOLDER_PATH")
 
 if data_folder_path is None:
-    print("Cảnh báo: Không tìm thấy RUNNER_APPDATA_FOLDER_PATH trong tệp .env")
+    print("Cảnh báo: Không tìm thấy MOD_APPDATA_FOLDER_PATH trong tệp .env")
 else:
     link = input("Nhập text cần tạo QR: ").strip()
 

@@ -4,9 +4,9 @@ import os
 import json
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path="D:/D-Documents/TOOLs/runner/.env")
+load_dotenv(dotenv_path="D:/D-Documents/TOOLs/mod/.env")
 
-RUNNER_USEFUL_CODES_FOLDER_PATH = os.getenv("USEFUL_CODES_FOLDER_PATH")
+MOD_USEFUL_CODES_FOLDER_PATH = os.getenv("USEFUL_CODES_FOLDER_PATH")
 
 GDRIVE_ACTION_SYNC = "sync"
 GDRIVE_ACTION_GUIDE = "guide"
@@ -71,7 +71,7 @@ def run_setup_flow():
         "# Chỉ cần làm bước này lần đầu tiên, những lần sau hệ thống sẽ tự động sử dụng cấu hình đã lưu."
     )
     print("# Tùy chọn:")
-    print("  - Chạy lệnh 'runner gdrive guide' để xem hướng dẫn cấp quyền truy cập")
+    print("  - Chạy lệnh 'mod gdrive guide' để xem hướng dẫn cấp quyền truy cập")
     print("-" * 50)
 
     try:
@@ -264,7 +264,7 @@ def list_directories(target_path, remote_name, is_deep=False, is_file=False):
 
 def display_auth_guide():
     subprocess.Popen(
-        ["notepad", f"{RUNNER_USEFUL_CODES_FOLDER_PATH}/sync-to-gdrive/AUTH_GUIDE.txt"],
+        ["notepad", f"{MOD_USEFUL_CODES_FOLDER_PATH}/sync-to-gdrive/AUTH_GUIDE.txt"],
         shell=True,
     )
     sys.exit(0)
@@ -480,7 +480,7 @@ def switch_actions():
     elif action == GDRIVE_ACTION_DEL_FD:
         target_path = sys.argv[2] if len(sys.argv) > 2 else ""
         if not target_path:
-            print("Cú pháp: runner gdrive del-fd <tên_thư_mục_trên_remote>")
+            print("Cú pháp: mod gdrive del-fd <tên_thư_mục_trên_remote>")
             sys.exit(1)
 
         rclone_remote = load_remote_name()
@@ -498,7 +498,7 @@ def switch_actions():
     elif action == GDRIVE_ACTION_URL:
         target_path = sys.argv[2] if len(sys.argv) > 2 else ""
         if not target_path:
-            print("Cú pháp: runner gdrive url <đường_dẫn_trên_remote>")
+            print("Cú pháp: mod gdrive url <đường_dẫn_trên_remote>")
             sys.exit(1)
 
         rclone_remote = load_remote_name()

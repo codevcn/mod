@@ -4,76 +4,76 @@ import subprocess
 import sys
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path="D:/D-Documents/TOOLs/runner/.env")
+load_dotenv(dotenv_path="D:/D-Documents/TOOLs/mod/.env")
 
 # --- Static parameters (constants) ---
-RUNNER_STATUS = "OK"
-RUNNER_TYPE_OPEN = "open"
-RUNNER_TYPE_CODE = "code"
-RUNNER_TYPE_RUN = "run"
-RUNNER_TYPE_PRINT = "print"
-RUNNER_TYPE_GIT = "git"
-RUNNER_TYPE_GDRIVE = "gdrive"
-RUNNER_TYPE_INIT = "init"
-RUNNER_TYPE_PY = "py"
-RUNNER_TYPE_EDIT = "edit"
+MOD_STATUS = "OK"
+MOD_TYPE_OPEN = "open"
+MOD_TYPE_CODE = "code"
+MOD_TYPE_RUN = "run"
+MOD_TYPE_PRINT = "print"
+MOD_TYPE_GIT = "git"
+MOD_TYPE_GDRIVE = "gdrive"
+MOD_TYPE_INIT = "init"
+MOD_TYPE_PY = "py"
+MOD_TYPE_EDIT = "edit"
 
 # --- Actions ---
 # open
-RUNNER_OPEN_ENV = "env"
-RUNNER_OPEN_PROMPTS_FOLDER = "proms"
+MOD_OPEN_ENV = "env"
+MOD_OPEN_PROMPTS_FOLDER = "proms"
 # code
-RUNNER_CODE_VSCODE_WORKSPACE = "ws"
-RUNNER_CODE_TEST = "test"
-RUNNER_CODE_TYPESCRIPT_TEMPLATE = "ts-template"
-RUNNER_CODE_JS = "js"
-RUNNER_CODE_TS = "ts"
-RUNNER_CODE_NESTJS = "nestjs"
-RUNNER_CODE_PY = "py"
-RUNNER_CODE_EXTENSIONS = "ext"
+MOD_CODE_VSCODE_WORKSPACE = "ws"
+MOD_CODE_TEST = "test"
+MOD_CODE_TYPESCRIPT_TEMPLATE = "ts-template"
+MOD_CODE_JS = "js"
+MOD_CODE_TS = "ts"
+MOD_CODE_NESTJS = "nestjs"
+MOD_CODE_PY = "py"
+MOD_CODE_EXTENSIONS = "ext"
 # run
-RUNNER_RUN_TEST_BAT = "test-bat"
-RUNNER_RUN_UNIKEY_APP = "unikey"
-RUNNER_RUN_CREATE_FILES_IN_FOLDER = "cr-files"
-RUNNER_RUN_SET_DOWNLOAD_PATH_IN_CHROME = "dld-path"
-RUNNER_FORMAT_SUBTITLE_TXT_TO_SRT = "fm-sub"
-RUNNER_RENAME_FILES = "rn-files"
-RUNNER_DELETE_FILES = "del-files"
-RUNNER_KEEP_FILES = "keep-files"
-RUNNER_GEN_QR_IMAGE = "gen-qr"
+MOD_RUN_TEST_BAT = "test-bat"
+MOD_RUN_UNIKEY_APP = "unikey"
+MOD_RUN_CREATE_FILES_IN_FOLDER = "cr-files"
+MOD_RUN_SET_DOWNLOAD_PATH_IN_CHROME = "dld-path"
+MOD_FORMAT_SUBTITLE_TXT_TO_SRT = "fm-sub"
+MOD_RENAME_FILES = "rn-files"
+MOD_DELETE_FILES = "del-files"
+MOD_KEEP_FILES = "keep-files"
+MOD_GEN_QR_IMAGE = "gen-qr"
 # edit
-RUNNER_EDIT_PROMPTS = "proms"
-RUNNER_EDIT_TO_COMMAND = "to"
+MOD_EDIT_PROMPTS = "proms"
+MOD_EDIT_TO_COMMAND = "to"
 # git
-RUNNER_GIT_COMMIT_AND_PUSH = "commit"
+MOD_GIT_COMMIT_AND_PUSH = "commit"
 # print
-RUNNER_PRINT_OS_INFO = "os"
-RUNNER_PRINT_STATUSES_INFO = "stts"
-RUNNER_PRINT_VSCODE_WORKSPACES = "ws"
-RUNNER_PRINT_CURL = "curl"
-RUNNER_PRINT_DIRECTORY = "dir"
-RUNNER_PRINT_USEFUL_COMMANDS = "cmds"
+MOD_PRINT_OS_INFO = "os"
+MOD_PRINT_STATUSES_INFO = "stts"
+MOD_PRINT_VSCODE_WORKSPACES = "ws"
+MOD_PRINT_CURL = "curl"
+MOD_PRINT_DIRECTORY = "dir"
+MOD_PRINT_USEFUL_COMMANDS = "cmds"
 # py
-RUNNER_PY_ENV = "env"
+MOD_PY_ENV = "env"
 
-RUNNER_FLAG_H = "-h"
-RUNNER_FLAG_M = "-m"
-RUNNER_FLAG_V = "-v"
-RUNNER_FLAG_C = "-c"
-RUNNER_FLAG_CURSOR = "--cursor"
-RUNNER_FLAG_HELP = "--help"
-RUNNER_FLAG_MESSAGE = "--message"
-RUNNER_FLAG_VALUE = "--value"
+MOD_FLAG_H = "-h"
+MOD_FLAG_M = "-m"
+MOD_FLAG_V = "-v"
+MOD_FLAG_C = "-c"
+MOD_FLAG_CURSOR = "--cursor"
+MOD_FLAG_HELP = "--help"
+MOD_FLAG_MESSAGE = "--message"
+MOD_FLAG_VALUE = "--value"
 
-RUNNER_WARNING_TYPE_WRONG = "WRONG-TYPE"
-RUNNER_WARNING_TYPE_MISSING = "MISSING-TYPE"
-RUNNER_WARNING_ACTION_WRONG = "WRONG-ACTION"
-RUNNER_WARNING_ACTION_MISSING = "MISSING-ACTION"
-RUNNER_WARNING_FLAG_WRONG = "WRONG-FLAG"
-RUNNER_WARNING_FLAG_MISSING = "MISSING-FLAG"
+MOD_WARNING_TYPE_WRONG = "WRONG-TYPE"
+MOD_WARNING_TYPE_MISSING = "MISSING-TYPE"
+MOD_WARNING_ACTION_WRONG = "WRONG-ACTION"
+MOD_WARNING_ACTION_MISSING = "MISSING-ACTION"
+MOD_WARNING_FLAG_WRONG = "WRONG-FLAG"
+MOD_WARNING_FLAG_MISSING = "MISSING-FLAG"
 
-RUNNER_ROOT_FOLDER = os.getenv("ROOT_FOLDER_PATH")
-RUNNER_USEFUL_CODES_FOLDER_PATH = os.getenv("USEFUL_CODES_FOLDER_PATH") or ""
+MOD_ROOT_FOLDER = os.getenv("ROOT_FOLDER_PATH")
+MOD_USEFUL_CODES_FOLDER_PATH = os.getenv("USEFUL_CODES_FOLDER_PATH") or ""
 
 TEMPLATE_REPLACER_FOLDER_PATH = os.getenv("TEMPLATE_REPLACER_FOLDER_PATH") or ""
 
@@ -83,7 +83,7 @@ TEMPLATE_REPLACER_FOLDER_PATH = os.getenv("TEMPLATE_REPLACER_FOLDER_PATH") or ""
 def gdrive_execute(gdrive_command, *args):
     cmd_args = [
         "python",
-        f"{RUNNER_USEFUL_CODES_FOLDER_PATH}/sync-to-gdrive/sync_to_gdrive.py",
+        f"{MOD_USEFUL_CODES_FOLDER_PATH}/sync-to-gdrive/sync_to_gdrive.py",
     ]
     if gdrive_command is not None:
         cmd_args.append(gdrive_command)
@@ -101,7 +101,7 @@ def print_content(content_filename):
     subprocess.run(
         [
             "python",
-            f"{RUNNER_ROOT_FOLDER}/src/system-codes/runner_print_content.py",
+            f"{MOD_ROOT_FOLDER}/src/system-codes/_print_content.py",
             content_filename,
         ],
         check=True,
@@ -116,7 +116,7 @@ def open_vscode_extensions_in_vscode(ide_prefix):
 
 
 def warn_user_error(warning_message: str):
-    global RUNNER_STATUS
+    global MOD_STATUS
     print(">>> Warn: " + warning_message)
     sys.exit(0)
 
@@ -126,7 +126,7 @@ def open_testing_folder_in_vscode(ide_prefix):
     sys.exit(0)
 
 
-def print_runner_files_root_dir():
+def print_mod_files_root_dir():
     print(os.path.dirname(os.path.abspath(__file__)))
     sys.exit(0)
 
@@ -138,7 +138,7 @@ def print_useful_commands():
 def run_git_command(git_type, user_message=None):
     args = [
         "python",
-        f"{RUNNER_ROOT_FOLDER}/src/system-codes/runner_git.py",
+        f"{MOD_ROOT_FOLDER}/src/system-codes/_git.py",
         git_type,
     ]
     if user_message:
@@ -150,14 +150,27 @@ def run_git_command(git_type, user_message=None):
     sys.exit(result.returncode)
 
 
-def open_runner_file_in_system_folder():
-    subprocess.run(["start", f"{RUNNER_ROOT_FOLDER}"], shell=True)
+def open_mod_file_in_system_folder():
+    # Lấy đường dẫn, nếu MOD_ROOT_FOLDER không tồn tại thì lấy thư mục chứa file main.py hiện tại
+    folder_path = (
+        MOD_ROOT_FOLDER
+        if MOD_ROOT_FOLDER
+        else os.path.dirname(os.path.abspath(__file__))
+    )
+
+    # Sử dụng os.startfile (cách chuẩn nhất trên Windows để mở thư mục/file bằng app mặc định)
+    if hasattr(os, "startfile"):
+        os.startfile(folder_path)
+    else:
+        # Dự phòng gọi thẳng explorer
+        subprocess.run(["explorer", os.path.normpath(folder_path)])
+
     sys.exit(0)
 
 
 def print_statuses_info():
     subprocess.run(
-        ["python", f"{RUNNER_ROOT_FOLDER}/src/system-codes/runner_statuses.py"],
+        ["python", f"{MOD_ROOT_FOLDER}/src/system-codes/_statuses.py"],
         check=True,
         shell=True,
     )
@@ -170,7 +183,7 @@ def print_help():
 
 def print_cURL():
     subprocess.run(
-        ["python", f"{RUNNER_ROOT_FOLDER}/src/useful-codes/print_cURL.py"],
+        ["python", f"{MOD_ROOT_FOLDER}/src/useful-codes/print_cURL.py"],
         check=True,
         shell=True,
     )
@@ -197,7 +210,7 @@ def open_working_vscode(ide_prefix: str, value: str, powershell_only=False):
         raise Exception("IDE prefix is missing.")
     cmd_args = [
         "python",
-        f"{RUNNER_ROOT_FOLDER}/src/useful-codes/open_main_ws.py",
+        f"{MOD_ROOT_FOLDER}/src/useful-codes/open_main_ws.py",
         ide_prefix,
     ]
     if value:
@@ -216,7 +229,7 @@ def print_vscode_workspaces(workspace_path):
     subprocess.run(
         [
             "python",
-            os.path.join(RUNNER_USEFUL_CODES_FOLDER_PATH, "print_vcnbat_folder.py"),
+            os.path.join(MOD_USEFUL_CODES_FOLDER_PATH, "print_vcnbat_folder.py"),
             workspace_path,
         ],
         check=True,
@@ -224,8 +237,8 @@ def print_vscode_workspaces(workspace_path):
     sys.exit(0)
 
 
-def open_runner_files_in_vscode(ide_prefix):
-    subprocess.run([ide_prefix, f"{RUNNER_ROOT_FOLDER}"], shell=True)
+def open_mod_files_in_vscode(ide_prefix):
+    subprocess.run([ide_prefix, f"{MOD_ROOT_FOLDER}"], shell=True)
     sys.exit(0)
 
 
@@ -236,7 +249,7 @@ def open_template_nestjs_folder_in_vscode(ide_prefix):
 
 def run_test_bat(*args):
     subprocess.run(
-        ["python", f"{RUNNER_ROOT_FOLDER}/src/runner_test.py"] + list(args),
+        ["python", f"{MOD_ROOT_FOLDER}/src/mod_test.py"] + list(args),
         check=True,
         shell=True,
     )
@@ -245,7 +258,7 @@ def run_test_bat(*args):
 
 def print_os_info():
     subprocess.run(
-        ["python", f"{RUNNER_ROOT_FOLDER}/src/useful-codes/print_os_info.py"],
+        ["python", f"{MOD_ROOT_FOLDER}/src/useful-codes/print_os_info.py"],
         check=True,
         shell=True,
     )
@@ -276,7 +289,7 @@ def open_testing_python_folder_in_vscode(ide_prefix):
 
 def create_files_in_folder():
     subprocess.run(
-        ["py", f"{RUNNER_USEFUL_CODES_FOLDER_PATH}/create_files_in_folder.py"],
+        ["py", f"{MOD_USEFUL_CODES_FOLDER_PATH}/create_files_in_folder.py"],
         shell=True,
     )
     sys.exit(0)
@@ -285,7 +298,7 @@ def create_files_in_folder():
 def set_download_path_in_chrome(folder_name: str | None = None):
     cmd_args = [
         "py",
-        f"{RUNNER_USEFUL_CODES_FOLDER_PATH}/set_download_path_in_chrome.py",
+        f"{MOD_USEFUL_CODES_FOLDER_PATH}/set_download_path_in_chrome.py",
     ]
     if folder_name:
         cmd_args.append(folder_name)
@@ -297,7 +310,7 @@ def convert_txt_to_srt(value):
     subprocess.run(
         [
             "py",
-            f"{RUNNER_USEFUL_CODES_FOLDER_PATH}/sub-youtube-video/format_subtitle_txt_to_srt.py",
+            f"{MOD_USEFUL_CODES_FOLDER_PATH}/sub-youtube-video/format_subtitle_txt_to_srt.py",
             value,
         ],
         shell=True,
@@ -316,7 +329,7 @@ def edit_prompts():
 def rename_files(folder_path: str | None = None, prefix: str | None = None):
     cmd_args = [
         "py",
-        f"{RUNNER_USEFUL_CODES_FOLDER_PATH}/rename_files.py",
+        f"{MOD_USEFUL_CODES_FOLDER_PATH}/rename_files.py",
     ]
     if folder_path:
         cmd_args.append(folder_path)
@@ -329,7 +342,7 @@ def rename_files(folder_path: str | None = None, prefix: str | None = None):
 def delete_files(folder_path: str | None = None, ext_list: str | None = None):
     cmd_args = [
         "py",
-        f"{RUNNER_USEFUL_CODES_FOLDER_PATH}/delete_files.py",
+        f"{MOD_USEFUL_CODES_FOLDER_PATH}/delete_files.py",
     ]
     if folder_path:
         cmd_args.append(folder_path)
@@ -342,7 +355,7 @@ def delete_files(folder_path: str | None = None, ext_list: str | None = None):
 def keep_files(folder_path: str | None = None, ext: str | None = None):
     cmd_args = [
         "py",
-        f"{RUNNER_USEFUL_CODES_FOLDER_PATH}/keep_files_with_ext.py",
+        f"{MOD_USEFUL_CODES_FOLDER_PATH}/keep_files_with_ext.py",
     ]
     if folder_path:
         cmd_args.append(folder_path)
@@ -355,7 +368,7 @@ def keep_files(folder_path: str | None = None, ext: str | None = None):
 def print_feature_description(cmd_type: str | None, action: str | None):
     cmd_args = [
         "python",
-        f"{RUNNER_USEFUL_CODES_FOLDER_PATH}/print_feature_description.py",
+        f"{MOD_USEFUL_CODES_FOLDER_PATH}/print_feature_description.py",
     ]
     if cmd_type:
         cmd_args.extend(["--type", cmd_type])
@@ -368,7 +381,7 @@ def print_feature_description(cmd_type: str | None, action: str | None):
 
 def cmd_init():
     subprocess.run(
-        [f"{RUNNER_ROOT_FOLDER}/src/cmd/init.cmd"],
+        [f"{MOD_ROOT_FOLDER}/src/cmd/init.cmd"],
         shell=True,
     )
     sys.exit(0)
@@ -377,7 +390,7 @@ def cmd_init():
 def py_setup_venv():
     cmd_args = [
         "python",
-        f"{RUNNER_USEFUL_CODES_FOLDER_PATH}/setup_venv_in_project.py",
+        f"{MOD_USEFUL_CODES_FOLDER_PATH}/setup_venv_in_project.py",
     ]
 
     subprocess.run(cmd_args, shell=True)
@@ -387,7 +400,7 @@ def py_setup_venv():
 def edit_to_command():
     cmd_args = [
         "python",
-        f"{RUNNER_USEFUL_CODES_FOLDER_PATH}/edit_to_command.py",
+        f"{MOD_USEFUL_CODES_FOLDER_PATH}/edit_to_command.py",
     ]
     subprocess.run(cmd_args, shell=True)
     sys.exit(0)
@@ -396,7 +409,7 @@ def edit_to_command():
 def gen_qr_image():
     cmd_args = [
         "python",
-        f"{RUNNER_USEFUL_CODES_FOLDER_PATH}/gen_qr_image.py",
+        f"{MOD_USEFUL_CODES_FOLDER_PATH}/gen_qr_image.py",
     ]
     subprocess.run(cmd_args, shell=True)
     sys.exit(0)
@@ -407,7 +420,7 @@ def gen_qr_image():
 if __name__ == "__main__":
     try:
         parser = argparse.ArgumentParser(
-            description="runner (Python version) - Command line tool for automating tasks."
+            description="mod (Python version) - Command line tool for automating tasks."
         )
         parser.add_argument(
             "type", nargs="?", default=None, help="Type (open, code, run, print, git)"
@@ -470,7 +483,7 @@ if __name__ == "__main__":
             "--file",
             default=False,
             action="store_true",
-            help="List files instead of folders (for gdrive list)",
+            help="List files instead of folders (for gdrive list) or open app folder in File Explorer (for open)",
         )
         args = parser.parse_args()
 
@@ -494,115 +507,118 @@ if __name__ == "__main__":
             if action_included == None:
                 print_help()
             else:
-                raise Exception(RUNNER_WARNING_TYPE_MISSING)
-        elif type_included == RUNNER_TYPE_EDIT:
-            if action_included == RUNNER_EDIT_PROMPTS:
+                raise Exception(MOD_WARNING_TYPE_MISSING)
+        elif type_included == MOD_TYPE_EDIT:
+            if action_included == MOD_EDIT_PROMPTS:
                 edit_prompts()
-            elif action_included == RUNNER_EDIT_TO_COMMAND:
+            elif action_included == MOD_EDIT_TO_COMMAND:
                 edit_to_command()
             else:
-                raise Exception(RUNNER_WARNING_ACTION_MISSING)
-        elif type_included == RUNNER_TYPE_PY:
-            if action_included == RUNNER_PY_ENV:
+                raise Exception(MOD_WARNING_ACTION_MISSING)
+        elif type_included == MOD_TYPE_PY:
+            if action_included == MOD_PY_ENV:
                 py_setup_venv()
             else:
-                raise Exception(RUNNER_WARNING_ACTION_MISSING)
-        elif type_included == RUNNER_TYPE_INIT:
+                raise Exception(MOD_WARNING_ACTION_MISSING)
+        elif type_included == MOD_TYPE_INIT:
             cmd_init()
-        elif type_included == RUNNER_TYPE_GDRIVE:
+        elif type_included == MOD_TYPE_GDRIVE:
             gdrive_args = [value_included, extra_included]
             if deep_included:
                 gdrive_args.append("-d")
             if file_included:
                 gdrive_args.append("--file")
             gdrive_execute(action_included, *gdrive_args)
-        elif type_included == RUNNER_TYPE_CODE:
+        elif type_included == MOD_TYPE_CODE:
             if action_included == None:
-                open_runner_files_in_vscode(default_ide_prefix)
-            elif action_included == RUNNER_CODE_VSCODE_WORKSPACE:
+                open_mod_files_in_vscode(default_ide_prefix)
+            elif action_included == MOD_CODE_VSCODE_WORKSPACE:
                 open_working_vscode(
                     default_ide_prefix,
                     value_included,
                     powershell_only_included,
                 )
-            elif action_included == RUNNER_CODE_TEST:
+            elif action_included == MOD_CODE_TEST:
                 open_testing_folder_in_vscode(default_ide_prefix)
-            elif action_included == RUNNER_CODE_TYPESCRIPT_TEMPLATE:
+            elif action_included == MOD_CODE_TYPESCRIPT_TEMPLATE:
                 open_typescript_template_in_cursor(default_ide_prefix)
-            elif action_included == RUNNER_CODE_JS or action_included == RUNNER_CODE_TS:
+            elif action_included == MOD_CODE_JS or action_included == MOD_CODE_TS:
                 open_testing_javascript_typescript_folder_in_vscode(default_ide_prefix)
-            elif action_included == RUNNER_CODE_NESTJS:
+            elif action_included == MOD_CODE_NESTJS:
                 open_template_nestjs_folder_in_vscode(default_ide_prefix)
-            elif action_included == RUNNER_CODE_PY:
+            elif action_included == MOD_CODE_PY:
                 open_testing_python_folder_in_vscode(default_ide_prefix)
-            elif action_included == RUNNER_CODE_EXTENSIONS:
+            elif action_included == MOD_CODE_EXTENSIONS:
                 open_vscode_extensions_in_vscode(default_ide_prefix)
             else:
-                raise Exception(RUNNER_WARNING_ACTION_WRONG)
-        elif type_included == RUNNER_TYPE_GIT:
-            if action_included == RUNNER_GIT_COMMIT_AND_PUSH:
+                raise Exception(MOD_WARNING_ACTION_WRONG)
+        elif type_included == MOD_TYPE_GIT:
+            if action_included == MOD_GIT_COMMIT_AND_PUSH:
                 if not user_message_included:
                     raise Exception("Missing commit message (use -m or --message)")
             if not action_included:
-                raise Exception(RUNNER_WARNING_ACTION_MISSING)
+                raise Exception(MOD_WARNING_ACTION_MISSING)
             run_git_command(action_included, user_message_included)
-        elif type_included == RUNNER_TYPE_RUN:
-            if action_included == RUNNER_RUN_TEST_BAT:
+        elif type_included == MOD_TYPE_RUN:
+            if action_included == MOD_RUN_TEST_BAT:
                 run_test_bat()
-            elif action_included == RUNNER_RUN_UNIKEY_APP:
+            elif action_included == MOD_RUN_UNIKEY_APP:
                 run_Unikey_app()
-            elif action_included == RUNNER_RUN_CREATE_FILES_IN_FOLDER:
+            elif action_included == MOD_RUN_CREATE_FILES_IN_FOLDER:
                 create_files_in_folder()
-            elif action_included == RUNNER_RUN_SET_DOWNLOAD_PATH_IN_CHROME:
+            elif action_included == MOD_RUN_SET_DOWNLOAD_PATH_IN_CHROME:
                 set_download_path_in_chrome(value_included)
-            elif action_included == RUNNER_FORMAT_SUBTITLE_TXT_TO_SRT:
+            elif action_included == MOD_FORMAT_SUBTITLE_TXT_TO_SRT:
                 convert_txt_to_srt(value_included)
-            elif action_included == RUNNER_RENAME_FILES:
+            elif action_included == MOD_RENAME_FILES:
                 rename_files(value_included, extra_included)
-            elif action_included == RUNNER_DELETE_FILES:
+            elif action_included == MOD_DELETE_FILES:
                 delete_files(value_included, extra_included)
-            elif action_included == RUNNER_KEEP_FILES:
+            elif action_included == MOD_KEEP_FILES:
                 keep_files(value_included, extra_included)
-            elif action_included == RUNNER_GEN_QR_IMAGE:
+            elif action_included == MOD_GEN_QR_IMAGE:
                 gen_qr_image()
             elif action_included == None:
-                raise Exception(RUNNER_WARNING_ACTION_MISSING)
+                raise Exception(MOD_WARNING_ACTION_MISSING)
             else:
-                raise Exception(RUNNER_WARNING_ACTION_WRONG)
-        elif type_included == RUNNER_TYPE_OPEN:
+                raise Exception(MOD_WARNING_ACTION_WRONG)
+        elif type_included == MOD_TYPE_OPEN:
             if action_included == None:
-                open_runner_files_in_vscode(default_ide_prefix)
-            elif action_included == RUNNER_OPEN_ENV:
+                if file_included:
+                    open_mod_file_in_system_folder()
+                else:
+                    open_mod_files_in_vscode(default_ide_prefix)
+            elif action_included == MOD_OPEN_ENV:
                 open_environment_variables_panel()
-            elif action_included == RUNNER_OPEN_PROMPTS_FOLDER:
+            elif action_included == MOD_OPEN_PROMPTS_FOLDER:
                 open_prompts_folder()
-            elif action_included == RUNNER_CODE_VSCODE_WORKSPACE:
+            elif action_included == MOD_CODE_VSCODE_WORKSPACE:
                 open_vscode_workspaces_in_system_folder()
             else:
-                raise Exception(RUNNER_WARNING_ACTION_WRONG)
-        elif type_included == RUNNER_TYPE_PRINT:
-            if action_included == RUNNER_PRINT_OS_INFO:
+                raise Exception(MOD_WARNING_ACTION_WRONG)
+        elif type_included == MOD_TYPE_PRINT:
+            if action_included == MOD_PRINT_OS_INFO:
                 print_os_info()
-            elif action_included == RUNNER_PRINT_VSCODE_WORKSPACES:
+            elif action_included == MOD_PRINT_VSCODE_WORKSPACES:
                 print_vscode_workspaces("D:/D-Documents/VSCode-Workspaces")
-            elif action_included == RUNNER_PRINT_DIRECTORY:
-                print_runner_files_root_dir()
-            elif action_included == RUNNER_PRINT_USEFUL_COMMANDS:
+            elif action_included == MOD_PRINT_DIRECTORY:
+                print_mod_files_root_dir()
+            elif action_included == MOD_PRINT_USEFUL_COMMANDS:
                 print_useful_commands()
-            elif action_included == RUNNER_PRINT_CURL:
+            elif action_included == MOD_PRINT_CURL:
                 print_cURL()
-            elif action_included == RUNNER_PRINT_STATUSES_INFO:
+            elif action_included == MOD_PRINT_STATUSES_INFO:
                 print_statuses_info()
             elif action_included == None:
-                raise Exception(RUNNER_WARNING_ACTION_MISSING)
+                raise Exception(MOD_WARNING_ACTION_MISSING)
             else:
-                raise Exception(RUNNER_WARNING_ACTION_WRONG)
+                raise Exception(MOD_WARNING_ACTION_WRONG)
         else:
-            raise Exception(RUNNER_WARNING_TYPE_WRONG)
+            raise Exception(MOD_WARNING_TYPE_WRONG)
 
         # Nếu chạy đến đây (không rẽ nhánh nào) thì báo lỗi.
-        RUNNER_STATUS = "OUT-OF-MAIN-SECTION"
-        print(">>> These commands end up with runner-status: " + RUNNER_STATUS)
+        MOD_STATUS = "OUT-OF-MAIN-SECTION"
+        print(">>> These commands end up with mod-status: " + MOD_STATUS)
         sys.exit(1)
     except KeyboardInterrupt:
         print("\n\n>>> Tiến trình đã bị hủy bởi người dùng (KeyboardInterrupt).")

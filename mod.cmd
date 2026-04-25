@@ -1,0 +1,1 @@
+py D:/D-Documents/TOOLs/mod/src/main.py %*
