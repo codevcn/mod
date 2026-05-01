@@ -49,11 +49,9 @@ py                :to run python helpers.
 ## git:
    commit         :add all files and commit with a message and push with upstream.
 ## run:
-   test-bat       :run mod smoke test script.
    unikey         :run unikey.
    cr-files       :create files in standing folder in CLI.
    dld-path       :set download path in Chrome.
-   fm-sub         :format subtitle txt file to srt file.
    rn-files       :rename files in specified folder with specified prefix.
                   // Example: mod run rn-files "D:/D-Documents/Làm về TikTok" "tiktok"
    del-files      :delete files in specified folder with specified extensions (comma-separated).

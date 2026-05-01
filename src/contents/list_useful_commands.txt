@@ -98,3 +98,6 @@ git config --global core.autocrlf false
 ############################################################
 icacls "absolute/path/to/key" /inheritance:r
 icacls "absolute/path/to/key" /grant:r "$($env:username):R"
+
+# Mở 1 tunnel của cloudflare để truy cập local server với HTTPS
+cloudflared tunnel --url http://localhost:3000

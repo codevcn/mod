@@ -32,11 +32,9 @@ MOD_CODE_NESTJS = "nestjs"
 MOD_CODE_PY = "py"
 MOD_CODE_EXTENSIONS = "ext"
 # run
-MOD_RUN_TEST_BAT = "test-bat"
 MOD_RUN_UNIKEY_APP = "unikey"
 MOD_RUN_CREATE_FILES_IN_FOLDER = "cr-files"
 MOD_RUN_SET_DOWNLOAD_PATH_IN_CHROME = "dld-path"
-MOD_FORMAT_SUBTITLE_TXT_TO_SRT = "fm-sub"
 MOD_RENAME_FILES = "rn-files"
 MOD_DELETE_FILES = "del-files"
 MOD_KEEP_FILES = "keep-files"
@@ -56,21 +54,10 @@ MOD_PRINT_USEFUL_COMMANDS = "cmds"
 # py
 MOD_PY_ENV = "env"
 
-MOD_FLAG_H = "-h"
-MOD_FLAG_M = "-m"
-MOD_FLAG_V = "-v"
-MOD_FLAG_C = "-c"
-MOD_FLAG_CURSOR = "--cursor"
-MOD_FLAG_HELP = "--help"
-MOD_FLAG_MESSAGE = "--message"
-MOD_FLAG_VALUE = "--value"
-
 MOD_WARNING_TYPE_WRONG = "WRONG-TYPE"
 MOD_WARNING_TYPE_MISSING = "MISSING-TYPE"
 MOD_WARNING_ACTION_WRONG = "WRONG-ACTION"
 MOD_WARNING_ACTION_MISSING = "MISSING-ACTION"
-MOD_WARNING_FLAG_WRONG = "WRONG-FLAG"
-MOD_WARNING_FLAG_MISSING = "MISSING-FLAG"
 
 MOD_ROOT_FOLDER = os.getenv("ROOT_FOLDER_PATH")
 MOD_USEFUL_CODES_FOLDER_PATH = os.getenv("USEFUL_CODES_FOLDER_PATH") or ""
@@ -247,15 +234,6 @@ def open_template_nestjs_folder_in_vscode(ide_prefix):
     sys.exit(0)
 
 
-def run_test_bat(*args):
-    subprocess.run(
-        ["python", f"{MOD_ROOT_FOLDER}/src/mod_test.py"] + list(args),
-        check=True,
-        shell=True,
-    )
-    sys.exit(0)
-
-
 def print_os_info():
     subprocess.run(
         ["python", f"{MOD_ROOT_FOLDER}/src/useful-codes/print_os_info.py"],
@@ -303,18 +281,6 @@ def set_download_path_in_chrome(folder_name: str | None = None):
     if folder_name:
         cmd_args.append(folder_name)
     subprocess.run(cmd_args, shell=True)
-    sys.exit(0)
-
-
-def convert_txt_to_srt(value):
-    subprocess.run(
-        [
-            "py",
-            f"{MOD_USEFUL_CODES_FOLDER_PATH}/sub-youtube-video/format_subtitle_txt_to_srt.py",
-            value,
-        ],
-        shell=True,
-    )
     sys.exit(0)
 
 
@@ -429,7 +395,7 @@ if __name__ == "__main__":
             "action",
             nargs="?",
             default=None,
-            help="Action (e.g. env, ws, test, commit, os, stts, curl, dir, test-bat, unikey)",
+            help="Action (e.g. env, ws, test, commit, os, stts, curl, dir, unikey)",
         )
         parser.add_argument(
             "value",
@@ -560,16 +526,12 @@ if __name__ == "__main__":
                 raise Exception(MOD_WARNING_ACTION_MISSING)
             run_git_command(action_included, user_message_included)
         elif type_included == MOD_TYPE_RUN:
-            if action_included == MOD_RUN_TEST_BAT:
-                run_test_bat()
-            elif action_included == MOD_RUN_UNIKEY_APP:
+            if action_included == MOD_RUN_UNIKEY_APP:
                 run_Unikey_app()
             elif action_included == MOD_RUN_CREATE_FILES_IN_FOLDER:
                 create_files_in_folder()
             elif action_included == MOD_RUN_SET_DOWNLOAD_PATH_IN_CHROME:
                 set_download_path_in_chrome(value_included)
-            elif action_included == MOD_FORMAT_SUBTITLE_TXT_TO_SRT:
-                convert_txt_to_srt(value_included)
             elif action_included == MOD_RENAME_FILES:
                 rename_files(value_included, extra_included)
             elif action_included == MOD_DELETE_FILES:

@@ -1,647 +1,550 @@
-# Kiến trúc Code: `src/main.py`
+# Kiến trúc hệ thống CLI Dispatcher
 
-> **Project:** Mod Tool — công cụ CLI tự động hóa tác vụ phát triển trên Windows  
-> **File phân tích:** `src/main.py` (509 dòng)  
-> **Entry point:** `mod.cmd` → gọi `py .../src/main.py %*`
+Tài liệu này mô tả cách xây dựng một hệ thống CLI dùng một file trung tâm để nhận lệnh, phân tích tham số, rồi điều phối sang các script con. Nội dung được viết theo hướng tổng quát để có thể áp dụng cho các project automation tương tự, không phụ thuộc vào đường dẫn, máy tính, tài khoản, hoặc tên riêng của một project cụ thể.
 
 ---
 
-## 1. Tổng quan
+## 1. Mục tiêu kiến trúc
 
-`main.py` là **trung tâm điều phối** (dispatcher) của toàn bộ tool. Nó nhận lệnh từ CLI của người dùng, phân tích cú pháp các tham số, rồi **ủy thác** (delegate) việc thực thi sang các script con tương ứng thông qua `subprocess.run()`. Bản thân file này **không chứa logic nghiệp vụ** — nó chỉ định tuyến (route) lệnh đến đúng handler.
+Hệ thống được thiết kế cho các bộ công cụ cá nhân hoặc nội bộ cần gom nhiều thao tác nhỏ vào một lệnh CLI thống nhất.
 
-```
-người dùng gõ lệnh
-        │
-        ▼
-  mod.cmd  (entry point)
-          │  py main.py <args>
-        ▼
-        src/main.py  ◄── file phân tích này
-    ├── parse args (argparse)
-    ├── resolve IDE prefix
-    └── dispatch → hàm handler
-              │
-              ▼
-    subprocess.run(<script hoặc lệnh hệ thống>)
-```
+Các mục tiêu chính:
+
+- Có một entry point dễ nhớ cho người dùng.
+- Có một dispatcher trung tâm để định tuyến lệnh.
+- Tách logic nghiệp vụ sang các script độc lập.
+- Có tài liệu command-line ngắn gọn cho người dùng cuối.
+- Có file mô tả tính năng có cấu trúc để tool có thể in mô tả tự động.
+- Có quy ước đặt tên hằng số rõ ràng để mở rộng mà ít nhầm lẫn.
+- Có cách lưu nhanh project lên remote Git repository.
 
 ---
 
-## 2. Cấu trúc tổng thể của file
+## 2. System Design
 
+Luồng tổng thể:
+
+```text
+User
+  |
+  v
+CLI entry point
+  |
+  v
+src/main.py
+  |
+  +-- parse args
+  +-- normalize flags/options
+  +-- dispatch by type/action
+  |
+  v
+handler function
+  |
+  v
+subprocess / helper script / system command
 ```
-main.py
-│
-├── [L1–8]    Imports & load .env
-├── [L9–70]   Hằng số (Constants)
-│   ├── MOD_TYPE_*       (9 types)
-│   ├── MOD_*_ACTION_*   (actions cho mỗi type)
-│   ├── MOD_FLAG_*       (flag names)
-│   └── MOD_WARNING_*    (mã cảnh báo lỗi)
-├── [L71–75]  Biến môi trường (từ .env)
-├── [L79–381] Các hàm handler
-└── [L383–583] Khối __main__ (dispatcher chính)
-    ├── [L387–453] Định nghĩa argparse
-    ├── [L455–468] Giải ánh xạ args
-    └── [L471–577] Logic phân nhánh if/elif
-```
+
+Các thành phần chính:
+
+| Thành phần          | Vai trò                                                                      |
+| ------------------- | ---------------------------------------------------------------------------- |
+| CLI entry point     | File lệnh mỏng, chỉ forward toàn bộ tham số vào `src/main.py`.               |
+| `src/main.py`       | Dispatcher trung tâm: parse CLI, kiểm tra type/action, gọi handler.          |
+| Handler functions   | Hàm nhỏ trong dispatcher, chỉ build command args rồi gọi script con.         |
+| `src/system-codes/` | Script nội bộ phục vụ chính hệ CLI, ví dụ in nội dung, thao tác Git, status. |
+| `src/useful-codes/` | Script tính năng độc lập, mỗi file xử lý một nhóm nghiệp vụ cụ thể.          |
+| `src/contents/`     | Tài liệu và dữ liệu tĩnh dùng để in help, mô tả feature, template.           |
+| `.env`              | Cấu hình local, path, token, hoặc thông tin thay đổi theo môi trường.        |
+| Remote Git repo     | Nơi lưu version project để backup và đồng bộ nhanh giữa nhiều máy.           |
+
+Nguyên tắc thiết kế:
+
+- Dispatcher không chứa nghiệp vụ nặng.
+- Mỗi feature script có thể chạy độc lập nếu truyền đủ tham số.
+- Dữ liệu mô tả tính năng không hardcode trong dispatcher.
+- Path hoặc config phụ thuộc máy nên đưa vào `.env` hoặc file config.
+- Các thao tác nguy hiểm như delete, reset, purge nên có xác nhận hoặc kiểm tra rõ ràng.
 
 ---
 
-## 3. Hệ thống hằng số (Constants)
+## 3. Kiến trúc code
 
-### 3.1 — Mod Types (9 loại lệnh chính)
+### 3.1. Entry point
 
-| Hằng số              | Giá trị    | Ý nghĩa                               |
-| -------------------- | ---------- | ------------------------------------- |
-| `MOD_TYPE_OPEN`   | `"open"`   | Mở file/thư mục trong System Explorer |
-| `MOD_TYPE_CODE`   | `"code"`   | Mở dự án trong IDE                    |
-| `MOD_TYPE_RUN`    | `"run"`    | Thực thi script/ứng dụng              |
-| `MOD_TYPE_EDIT`   | `"edit"`   | Mở/chỉnh sửa helper tiện ích          |
-| `MOD_TYPE_PRINT`  | `"print"`  | In thông tin ra terminal              |
-| `MOD_TYPE_GIT`    | `"git"`    | Thực hiện thao tác Git                |
-| `MOD_TYPE_GDRIVE` | `"gdrive"` | Thao tác với Google Drive qua rclone  |
-| `MOD_TYPE_INIT`   | `"init"`   | Khởi tạo môi trường                   |
-| `MOD_TYPE_PY`     | `"py"`     | Công cụ cho Python                    |
+Entry point nên là một wrapper mỏng:
 
-### 3.2 — Actions theo từng Type
+```cmd
+@echo off
+python "%~dp0src\main.py" %*
+```
 
-**`open` actions:**
-| Hằng số | Giá trị | Lệnh |
-|---|---|---|
-| `MOD_OPEN_ENV` | `"env"` | `mod open env` |
-| `MOD_OPEN_PROMPTS_FOLDER` | `"proms"` | `mod open proms` |
+Nhiệm vụ của file này chỉ là giúp người dùng gọi lệnh ngắn, ví dụ:
 
-**`code` actions:**
-| Hằng số | Giá trị | Lệnh |
-|---|---|---|
-| `MOD_CODE_VSCODE_WORKSPACE` | `"ws"` | `mod code ws <value>` |
-| `MOD_CODE_TEST` | `"test"` | `mod code test` |
-| `MOD_CODE_TYPESCRIPT_TEMPLATE` | `"ts-template"` | `mod code ts-template` |
-| `MOD_CODE_JS` | `"js"` | `mod code js` |
-| `MOD_CODE_TS` | `"ts"` | `mod code ts` |
-| `MOD_CODE_NESTJS` | `"nestjs"` | `mod code nestjs` |
-| `MOD_CODE_PY` | `"py"` | `mod code py` |
-| `MOD_CODE_EXTENSIONS` | `"ext"` | `mod code ext` |
+```bash
+tool <type> <action> [value] [extra] [flags]
+```
 
-**`run` actions:**
-| Hằng số | Giá trị | Lệnh |
-|---|---|---|
-| `MOD_RUN_TEST_BAT` | `"test-bat"` | `mod run test-bat` |
-| `MOD_RUN_UNIKEY_APP` | `"unikey"` | `mod run unikey` |
-| `MOD_RUN_CREATE_FILES_IN_FOLDER` | `"cr-files"` | `mod run cr-files` |
-| `MOD_RUN_SET_DOWNLOAD_PATH_IN_CHROME` | `"dld-path"` | `mod run dld-path [<folder>]` |
-| `MOD_FORMAT_SUBTITLE_TXT_TO_SRT` | `"fm-sub"` | `mod run fm-sub <value>` |
-| `MOD_RENAME_FILES` | `"rn-files"` | `mod run rn-files <path> [<prefix>]` |
-| `MOD_DELETE_FILES` | `"del-files"` | `mod run del-files <path> <exts>` |
-| `MOD_KEEP_FILES` | `"keep-files"` | `mod run keep-files <path> <ext>` |
+Không nên đặt logic nghiệp vụ trong wrapper.
 
-**`edit` actions:**
-| Hằng số | Giá trị | Lệnh |
-|---|---|---|
-| `MOD_EDIT_PROMPTS` | `"proms"` | `mod edit proms` |
-| `MOD_EDIT_TO_COMMAND` | `"to"` | `mod edit to` |
+### 3.2. Dispatcher
 
-**`git` actions:**
-| Hằng số | Giá trị | Lệnh |
-|---|---|---|
-| `MOD_GIT_COMMIT_AND_PUSH` | `"commit"` | `mod git commit -m "message"` |
+`src/main.py` là nơi định nghĩa:
 
-**`print` actions:**
-| Hằng số | Giá trị | Lệnh |
-|---|---|---|
-| `MOD_PRINT_OS_INFO` | `"os"` | `mod print os` |
-| `MOD_PRINT_STATUSES_INFO` | `"stts"` | `mod print stts` |
-| `MOD_PRINT_VSCODE_WORKSPACES` | `"ws"` | `mod print ws` |
-| `MOD_PRINT_CURL` | `"curl"` | `mod print curl` |
-| `MOD_PRINT_DIRECTORY` | `"dir"` | `mod print dir` |
-| `MOD_PRINT_USEFUL_COMMANDS` | `"cmds"` | `mod print cmds` |
+- Hằng số type/action/flag/warning.
+- Parser CLI bằng `argparse`.
+- Các handler function.
+- Khối dispatch chính.
+- Cơ chế gọi script con bằng `subprocess`.
 
-### 3.3 — Warning Codes (mã lỗi nội bộ)
+Mẫu command grammar:
+
+```text
+<tool> [<type> [<action> [<value> [<extra>]]]] [flags]
+```
+
+Ví dụ generic:
+
+```bash
+tool print help
+tool run rename-files "path/to/folder" "prefix"
+tool git commit -m "update feature"
+tool feature action --des
+```
+
+### 3.3. Handler
+
+Một handler tốt nên ngắn và có một trách nhiệm:
 
 ```python
-MOD_WARNING_TYPE_WRONG    = "WRONG-TYPE"      # Type không tồn tại
-MOD_WARNING_TYPE_MISSING  = "MISSING-TYPE"    # Thiếu type
-MOD_WARNING_ACTION_WRONG  = "WRONG-ACTION"    # Action không tồn tại
-MOD_WARNING_ACTION_MISSING= "MISSING-ACTION"  # Thiếu action
-MOD_WARNING_FLAG_WRONG    = "WRONG-FLAG"      # Flag không hợp lệ
-MOD_WARNING_FLAG_MISSING  = "MISSING-FLAG"    # Thiếu flag
-```
-
-### 3.4 — Biến môi trường (đọc từ `.env`)
-
-| Biến                            | Mục đích                                         |
-| ------------------------------- | ------------------------------------------------ |
-| `ROOT_FOLDER_PATH`              | Đường dẫn gốc của mod project                 |
-| `USEFUL_CODES_FOLDER_PATH`      | Đường dẫn đến `src/useful-codes/`                |
-| `CONTENTS_FOLDER_PATH`          | Đường dẫn đến `src/contents/`                    |
-| `TEMPLATE_REPLACER_FOLDER_PATH` | Đường dẫn đến VSCode Extension Template Replacer |
-
----
-
-## 4. Các hàm Handler
-
-Tất cả các hàm handler đều theo cùng một pattern:
-
-1. Xây dựng `cmd_args` list
-2. Gọi `subprocess.run()` hoặc lệnh hệ thống
-3. Kết thúc bằng `sys.exit(0)`
-
-### 4.1 — Nhóm `gdrive`
-
-#### `gdrive_execute(gdrive_command, *args)` — L79
-
-```
-Mục đích : Ủy thác toàn bộ logic gdrive cho script sync_to_gdrive.py
-Script   : useful-codes/sync-to-gdrive/sync_to_gdrive.py
-Args     : gdrive_command (action) + value + extra + flags (-d, --file)
-```
-
-### 4.2 — Nhóm `print` (in nội dung ra terminal)
-
-#### `print_content(content_filename)` — L96
-
-```
-Mục đích : Script lõi để in bất kỳ file .txt nào trong thư mục contents/
-Script   : system-codes/mod_print_content.py
-Dùng bởi : print_help(), print_useful_commands()
-```
-
-#### `print_help()` — L163
-
-```
-In : contents/help.txt
-```
-
-#### `print_useful_commands()` — L130
-
-```
-In : contents/list_useful_commands.txt
-```
-
-#### `print_cURL()` — L167
-
-```
-Script : useful-codes/print_cURL.py
-In     : contents/cURL.txt
-```
-
-#### `print_os_info()` — L242
-
-```
-Script : useful-codes/print_os_info.py
-In     : systeminfo, wmic cpu, ipconfig (Windows only)
-```
-
-#### `print_statuses_info()` — L154
-
-```
-Script : system-codes/mod_statuses.py
-In     : contents/statuses.txt
-```
-
-#### `print_vscode_workspaces(workspace_path)` — L211
-
-```
-Script : useful-codes/print_vcnbat_folder.py
-In     : danh sách .code-workspace files
-```
-
-#### `print_mod_files_root_dir()` — L125
-
-```
-In trực tiếp : os.path.dirname(os.path.abspath(__file__))
-```
-
-### 4.3 — Nhóm `open` (mở thư mục/ứng dụng)
-
-#### `open_environment_variables_panel()` — L176
-
-```
-Lệnh : rundll32.exe sysdm.cpl,EditEnvironmentVariables
-```
-
-#### `open_prompts_folder()` — L181
-
-```
-Lệnh : start <TEMPLATE_REPLACER_FOLDER_PATH>/Prompts
-```
-
-#### `open_vscode_workspaces_in_system_folder()` — L186
-
-```
-Lệnh : start D:/D-Documents/VSCode-Workspaces
-```
-
-#### `open_mod_file_in_system_folder()` — L149
-
-```
-Lệnh : start <MOD_ROOT_FOLDER>
-```
-
-### 4.4 — Nhóm `code` (mở trong IDE)
-
-Tất cả các hàm code đều nhận `ide_prefix` (giá trị là `"code"` hoặc `"anti"`) để hỗ trợ cả VSCode lẫn Antigravity IDE.
-
-#### `open_working_vscode(ide_prefix, value, powershell_only)` — L191
-
-```
-Script : useful-codes/open_main_ws.py
-Value  : "ptb" → Photobooth project
-         "tool" → GDrive tool project
-Chức năng: Mở terminal tabs + IDE + Chrome tabs theo workspace preset
-```
-
-#### `open_mod_files_in_vscode(ide_prefix)` — L223
-
-```
-Lệnh : <ide_prefix> <MOD_ROOT_FOLDER>
-```
-
-#### `open_testing_folder_in_vscode(ide_prefix)` — L120
-
-```
-Lệnh : <ide_prefix> D:/D-Documents/Testing
-```
-
-#### `open_testing_javascript_typescript_folder_in_vscode(ide_prefix)` — L263
-
-```
-Lệnh : <ide_prefix> D:/D-Documents/Testing/js-ts
-```
-
-#### `open_testing_python_folder_in_vscode(ide_prefix)` — L268
-
-```
-Lệnh : <ide_prefix> D:/D-Documents/Testing/py
-```
-
-#### `open_typescript_template_in_cursor(ide_prefix)` — L256
-
-```
-Lệnh : <ide_prefix> D:/D-Documents/Templates/standard-express-server-ts
-```
-
-#### `open_template_nestjs_folder_in_vscode(ide_prefix)` — L228
-
-```
-Lệnh : <ide_prefix> D:/D-Documents/Code_VCN/nestjs
-```
-
-#### `open_vscode_extensions_in_vscode(ide_prefix)` — L109
-
-```
-Lệnh : <ide_prefix> D:/D-Documents/Browser-Extensions
-```
-
-### 4.5 — Nhóm `git`
-
-#### `run_git_command(git_type, user_message)` — L134
-
-```
-Script : system-codes/mod_git.py
-Hỗ trợ: "commit" → mở Windows Terminal tab mới, chạy:
-         git add . && git commit -m "..." && git push origin main
-```
-
-### 4.6 — Nhóm `run` (thực thi script)
-
-#### `run_test_bat(*args)` — L233
-
-```
-Script : src/mod_test.py (test file)
-```
-
-#### `run_Unikey_app()` — L251
-
-```
-Lệnh : start C:/Users/dell/Downloads/UniKeyNT.exe
-```
-
-#### `create_files_in_folder()` — L273
-
-```
-Script : useful-codes/create_files_in_folder.py
-Dùng   : contents/files_source.txt làm template
-```
-
-#### `set_download_path_in_chrome(folder_name)` — L281
-
-```
-Script : useful-codes/set_download_path_in_chrome.py
-Params : folder_name (tùy chọn)
-```
+def run_feature(value: str | None = None):
+    cmd_args = [
+        "python",
+        f"{USEFUL_CODES_FOLDER_PATH}/feature_script.py",
+    ]
+    if value:
+        cmd_args.append(value)
 
-#### `convert_txt_to_srt(value)` — L292
-
-```
-Script : useful-codes/sub-youtube-video/format_subtitle_txt_to_srt.py
-Params : value = đường dẫn file .txt
-```
-
-#### `edit_prompts()` — L304
-
-```
-Script : <TEMPLATE_REPLACER_FOLDER_PATH>/edit-prompts.cmd
-```
-
-#### `rename_files(folder_path, prefix)` — L312
-
-```
-Script : useful-codes/rename_files.py
-Params : folder_path (bắt buộc), prefix (tùy chọn)
-```
-
-#### `delete_files(folder_path, ext_list)` — L325
-
-```
-Script : useful-codes/delete_files.py
-Params : folder_path, ext_list (vd: "txt,jpg,png")
-```
-
-#### `keep_files(folder_path, ext)` — L338
-
-```
-Script : useful-codes/keep_files_with_ext.py
-Params : folder_path, ext (1 extension duy nhất)
-```
-
-### 4.7 — Nhóm tiện ích / init
-
-#### `print_feature_description(cmd_type, action)` — L351
-
-```
-Script : useful-codes/print_feature_description.py
-Dùng   : contents/app_features.yml
-Flag   : --des (có thể gắn vào bất kỳ lệnh nào)
-```
-
-#### `cmd_init()` — L365
-
-```
-Script : src/cmd/init.cmd
-```
-
-#### `py_setup_venv()` — L373
-
+    result = subprocess.run(cmd_args, check=False)
+    sys.exit(result.returncode)
 ```
-Script : useful-codes/setup_venv_in_project.py
-```
-
-#### `warn_user_error(warning_message)` — L114
-
-```
-Mục đích : In cảnh báo >>> Warn: <message> rồi sys.exit(0)
-Dùng bởi : khối except cuối
-```
 
----
-
-## 5. Luồng Dispatcher (`__main__`)
-
-### 5.1 — Sơ đồ luồng xử lý
-
-```
-argparse.parse_args()
-        │
-        ├─ --des?  ──► print_feature_description(type, action)
-        │
-        ├─ resolve ide_prefix:
-        │     "-a" flag → "anti"
-        │     default  → "code"
-        │
-        ├─ type == None  ──► print_help()
-        │
-        ├─ type == "py"
-        │     action == "env"  ──► py_setup_venv()
-        │     else             ──► raise MISSING-ACTION
-        │
-        ├─ type == "init"  ──► cmd_init()
-        │
-        ├─ type == "gdrive"
-        │     build gdrive_args + flags (-d, --file)
-        │     ──► gdrive_execute(action, *args)
-        │
-        ├─ type == "code"
-        │     None          ──► open_mod_files_in_vscode
-        │     "ws"          ──► open_working_vscode(ide, value, ps_only)
-        │     "test"        ──► open_testing_folder_in_vscode
-        │     "ts-template" ──► open_typescript_template_in_cursor
-        │     "js"/"ts"     ──► open_testing_javascript_typescript_folder_in_vscode
-        │     "nestjs"      ──► open_template_nestjs_folder_in_vscode
-        │     "py"          ──► open_testing_python_folder_in_vscode
-        │     "ext"         ──► open_vscode_extensions_in_vscode
-        │     else          ──► raise WRONG-ACTION
-        │
-        ├─ type == "git"
-        │     "commit" yêu cầu -m flag
-        │     ──► run_git_command(action, message)
-        │
-        ├─ type == "run"
-        │     "test-bat"    ──► run_test_bat()
-        │     "unikey"      ──► run_Unikey_app()
-        │     "cr-files"    ──► create_files_in_folder()
-        │     "dld-path"    ──► set_download_path_in_chrome(value)
-        │     "fm-sub"      ──► convert_txt_to_srt(value)
-        │     "proms"       ──► edit_prompts()
-        │     "rn-files"    ──► rename_files(value, extra)
-        │     "del-files"   ──► delete_files(value, extra)
-        │     "keep-files"  ──► keep_files(value, extra)
-        │     None          ──► raise MISSING-ACTION
-        │     else          ──► raise WRONG-ACTION
-        │
-        ├─ type == "open"
-        │     None    ──► open_mod_files_in_vscode
-        │     "env"   ──► open_environment_variables_panel()
-        │     "proms" ──► open_prompts_folder()
-        │     "ws"    ──► open_vscode_workspaces_in_system_folder()
-        │     else    ──► raise WRONG-ACTION
-        │
-        ├─ type == "print"
-        │     "os"    ──► print_os_info()
-        │     "ws"    ──► print_vscode_workspaces(...)
-        │     "dir"   ──► print_mod_files_root_dir()
-        │     "cmds"  ──► print_useful_commands()
-        │     "curl"  ──► print_cURL()
-        │     "stts"  ──► print_statuses_info()
-        │     None    ──► raise MISSING-ACTION
-        │     else    ──► raise WRONG-ACTION
-        │
-        └─ else  ──► raise WRONG-TYPE
-```
+Quy ước:
 
-### 5.2 — CLI Arguments (argparse)
+- Handler chỉ nhận dữ liệu đã parse từ CLI.
+- Handler build command list thay vì ghép chuỗi khi có thể.
+- Handler trả đúng exit code của script con nếu script con có ý nghĩa thành công/thất bại.
+- Script con chịu trách nhiệm validate nghiệp vụ chi tiết.
 
-| Argument                 | Loại                  | Mô tả                                                     |
-| ------------------------ | --------------------- | --------------------------------------------------------- |
-| `type`                   | positional (optional) | Loại lệnh (open/code/run/print/git/gdrive/py)             |
-| `action`                 | positional (optional) | Hành động cụ thể                                          |
-| `value`                  | positional (optional) | Giá trị cho action (vd: tên workspace, đường dẫn thư mục) |
-| `extra`                  | positional (optional) | Giá trị phụ (vd: prefix cho `rn-files`)                   |
-| `-m / --message`         | optional              | Message cho git commit                                    |
-| `-a / --antigravity-IDE` | flag                  | Dùng Antigravity IDE thay vì VSCode                       |
-| `-p / --powershell-only` | flag                  | Chỉ mở PowerShell, không mở IDE                           |
-| `--des`                  | flag                  | Xem mô tả feature từ `app_features.yml`                   |
-| `-d / --deep`            | flag                  | Liệt kê đệ quy sâu (cho gdrive list)                      |
-| `-f / --file`            | flag                  | Liệt kê file thay vì folder (cho gdrive list)             |
+### 3.4. Script con
 
-### 5.3 — IDE Prefix Resolution
+Script con trong `useful-codes` nên có cấu trúc:
 
 ```python
-# Xác định IDE dùng để mở code
-antigravity_included = args.antigravity_IDE  # True nếu có flag -a
-default_ide_prefix = "anti" if antigravity_included else "code"
+def parse_args():
+    ...
+
+def validate_inputs(args):
+    ...
+
+def main():
+    args = parse_args()
+    validate_inputs(args)
+    ...
+
+if __name__ == "__main__":
+    main()
 ```
 
-Logic này cho phép chạy cùng lệnh nhưng mở trong IDE khác nhau:
-
-- `mod code ws ptb` → mở bằng VSCode (`code`)
-- `mod code ws ptb -a` → mở bằng Antigravity IDE (`anti`)
-
-### 5.4 — Xử lý lỗi
-
-```python
-try:
-    # ...toàn bộ logic dispatch...
-except KeyboardInterrupt:
-    print(">>> Tiến trình đã bị hủy bởi người dùng (KeyboardInterrupt).")
-    sys.exit(0)
-except Exception as e:
-    warn_user_error(str(e))  # in >>> Warn: <message>
-    sys.exit(1)
-```
-
-Lỗi được raise qua `raise Exception(MOD_WARNING_*)` và được bắt ở cùng khối `try/except`.
+Script con nên tự in thông báo lỗi rõ ràng, tự kiểm tra file/folder cần dùng, và hạn chế phụ thuộc vào trạng thái global của dispatcher.
 
 ---
 
-## 6. Kiến trúc hệ thống file đầy đủ
+## 4. Cách đặt tên hằng số
 
+Hằng số trong dispatcher nên có prefix chung theo tên ứng dụng. Dùng chữ hoa, phân tách bằng `_`.
+
+### 4.1. Type constants
+
+Mẫu:
+
+```python
+APP_TYPE_RUN = "run"
+APP_TYPE_PRINT = "print"
+APP_TYPE_GIT = "git"
 ```
-mod/                             ← ROOT_FOLDER_PATH
-├── .env                            ← Config biến môi trường
-├── mod.cmd                      ← Entry point (gọi src/main.py)
-├── requirements.txt                ← python-dotenv, PyYAML
+
+Quy ước:
+
+- Format: `<APP>_TYPE_<TYPE_NAME>`.
+- Giá trị CLI nên là chữ thường, ưu tiên `kebab-case` nếu có nhiều từ.
+- Type là nhóm lệnh cấp cao, ví dụ `run`, `print`, `open`, `git`.
+
+### 4.2. Action constants
+
+Mẫu:
+
+```python
+APP_RUN_RENAME_FILES = "rename-files"
+APP_RUN_DELETE_FILES = "delete-files"
+APP_PRINT_HELP = "help"
+```
+
+Quy ước:
+
+- Format: `<APP>_<TYPE_NAME>_<ACTION_NAME>`.
+- `TYPE_NAME` phải khớp nhóm type chứa action.
+- `ACTION_NAME` mô tả hành động cụ thể.
+- Giá trị CLI nên ổn định vì người dùng sẽ ghi nhớ và có thể dùng trong script ngoài.
+
+### 4.3. Flag constants
+
+Mẫu:
+
+```python
+APP_FLAG_HELP = "--help"
+APP_FLAG_MESSAGE = "--message"
+APP_FLAG_DESCRIPTION = "--des"
+```
+
+Quy ước:
+
+- Format: `<APP>_FLAG_<FLAG_NAME>`.
+- Nếu có short flag và long flag, có thể đặt riêng:
+
+```python
+APP_FLAG_M = "-m"
+APP_FLAG_MESSAGE = "--message"
+```
+
+### 4.4. Warning/status constants
+
+Mẫu:
+
+```python
+APP_WARNING_TYPE_WRONG = "WRONG-TYPE"
+APP_WARNING_ACTION_MISSING = "MISSING-ACTION"
+APP_STATUS_OK = "OK"
+```
+
+Quy ước:
+
+- Warning dùng format `<APP>_WARNING_<SCOPE>_<STATE>`.
+- Status dùng format `<APP>_STATUS_<STATE>`.
+- Giá trị in ra terminal nên ngắn, dễ grep, và ổn định.
+
+### 4.5. Function naming
+
+Python function dùng `snake_case`:
+
+```python
+def print_help():
+    ...
+
+def run_git_command():
+    ...
+
+def open_project_folder():
+    ...
+```
+
+Tên function nên nói rõ hành động. Tránh tên quá chung như `process`, `handle`, `do`.
+
+---
+
+## 5. Cấu trúc thư mục
+
+Cấu trúc đề xuất:
+
+```text
+project-root/
+├── .env
+├── .gitignore
+├── README.md
+├── ARCHITECTURE.md
+├── requirements.txt
+├── tool.cmd hoặc tool.sh
 │
 └── src/
-  ├── main.py                     ◄── FILE PHÂN TÍCH NÀY (dispatcher chính)
+    ├── main.py
     │
     ├── cmd/
-    │   └── init.cmd                ← Script batch khởi tạo môi trường
+    │   └── init.cmd
     │
-    ├── contents/                   ← Nội dung tĩnh in ra terminal
-    │   ├── app_features.yml        ← Mô tả đầy đủ tất cả features (29+ actions)
-    │   ├── help.txt                ← Hướng dẫn sử dụng
-    │   ├── list_useful_commands.txt← Danh sách lệnh hữu ích
-    │   ├── cURL.txt                ← Tham chiếu cú pháp cURL
-    │   ├── files_source.txt        ← Template tạo file
-    │   └── statuses.txt            ← Mô tả các status code
+    ├── contents/
+    │   ├── help.txt
+    │   ├── app_features.yml
+    │   ├── statuses.txt
+    │   └── other-static-content.txt
     │
-    ├── system-codes/               ← Scripts hệ thống nội bộ
-    │   ├── mod_git.py           ← Thực thi git commit/push qua Windows Terminal
-    │   ├── mod_print_content.py ← Đọc và in file từ contents/
-    │   └── mod_statuses.py      ← In statuses.txt
+    ├── system-codes/
+    │   ├── _git.py
+    │   ├── _print_content.py
+    │   └── _statuses.py
     │
-    └── useful-codes/               ← Scripts tiện ích mở rộng
-      ├── open_main_ws.py         ← Mở workspace environment phức tạp
-      ├── print_os_info.py        ← Thu thập thông tin hệ thống Windows
-      ├── print_cURL.py           ← In cURL reference
-        ├── print_feature_description.py ← Parse app_features.yml và in ra
-        ├── print_vcnbat_folder.py  ← In danh sách workspace files
-        ├── create_files_in_folder.py ← Tạo file từ template
-        ├── set_download_path_in_chrome.py ← Cấu hình Chrome download path
-        ├── rename_files.py         ← Đổi tên file hàng loạt
-        ├── delete_files.py         ← Xóa file theo extension
-        ├── keep_files_with_ext.py  ← Giữ file theo extension
-        ├── setup_venv_in_project.py ← Cài đặt Python venv
-        ├── convert_png_to_svg.py   ← Chuyển đổi định dạng ảnh
-        └── sync-to-gdrive/
-            └── sync_to_gdrive.py   ← Đồng bộ GDrive qua rclone
+    └── useful-codes/
+        ├── feature_a.py
+        ├── feature_b.py
+        └── integration-name/
+            ├── configs.json
+            └── integration_script.py
+```
+
+Ý nghĩa từng thư mục:
+
+| Thư mục                           | Mục đích                                                                  |
+| --------------------------------- | ------------------------------------------------------------------------- |
+| `src/cmd/`                        | Batch/shell scripts phục vụ khởi tạo hoặc lệnh hệ điều hành.              |
+| `src/contents/`                   | File text/YAML dùng làm tài liệu và dữ liệu mô tả.                        |
+| `src/system-codes/`               | Script nội bộ phục vụ framework CLI.                                      |
+| `src/useful-codes/`               | Script tính năng thực tế mà người dùng gọi qua CLI.                       |
+| `src/useful-codes/<integration>/` | Nhóm script/config cho một tích hợp lớn như cloud, storage, browser, API. |
+
+Quy ước:
+
+- File nội bộ có thể bắt đầu bằng `_` để phân biệt với feature người dùng gọi trực tiếp.
+- Feature script nên dùng tên mô tả hành động: `rename_files.py`, `print_os_info.py`, `sync_to_remote.py`.
+- Không để dữ liệu secret trong repo. Secret đặt trong `.env` hoặc nơi lưu config an toàn.
+- File config mẫu có thể commit, file config thật có token nên ignore.
+
+---
+
+## 6. Dùng Git để lưu nhanh project lên remote repo
+
+### 6.1. Thiết lập lần đầu
+
+```bash
+git init
+git add .
+git commit -m "init project"
+git branch -M main
+git remote add origin <remote-repo-url>
+git push -u origin main
+```
+
+Trước khi commit, nên có `.gitignore` tối thiểu:
+
+```gitignore
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.log
+*.bak.*
+```
+
+### 6.2. Lưu nhanh các thay đổi
+
+```bash
+git status
+git add .
+git commit -m "update tool"
+git push origin main
+```
+
+Nếu hệ thống có command riêng cho Git, command đó nên làm đúng các bước:
+
+```text
+validate repo
+git add .
+git commit -m "<message>"
+git push origin main
+return exit code
+```
+
+### 6.3. Nguyên tắc an toàn khi dùng Git helper
+
+- Luôn bắt buộc commit message.
+- Kiểm tra thư mục hiện tại có phải Git repository không.
+- Không tự chạy `git reset --hard`.
+- Không tự xóa remote.
+- Không commit `.env`, token, file cache, file backup có dữ liệu nhạy cảm.
+- Nếu helper dùng branch mặc định, nên cấu hình branch đó bằng biến config thay vì hardcode.
+
+---
+
+## 7. Dùng `help.txt` để mô tả CLI cho người dùng
+
+`src/contents/help.txt` là tài liệu ngắn gọn in ra khi người dùng gọi lệnh không tham số hoặc gọi help.
+
+Mục tiêu của `help.txt`:
+
+- Cho người dùng biết cú pháp tổng quát.
+- Liệt kê type/action đang có.
+- Mô tả ngắn mỗi action làm gì.
+- Nêu các flag phổ biến.
+- Đưa ví dụ command thường dùng.
+
+Cấu trúc đề xuất:
+
+```text
+# Help for <tool-name>
+
+# Usage:
+<tool> <type> <action> [value] [extra] [flags]
+
+# Flags:
+-h, --help
+-m, --message
+--des
+
+# Types:
+run
+print
+git
+
+# Actions:
+## run:
+  rename-files
+  delete-files
+
+## print:
+  help
+  statuses
+
+# Examples:
+<tool> run rename-files "path/to/folder" "prefix"
+<tool> feature action --des
+```
+
+Quy ước cập nhật:
+
+- Khi thêm type mới trong dispatcher, thêm type đó vào `help.txt`.
+- Khi thêm action mới, thêm action vào đúng nhóm.
+- Mô tả trong `help.txt` chỉ nên ngắn. Chi tiết dài để trong `app_features.yml`.
+- Ví dụ command trong `help.txt` nên chạy được hoặc gần với cú pháp thật.
+
+---
+
+## 8. Dùng `app_features.yml` để mô tả toàn bộ tính năng
+
+`src/contents/app_features.yml` là catalog có cấu trúc cho toàn bộ tính năng. File này phục vụ lệnh kiểu `--des`, giúp in mô tả chi tiết cho một command cụ thể.
+
+Mục tiêu của `app_features.yml`:
+
+- Là nguồn mô tả đầy đủ hơn `help.txt`.
+- Có thể parse bằng code.
+- Mỗi action có title, command, summary, details, conditions.
+- Giúp người dùng xem mô tả theo type/action mà không phải mở tài liệu dài.
+
+Cấu trúc đề xuất:
+
+```yaml
+tool:
+  flags:
+    - flag: "-h / --help"
+      description: "In help ra terminal."
+
+  types:
+    - name: "run"
+      description: "Thực thi các script tiện ích."
+      actions:
+        - id: "RUN_001"
+          title: "Rename Files"
+          command: '<tool> run rename-files "<folder_path>" "<prefix>"'
+          summary: "Đổi tên file trong một thư mục theo prefix."
+          details: "Script đọc các file cấp 1, sắp xếp, đổi tên theo pattern ổn định."
+          conditions: "Folder phải tồn tại. Prefix nên là chuỗi không rỗng."
+
+    - name: "print"
+      description: "In thông tin ra terminal."
+      actions:
+        - id: "PRINT_001"
+          title: "Print Help"
+          command: "<tool> print help"
+          summary: "In hướng dẫn sử dụng."
+          details: "Đọc nội dung từ src/contents/help.txt."
+          conditions: "File help.txt phải tồn tại."
+
+  config:
+    ROOT_FOLDER_PATH: "Đường dẫn gốc của project."
+    CONTENTS_FOLDER_PATH: "Đường dẫn đến thư mục contents."
+```
+
+Quy ước nội dung:
+
+- `name` của type phải khớp giá trị CLI trong dispatcher.
+- `command` phải chứa command thật để parser tìm được type/action.
+- `summary` viết một câu ngắn.
+- `details` mô tả behavior chính, input/output, side effect.
+- `conditions` ghi dependency, file cần tồn tại, quyền cần có, hoặc cảnh báo.
+- `id` nên ổn định để dễ tham chiếu trong tài liệu hoặc changelog.
+
+### Quan hệ giữa `help.txt` và `app_features.yml`
+
+| File               | Dành cho                             | Mức chi tiết | Cách dùng                               |
+| ------------------ | ------------------------------------ | ------------ | --------------------------------------- |
+| `help.txt`         | Người dùng cần nhớ lệnh nhanh        | Ngắn         | In khi gọi help hoặc không truyền lệnh. |
+| `app_features.yml` | Người dùng cần hiểu kỹ một tính năng | Chi tiết     | Parse và in khi dùng `--des`.           |
+
+Khi thêm tính năng mới, cập nhật theo thứ tự:
+
+1. Thêm hằng số type/action trong dispatcher.
+2. Thêm handler trong dispatcher.
+3. Thêm script con nếu cần.
+4. Thêm mô tả ngắn vào `help.txt`.
+5. Thêm mô tả đầy đủ vào `app_features.yml`.
+6. Chạy command `--des` để kiểm tra mô tả được parse đúng.
+
+---
+
+## 9. Quy trình thêm một tính năng mới
+
+Ví dụ thêm command generic:
+
+```bash
+tool run compress-files <folder>
+```
+
+Các bước:
+
+1. Tạo script `src/useful-codes/compress_files.py`.
+2. Đặt hằng số:
+
+```python
+APP_RUN_COMPRESS_FILES = "compress-files"
+```
+
+3. Tạo handler:
+
+```python
+def compress_files(folder_path: str | None = None):
+    cmd_args = ["python", f"{USEFUL_CODES_FOLDER_PATH}/compress_files.py"]
+    if folder_path:
+        cmd_args.append(folder_path)
+    result = subprocess.run(cmd_args, check=False)
+    sys.exit(result.returncode)
+```
+
+4. Thêm nhánh dispatch:
+
+```python
+elif action_included == APP_RUN_COMPRESS_FILES:
+    compress_files(value_included)
+```
+
+5. Cập nhật `help.txt`.
+6. Cập nhật `app_features.yml`.
+7. Chạy thử:
+
+```bash
+tool run compress-files "path/to/folder"
+tool run compress-files --des
 ```
 
 ---
 
-## 7. Design Patterns và Nguyên tắc
+## 10. Checklist chất lượng
 
-### Pattern 1: Dispatcher / Command Router
+Trước khi xem một feature là hoàn chỉnh:
 
-`main.py` triển khai pattern **Command Router** — nhận input, phân tích, rồi gọi hàm tương ứng. Không có logic nghiệp vụ nào nằm trong file này.
-
-### Pattern 2: Subprocess Delegation
-
-Mọi tác vụ thực sự đều được thực hiện bởi subprocess riêng biệt. Điều này giúp:
-
-- Tách bạch trách nhiệm (Separation of Concerns)
-- Dễ dàng thêm script mới mà không sửa dispatcher
-- Script con có thể chạy độc lập
-
-### Pattern 3: Constants-Driven Routing
-
-Toàn bộ routing dùng string constants thay vì hardcode string literal trong if/elif, giúp tránh typo và dễ refactor.
-
-### Pattern 4: Always Exit
-
-Mọi hàm handler đều kết thúc bằng `sys.exit(0)`. Nếu code "lọt" qua tất cả nhánh mà không exit, `MOD_STATUS` được set thành `"OUT-OF-MAIN-SECTION"` và exit code là 1.
-
----
-
-## 8. Luồng thực thi ví dụ
-
-### Ví dụ 1: `mod git commit -m "fix bug"`
-
-```
-mod.cmd
-  → py main.py git commit -m "fix bug"
-  → argparse: type="git", action="commit", user_message="fix bug"
-  → type == MOD_TYPE_GIT
-  → action == MOD_GIT_COMMIT_AND_PUSH ✓
-  → user_message = "fix bug" ✓ (không raise exception)
-  → run_git_command("commit", "fix bug")
-    → subprocess.run(["python", "system-codes/mod_git.py", "commit", "fix bug"])
-      → mod_git.py nhận sys.argv = ["commit", "fix bug"]
-        → cmd = 'wt nt -d "<ROOT>" cmd /k "git add . && git commit -m \"fix bug\" && git push origin main"'
-        → subprocess.run(cmd, shell=True)
-  → sys.exit(0)
-```
-
-### Ví dụ 2: `mod code ws ptb -a -p`
-
-```
-mod.cmd
-  → py main.py code ws ptb -a -p
-  → argparse: type="code", action="ws", value="ptb", antigravity_IDE=True, powershell_only=True
-  → default_ide_prefix = "anti"
-  → type == MOD_TYPE_CODE
-  → action == MOD_CODE_VSCODE_WORKSPACE
-  → open_working_vscode("anti", "ptb", True)
-    → subprocess.run(["python", "useful-codes/open_main_ws.py", "anti", "ptb", "-p"])
-      → open_main_ws.py: value="ptb" → open_working_workspace_photobooth("anti", powershell_only=True)
-        → wt -w _blank -d "D:/D-Documents/Code_VCN/Photobooth/code/ptm" --title "PTM"
-           ; nt -d "D:/D-Documents/Code_VCN/Photobooth/recover-image" --title "recover-image"
-  → sys.exit(0)
-```
-
-### Ví dụ 3: `mod run del-files --des`
-
-```
-mod.cmd
-  → py main.py run del-files --des
-  → argparse: type="run", action="del-files", des=True
-  → args.des == True → print_feature_description("run", "del-files")
-    → subprocess.run(["python", "useful-codes/print_feature_description.py", "--type", "run", "--action", "del-files"])
-      → đọc app_features.yml → in mô tả ACTION 21
-  → sys.exit(0)
-```
-
----
-
-## 9. Giới hạn & Lưu ý
-
-| Vấn đề                     | Mô tả                                                                                                             |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| **Hardcoded paths**        | Nhiều đường dẫn như `D:/D-Documents/...` và `C:/Users/dell/...` được hardcode trong code, không phải trong `.env` |
-| **Windows-only**           | Tool phụ thuộc hoàn toàn vào Windows (`wt`, `rundll32`, `tasklist`, `start`)                                      |
-| **Shell=True**             | Nhiều subprocess dùng `shell=True` → tiềm ẩn rủi ro injection nếu input từ user không được sanitize               |
-| **sys.exit(0) pattern**    | Mọi handler đều exit ngay sau khi chạy — không có cơ chế callback hay chain lệnh                                  |
-| **`MOD_STATUS` global** | Biến `MOD_STATUS` được khai báo global nhưng chỉ được dùng ở cuối để detect "out of flow"                      |
+- Command có trong dispatcher.
+- Command có handler rõ ràng.
+- Script con validate input.
+- Command có mô tả trong `help.txt`.
+- Command có mô tả trong `app_features.yml`.
+- Command lỗi có thông báo dễ hiểu.
+- Path/config local không hardcode nếu có thể đưa vào `.env`.
+- Feature có ví dụ sử dụng.
+- Nếu có thao tác xóa/ghi đè, có kiểm tra hoặc xác nhận.
+- Thay đổi đã được commit và push lên remote repo.
