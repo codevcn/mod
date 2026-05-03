@@ -367,7 +367,7 @@ e/n/d/r/c/s/q> q
 
 ==================================================
 Đã tự động nhận diện remote mới tạo: codevcn-dell-pc
-Đã lưu cấu hình remote 'codevcn-dell-pc:' vào tệp D:\D-Documents\TOOLs\mod\src\useful-codes\sync-to-gdrive\configs.json.
+Đã lưu cấu hình remote 'codevcn-dell-pc:' vào tệp D:\D-Documents\TOOLs\mod\src\features\sync-to-gdrive\configs.json.
 Bắt đầu đồng bộ dữ liệu lên Google Drive...
   Remote sử dụng: codevcn-dell-pc:
   Nguồn: D:\D-Downloads\tiktok-beta\outfits

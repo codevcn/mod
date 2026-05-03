@@ -4,48 +4,46 @@ Tree view of: D:\D-Documents\TOOLs\mod
 ├── .gitignore
 ├── ARCHITECTURE.md
 ├── README.md
-├── doc
-│   ├── AGENTS.md
-│   └── spec.md
+├── downloads
+│   └── Hào Khí Việt Nam.mp3
+├── mod.cmd
 ├── note.md
 ├── print_project_tree.py
 ├── project_tree.txt
-├── reference.txt
 ├── requirements.txt
-├── mod.cmd
 ├── src
 │   ├── cmd
 │   │   └── init.cmd
 │   ├── contents
 │   │   ├── app_features.yml
 │   │   ├── cURL.txt
+│   │   ├── files
 │   │   ├── files_source.txt
 │   │   ├── help.txt
 │   │   ├── list_useful_commands.txt
 │   │   └── statuses.txt
-│   ├── main.py
-│   ├── mod_test.py
-│   ├── system-codes
-│   │   ├── mod_git.py
-│   │   ├── mod_print_content.py
-│   │   └── mod_statuses.py
-│   └── useful-codes
-│       ├── convert_png_to_svg.py
-│       ├── create_files_in_folder.py
-│       ├── delete_files.py
-│       ├── edit_to_command.py
-│       ├── keep_files_with_ext.py
-│       ├── open_main_ws.py
-│       ├── print_cURL.py
-│       ├── print_feature_description.py
-│       ├── print_os_info.py
-│       ├── print_vcnbat_folder.py
-│       ├── rename_files.py
-│       ├── set_download_path_in_chrome.py
-│       ├── setup_venv_in_project.py
-│       └── sync-to-gdrive
-│           ├── AUTH_GUIDE.txt
-│           ├── configs.json
-│           └── sync_to_gdrive.py
+│   ├── features
+│   │   ├── create_files_in_folder.py
+│   │   ├── delete_files.py
+│   │   ├── edit_to_command.py
+│   │   ├── gen_qr_image.py
+│   │   ├── keep_files_with_ext.py
+│   │   ├── open_main_ws.py
+│   │   ├── print_cURL.py
+│   │   ├── print_os_info.py
+│   │   ├── rename_files.py
+│   │   ├── set_download_path_in_chrome.py
+│   │   ├── setup_venv_in_project.py
+│   │   ├── sync-to-gdrive
+│   │   │   ├── AUTH_GUIDE.txt
+│   │   │   ├── configs.json
+│   │   │   └── sync_to_gdrive.py
+│   │   └── system
+│   │       ├── _git.py
+│   │       ├── _print_content.py
+│   │       ├── _statuses.py
+│   │       ├── _print_root_folder.py
+│   │       └── _print_feature_description.py
+│   └── main.py
 └── warehouse
-    └── mod_main_ws.txt
+    └── runner_main_ws.txt

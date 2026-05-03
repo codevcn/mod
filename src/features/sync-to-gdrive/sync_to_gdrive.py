@@ -6,8 +6,6 @@ from dotenv import load_dotenv
 
 load_dotenv(dotenv_path="D:/D-Documents/TOOLs/mod/.env")
 
-MOD_USEFUL_CODES_FOLDER_PATH = os.getenv("USEFUL_CODES_FOLDER_PATH")
-
 GDRIVE_ACTION_SYNC = "sync"
 GDRIVE_ACTION_GUIDE = "guide"
 GDRIVE_ACTION_RESET = "reset"
@@ -17,7 +15,9 @@ GDRIVE_ACTION_DEL_FD = "del-fd"
 GDRIVE_ACTION_URL = "url"
 
 # Tên tệp cấu hình JSON sẽ lưu trữ thông tin remote
-CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "configs.json")
+FEATURE_DIR = os.path.dirname(os.path.abspath(__file__))
+CONFIG_FILE = os.path.join(FEATURE_DIR, "configs.json")
+AUTH_GUIDE_FILE = os.path.join(FEATURE_DIR, "AUTH_GUIDE.txt")
 
 
 def load_remote_name():
@@ -264,7 +264,7 @@ def list_directories(target_path, remote_name, is_deep=False, is_file=False):
 
 def display_auth_guide():
     subprocess.Popen(
-        ["notepad", f"{MOD_USEFUL_CODES_FOLDER_PATH}/sync-to-gdrive/AUTH_GUIDE.txt"],
+        ["notepad", AUTH_GUIDE_FILE],
         shell=True,
     )
     sys.exit(0)

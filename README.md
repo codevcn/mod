@@ -1,6 +1,6 @@
 # Mod CLI
 
-Mod CLI là công cụ dòng lệnh viết bằng Python để gom các tác vụ tự động hóa thường dùng trên Windows vào một lệnh `mod` thống nhất. Project này hoạt động theo mô hình dispatcher: `src/main.py` nhận lệnh, phân tích `type/action/value/extra`, rồi gọi các script con trong `src/system-codes` hoặc `src/useful-codes`.
+Mod CLI là công cụ dòng lệnh viết bằng Python để gom các tác vụ tự động hóa thường dùng trên Windows vào một lệnh `mod` thống nhất. Project này hoạt động theo mô hình dispatcher: `src/main.py` nhận lệnh, phân tích `type/action/value/extra`, rồi gọi các script con trong `src/features` hoặc `src/features/system`.
 
 ---
 
@@ -52,7 +52,7 @@ Các biến đang được code sử dụng:
 
 ```env
 ROOT_FOLDER_PATH=<absolute-path-to-project-root>
-USEFUL_CODES_FOLDER_PATH=<absolute-path-to-project-root>/src/useful-codes
+FEATURES_FOLDER_PATH=<absolute-path-to-project-root>/src/features
 CONTENTS_FOLDER_PATH=<absolute-path-to-project-root>/src/contents
 TEMPLATE_REPLACER_FOLDER_PATH=<absolute-path-to-template-replacer>
 MOD_APPDATA_FOLDER_PATH=<absolute-path-to-folder-for-generated-assets>
@@ -63,7 +63,7 @@ MOD_APPDATA_FOLDER_PATH=<absolute-path-to-folder-for-generated-assets>
 | Biến                            | Dùng cho                                                        |
 | ------------------------------- | --------------------------------------------------------------- |
 | `ROOT_FOLDER_PATH`              | Mở project, gọi script nội bộ, chạy Git helper.                 |
-| `USEFUL_CODES_FOLDER_PATH`      | Gọi các script trong `src/useful-codes`.                        |
+| `FEATURES_FOLDER_PATH`          | Gọi các script trong `src/features`. Nếu thiếu, tool tự suy ra từ `src/main.py`. |
 | `CONTENTS_FOLDER_PATH`          | Đọc `help.txt`, `statuses.txt`, `cURL.txt`, `files_source.txt`. |
 | `TEMPLATE_REPLACER_FOLDER_PATH` | Mở/chỉnh sửa prompts của Template Replacer.                     |
 | `MOD_APPDATA_FOLDER_PATH`       | Nơi lưu ảnh QR được tạo bởi `mod run gen-qr`.                   |

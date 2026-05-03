@@ -16,7 +16,7 @@ def resolve_mod_root_dir() -> str:
     if env_root:
         return env_root
 
-    # Fallback: this file is at <root>/src/system-codes/mod_git.py
+    # Fallback: this file is at <root>/src/features/system/_git.py
     return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 

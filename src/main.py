@@ -2,9 +2,15 @@ import argparse
 import os
 import subprocess
 import sys
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv(dotenv_path="D:/D-Documents/TOOLs/mod/.env")
+os.environ.setdefault("PYTHONIOENCODING", "utf-8")
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 # --- Static parameters (constants) ---
 MOD_STATUS = "OK"
@@ -59,18 +65,30 @@ MOD_WARNING_TYPE_MISSING = "MISSING-TYPE"
 MOD_WARNING_ACTION_WRONG = "WRONG-ACTION"
 MOD_WARNING_ACTION_MISSING = "MISSING-ACTION"
 
-MOD_ROOT_FOLDER = os.getenv("ROOT_FOLDER_PATH")
-MOD_USEFUL_CODES_FOLDER_PATH = os.getenv("USEFUL_CODES_FOLDER_PATH") or ""
+MOD_SRC_FOLDER = Path(__file__).resolve().parent
+MOD_ROOT_FOLDER = os.getenv("ROOT_FOLDER_PATH") or str(MOD_SRC_FOLDER.parent)
+MOD_FEATURES_FOLDER_PATH = os.getenv("FEATURES_FOLDER_PATH") or str(
+    MOD_SRC_FOLDER / "features"
+)
+MOD_SYSTEM_FEATURES_FOLDER_PATH = str(Path(MOD_FEATURES_FOLDER_PATH) / "system")
 
 TEMPLATE_REPLACER_FOLDER_PATH = os.getenv("TEMPLATE_REPLACER_FOLDER_PATH") or ""
 
 # --- Functions ---
 
 
+def get_feature_path(*parts: str) -> str:
+    return str(Path(MOD_FEATURES_FOLDER_PATH, *parts))
+
+
+def get_system_feature_path(filename: str) -> str:
+    return str(Path(MOD_SYSTEM_FEATURES_FOLDER_PATH, filename))
+
+
 def gdrive_execute(gdrive_command, *args):
     cmd_args = [
         "python",
-        f"{MOD_USEFUL_CODES_FOLDER_PATH}/sync-to-gdrive/sync_to_gdrive.py",
+        get_feature_path("sync-to-gdrive", "sync_to_gdrive.py"),
     ]
     if gdrive_command is not None:
         cmd_args.append(gdrive_command)
@@ -88,7 +106,7 @@ def print_content(content_filename):
     subprocess.run(
         [
             "python",
-            f"{MOD_ROOT_FOLDER}/src/system-codes/_print_content.py",
+            get_system_feature_path("_print_content.py"),
             content_filename,
         ],
         check=True,
@@ -125,7 +143,7 @@ def print_useful_commands():
 def run_git_command(git_type, user_message=None):
     args = [
         "python",
-        f"{MOD_ROOT_FOLDER}/src/system-codes/_git.py",
+        get_system_feature_path("_git.py"),
         git_type,
     ]
     if user_message:
@@ -157,7 +175,7 @@ def open_mod_file_in_system_folder():
 
 def print_statuses_info():
     subprocess.run(
-        ["python", f"{MOD_ROOT_FOLDER}/src/system-codes/_statuses.py"],
+        ["python", get_system_feature_path("_statuses.py")],
         check=True,
         shell=True,
     )
@@ -170,7 +188,7 @@ def print_help():
 
 def print_cURL():
     subprocess.run(
-        ["python", f"{MOD_ROOT_FOLDER}/src/useful-codes/print_cURL.py"],
+        ["python", get_feature_path("print_cURL.py")],
         check=True,
         shell=True,
     )
@@ -197,7 +215,7 @@ def open_working_vscode(ide_prefix: str, value: str, powershell_only=False):
         raise Exception("IDE prefix is missing.")
     cmd_args = [
         "python",
-        f"{MOD_ROOT_FOLDER}/src/useful-codes/open_main_ws.py",
+        get_feature_path("open_main_ws.py"),
         ide_prefix,
     ]
     if value:
@@ -216,7 +234,7 @@ def print_vscode_workspaces(workspace_path):
     subprocess.run(
         [
             "python",
-            os.path.join(MOD_USEFUL_CODES_FOLDER_PATH, "print_vcnbat_folder.py"),
+            get_system_feature_path("_print_root_folder.py"),
             workspace_path,
         ],
         check=True,
@@ -236,7 +254,7 @@ def open_template_nestjs_folder_in_vscode(ide_prefix):
 
 def print_os_info():
     subprocess.run(
-        ["python", f"{MOD_ROOT_FOLDER}/src/useful-codes/print_os_info.py"],
+        ["python", get_feature_path("print_os_info.py")],
         check=True,
         shell=True,
     )
@@ -267,7 +285,7 @@ def open_testing_python_folder_in_vscode(ide_prefix):
 
 def create_files_in_folder():
     subprocess.run(
-        ["py", f"{MOD_USEFUL_CODES_FOLDER_PATH}/create_files_in_folder.py"],
+        ["py", get_feature_path("create_files_in_folder.py")],
         shell=True,
     )
     sys.exit(0)
@@ -276,7 +294,7 @@ def create_files_in_folder():
 def set_download_path_in_chrome(folder_name: str | None = None):
     cmd_args = [
         "py",
-        f"{MOD_USEFUL_CODES_FOLDER_PATH}/set_download_path_in_chrome.py",
+        get_feature_path("set_download_path_in_chrome.py"),
     ]
     if folder_name:
         cmd_args.append(folder_name)
@@ -295,7 +313,7 @@ def edit_prompts():
 def rename_files(folder_path: str | None = None, prefix: str | None = None):
     cmd_args = [
         "py",
-        f"{MOD_USEFUL_CODES_FOLDER_PATH}/rename_files.py",
+        get_feature_path("rename_files.py"),
     ]
     if folder_path:
         cmd_args.append(folder_path)
@@ -308,7 +326,7 @@ def rename_files(folder_path: str | None = None, prefix: str | None = None):
 def delete_files(folder_path: str | None = None, ext_list: str | None = None):
     cmd_args = [
         "py",
-        f"{MOD_USEFUL_CODES_FOLDER_PATH}/delete_files.py",
+        get_feature_path("delete_files.py"),
     ]
     if folder_path:
         cmd_args.append(folder_path)
@@ -321,7 +339,7 @@ def delete_files(folder_path: str | None = None, ext_list: str | None = None):
 def keep_files(folder_path: str | None = None, ext: str | None = None):
     cmd_args = [
         "py",
-        f"{MOD_USEFUL_CODES_FOLDER_PATH}/keep_files_with_ext.py",
+        get_feature_path("keep_files_with_ext.py"),
     ]
     if folder_path:
         cmd_args.append(folder_path)
@@ -334,7 +352,7 @@ def keep_files(folder_path: str | None = None, ext: str | None = None):
 def print_feature_description(cmd_type: str | None, action: str | None):
     cmd_args = [
         "python",
-        f"{MOD_USEFUL_CODES_FOLDER_PATH}/print_feature_description.py",
+        get_system_feature_path("_print_feature_description.py"),
     ]
     if cmd_type:
         cmd_args.extend(["--type", cmd_type])
@@ -356,7 +374,7 @@ def cmd_init():
 def py_setup_venv():
     cmd_args = [
         "python",
-        f"{MOD_USEFUL_CODES_FOLDER_PATH}/setup_venv_in_project.py",
+        get_feature_path("setup_venv_in_project.py"),
     ]
 
     subprocess.run(cmd_args, shell=True)
@@ -366,7 +384,7 @@ def py_setup_venv():
 def edit_to_command():
     cmd_args = [
         "python",
-        f"{MOD_USEFUL_CODES_FOLDER_PATH}/edit_to_command.py",
+        get_feature_path("edit_to_command.py"),
     ]
     subprocess.run(cmd_args, shell=True)
     sys.exit(0)
@@ -375,7 +393,7 @@ def edit_to_command():
 def gen_qr_image():
     cmd_args = [
         "python",
-        f"{MOD_USEFUL_CODES_FOLDER_PATH}/gen_qr_image.py",
+        get_feature_path("gen_qr_image.py"),
     ]
     subprocess.run(cmd_args, shell=True)
     sys.exit(0)

@@ -51,8 +51,8 @@ Các thành phần chính:
 | CLI entry point     | File lệnh mỏng, chỉ forward toàn bộ tham số vào `src/main.py`.               |
 | `src/main.py`       | Dispatcher trung tâm: parse CLI, kiểm tra type/action, gọi handler.          |
 | Handler functions   | Hàm nhỏ trong dispatcher, chỉ build command args rồi gọi script con.         |
-| `src/system-codes/` | Script nội bộ phục vụ chính hệ CLI, ví dụ in nội dung, thao tác Git, status. |
-| `src/useful-codes/` | Script tính năng độc lập, mỗi file xử lý một nhóm nghiệp vụ cụ thể.          |
+| `src/features/`     | Script tính năng độc lập, mỗi file xử lý một nhóm nghiệp vụ cụ thể.          |
+| `src/features/system/` | Script nội bộ phục vụ chính hệ CLI, ví dụ in nội dung, thao tác Git, status. |
 | `src/contents/`     | Tài liệu và dữ liệu tĩnh dùng để in help, mô tả feature, template.           |
 | `.env`              | Cấu hình local, path, token, hoặc thông tin thay đổi theo môi trường.        |
 | Remote Git repo     | Nơi lưu version project để backup và đồng bộ nhanh giữa nhiều máy.           |
@@ -119,7 +119,7 @@ Một handler tốt nên ngắn và có một trách nhiệm:
 def run_feature(value: str | None = None):
     cmd_args = [
         "python",
-        f"{USEFUL_CODES_FOLDER_PATH}/feature_script.py",
+        get_feature_path("feature_script.py"),
     ]
     if value:
         cmd_args.append(value)
@@ -137,7 +137,7 @@ Quy ước:
 
 ### 3.4. Script con
 
-Script con trong `useful-codes` nên có cấu trúc:
+Script con trong `features` nên có cấu trúc:
 
 ```python
 def parse_args():
@@ -276,14 +276,13 @@ project-root/
     │   ├── statuses.txt
     │   └── other-static-content.txt
     │
-    ├── system-codes/
-    │   ├── _git.py
-    │   ├── _print_content.py
-    │   └── _statuses.py
-    │
-    └── useful-codes/
+    └── features/
         ├── feature_a.py
         ├── feature_b.py
+        ├── system/
+        │   ├── _git.py
+        │   ├── _print_content.py
+        │   └── _statuses.py
         └── integration-name/
             ├── configs.json
             └── integration_script.py
@@ -295,9 +294,9 @@ project-root/
 | --------------------------------- | ------------------------------------------------------------------------- |
 | `src/cmd/`                        | Batch/shell scripts phục vụ khởi tạo hoặc lệnh hệ điều hành.              |
 | `src/contents/`                   | File text/YAML dùng làm tài liệu và dữ liệu mô tả.                        |
-| `src/system-codes/`               | Script nội bộ phục vụ framework CLI.                                      |
-| `src/useful-codes/`               | Script tính năng thực tế mà người dùng gọi qua CLI.                       |
-| `src/useful-codes/<integration>/` | Nhóm script/config cho một tích hợp lớn như cloud, storage, browser, API. |
+| `src/features/`                   | Script tính năng thực tế mà người dùng gọi qua CLI.                       |
+| `src/features/system/`            | Script nội bộ phục vụ framework CLI.                                      |
+| `src/features/<integration>/`     | Nhóm script/config cho một tích hợp lớn như cloud, storage, browser, API. |
 
 Quy ước:
 
@@ -498,7 +497,7 @@ tool run compress-files <folder>
 
 Các bước:
 
-1. Tạo script `src/useful-codes/compress_files.py`.
+1. Tạo script `src/features/compress_files.py`.
 2. Đặt hằng số:
 
 ```python
@@ -509,7 +508,7 @@ APP_RUN_COMPRESS_FILES = "compress-files"
 
 ```python
 def compress_files(folder_path: str | None = None):
-    cmd_args = ["python", f"{USEFUL_CODES_FOLDER_PATH}/compress_files.py"]
+    cmd_args = ["python", get_feature_path("compress_files.py")]
     if folder_path:
         cmd_args.append(folder_path)
     result = subprocess.run(cmd_args, check=False)

@@ -115,7 +115,7 @@ mod_tool:
           title: "Git Commit & Push"
           command: 'mod git commit -m "message"'
           summary: "Chạy tuần tự `git add .`, `git commit`, `git push` ngay trong tab terminal hiện tại."
-          details: 'Chạy tại thư mục `MOD_ROOT_FOLDER`. Script kiểm tra thư mục có phải git repository trước khi chạy; nếu không phải repo thì dừng sớm với thông báo rõ ràng.'
+          details: "Chạy tại thư mục `MOD_ROOT_FOLDER`. Script kiểm tra thư mục có phải git repository trước khi chạy; nếu không phải repo thì dừng sớm với thông báo rõ ràng."
           conditions: 'Flag `-m "message"` là bắt buộc. Cần `git` đã cài và `MOD_ROOT_FOLDER` phải là git repository có remote `origin`.'
 
     - name: "run"
@@ -177,7 +177,7 @@ mod_tool:
           title: "In VSCode Workspaces"
           command: "mod print ws"
           summary: "In danh sách các VSCode workspace file trong thư mục Workspaces."
-          details: "Gọi `useful-codes/print_vcnbat_folder.py` với đường dẫn `D:/D-Documents/VSCode-Workspaces`."
+          details: "Gọi `_print_root_folder.py` với đường dẫn `D:/D-Documents/VSCode-Workspaces`."
           conditions: "Thư mục `D:/D-Documents/VSCode-Workspaces` phải tồn tại."
         - id: "ACTION 25"
           title: "In cURL Reference"
@@ -244,6 +244,6 @@ mod_tool:
 
 config:
   ROOT_FOLDER_PATH: "Đường dẫn gốc của mod project."
-  USEFUL_CODES_FOLDER_PATH: "Đường dẫn đến thư mục `useful-codes`."
+  FEATURES_FOLDER_PATH: "Đường dẫn đến thư mục `features`."
   CONTENTS_FOLDER_PATH: "Đường dẫn đến thư mục `contents`."
   TEMPLATE_REPLACER_FOLDER_PATH: "Đường dẫn đến extension Template Replacer."
