@@ -1,14 +1,15 @@
 import os
 import re
 import sys
-from dotenv import load_dotenv
+from pathlib import Path
 
-load_dotenv(dotenv_path="D:/D-Documents/TOOLs/mod/.env")
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from configs.paths import CONTENTS_FOLDER
 
 
 def main():
     # Tên tệp chứa cấu trúc dữ liệu nguồn của bạn
-    source_file = (os.getenv("CONTENTS_FOLDER_PATH") or "") + "/files_source.txt"
+    source_file = f"{CONTENTS_FOLDER}/files_source.txt"
 
     # Kiểm tra xem tệp nguồn có tồn tại trong thư mục hiện tại hay không
     if not os.path.exists(source_file):

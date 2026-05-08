@@ -1,11 +1,9 @@
-import argparse
 import os
 import subprocess
 import sys
 from pathlib import Path
-from dotenv import load_dotenv
+from configs.paths import PROJECT_ROOT, FEATURES_FOLDER, TEMPLATE_REPLACER_FOLDER
 
-load_dotenv(dotenv_path="D:/D-Documents/TOOLs/mod/.env")
 os.environ.setdefault("PYTHONIOENCODING", "utf-8")
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -66,13 +64,11 @@ MOD_WARNING_ACTION_WRONG = "WRONG-ACTION"
 MOD_WARNING_ACTION_MISSING = "MISSING-ACTION"
 
 MOD_SRC_FOLDER = Path(__file__).resolve().parent
-MOD_ROOT_FOLDER = os.getenv("ROOT_FOLDER_PATH") or str(MOD_SRC_FOLDER.parent)
-MOD_FEATURES_FOLDER_PATH = os.getenv("FEATURES_FOLDER_PATH") or str(
-    MOD_SRC_FOLDER / "features"
-)
+MOD_ROOT_FOLDER = PROJECT_ROOT
+MOD_FEATURES_FOLDER_PATH = FEATURES_FOLDER
 MOD_SYSTEM_FEATURES_FOLDER_PATH = str(Path(MOD_FEATURES_FOLDER_PATH) / "system")
 
-TEMPLATE_REPLACER_FOLDER_PATH = os.getenv("TEMPLATE_REPLACER_FOLDER_PATH") or ""
+TEMPLATE_REPLACER_FOLDER_PATH = TEMPLATE_REPLACER_FOLDER
 
 # --- Functions ---
 
@@ -85,14 +81,14 @@ def get_system_feature_path(filename: str) -> str:
     return str(Path(MOD_SYSTEM_FEATURES_FOLDER_PATH, filename))
 
 
-def gdrive_execute(gdrive_command, *args):
+def gdrive_execute(action, remaining_args):
     cmd_args = [
         "python",
         get_feature_path("sync-to-gdrive", "sync_to_gdrive.py"),
     ]
-    if gdrive_command is not None:
-        cmd_args.append(gdrive_command)
-    cmd_args.extend([arg for arg in args if arg is not None])
+    if action is not None:
+        cmd_args.append(action)
+    cmd_args.extend(remaining_args)
 
     subprocess.run(
         cmd_args,
@@ -140,16 +136,15 @@ def print_useful_commands():
     print_content("list_useful_commands.txt")
 
 
-def run_git_command(git_type, user_message=None):
-    args = [
+def run_git_command(git_type, remaining_args):
+    cmd_args = [
         "python",
         get_system_feature_path("_git.py"),
         git_type,
     ]
-    if user_message:
-        args.append(user_message)
+    cmd_args.extend(remaining_args)
     result = subprocess.run(
-        args,
+        cmd_args,
         check=False,
     )
     sys.exit(result.returncode)
@@ -210,7 +205,7 @@ def open_vscode_workspaces_in_system_folder():
     sys.exit(0)
 
 
-def open_working_vscode(ide_prefix: str, value: str, powershell_only=False):
+def open_working_vscode(ide_prefix: str, remaining_args: list[str]):
     if not ide_prefix:
         raise Exception("IDE prefix is missing.")
     cmd_args = [
@@ -218,10 +213,7 @@ def open_working_vscode(ide_prefix: str, value: str, powershell_only=False):
         get_feature_path("open_main_ws.py"),
         ide_prefix,
     ]
-    if value:
-        cmd_args.append(value)
-    if powershell_only:
-        cmd_args.append("-p")
+    cmd_args.extend(remaining_args)
     subprocess.run(
         cmd_args,
         check=True,
@@ -291,13 +283,12 @@ def create_files_in_folder():
     sys.exit(0)
 
 
-def set_download_path_in_chrome(folder_name: str | None = None):
+def set_download_path_in_chrome(remaining_args: list[str]):
     cmd_args = [
         "py",
         get_feature_path("set_download_path_in_chrome.py"),
     ]
-    if folder_name:
-        cmd_args.append(folder_name)
+    cmd_args.extend(remaining_args)
     subprocess.run(cmd_args, shell=True)
     sys.exit(0)
 
@@ -310,41 +301,32 @@ def edit_prompts():
     sys.exit(0)
 
 
-def rename_files(folder_path: str | None = None, prefix: str | None = None):
+def rename_files(remaining_args: list[str]):
     cmd_args = [
         "py",
         get_feature_path("rename_files.py"),
     ]
-    if folder_path:
-        cmd_args.append(folder_path)
-    if prefix is not None:
-        cmd_args.append(prefix)
+    cmd_args.extend(remaining_args)
     subprocess.run(cmd_args, shell=True)
     sys.exit(0)
 
 
-def delete_files(folder_path: str | None = None, ext_list: str | None = None):
+def delete_files(remaining_args: list[str]):
     cmd_args = [
         "py",
         get_feature_path("delete_files.py"),
     ]
-    if folder_path:
-        cmd_args.append(folder_path)
-    if ext_list:
-        cmd_args.append(ext_list)
+    cmd_args.extend(remaining_args)
     subprocess.run(cmd_args, shell=True)
     sys.exit(0)
 
 
-def keep_files(folder_path: str | None = None, ext: str | None = None):
+def keep_files(remaining_args: list[str]):
     cmd_args = [
         "py",
         get_feature_path("keep_files_with_ext.py"),
     ]
-    if folder_path:
-        cmd_args.append(folder_path)
-    if ext:
-        cmd_args.append(ext)
+    cmd_args.extend(remaining_args)
     subprocess.run(cmd_args, shell=True)
     sys.exit(0)
 
@@ -403,96 +385,39 @@ def gen_qr_image():
 
 if __name__ == "__main__":
     try:
-        parser = argparse.ArgumentParser(
-            description="mod (Python version) - Command line tool for automating tasks."
-        )
-        parser.add_argument(
-            "type", nargs="?", default=None, help="Type (open, code, run, print, git)"
-        )
-        parser.add_argument(
-            "action",
-            nargs="?",
-            default=None,
-            help="Action (e.g. env, ws, test, commit, os, stts, curl, dir, unikey)",
-        )
-        parser.add_argument(
-            "value",
-            nargs="?",
-            default=None,
-            help="Value (e.g. <remote-name> for gdrive set-remote)",
-        )
-        parser.add_argument(
-            "extra",
-            nargs="?",
-            default=None,
-            help="Extra value (e.g. prefix for rn-files)",
-        )
-        parser.add_argument(
-            "-m",
-            "--message",
-            default=None,
-            dest="user_message",
-            help="User message (for git commit)",
-        )
-        parser.add_argument(
-            "-a",
-            "--antigravity-IDE",
-            default=None,
-            dest="antigravity_IDE",
-            action="store_true",
-            help="Open codes in Antigravity IDE",
-        )
-        parser.add_argument(
-            "-p",
-            "--powershell-only",
-            default=None,
-            dest="powershell_only",
-            action="store_true",
-            help="Only open folders in Windows Terminal (skip IDE)",
-        )
-        parser.add_argument(
-            "--des",
-            action="store_true",
-            help="Show feature description from app_features.yml",
-        )
-        parser.add_argument(
-            "-d",
-            "--deep",
-            default=False,
-            action="store_true",
-            help="Deep recursive action (e.g. for gdrive list)",
-        )
-        parser.add_argument(
-            "-f",
-            "--file",
-            default=False,
-            action="store_true",
-            help="List files instead of folders (for gdrive list) or open app folder in File Explorer (for open)",
-        )
-        args = parser.parse_args()
+        raw_args = sys.argv[1:]
 
-        type_included = args.type
-        action_included = args.action
-        value_included = args.value
-        extra_included = args.extra
-        user_message_included = args.user_message
-        deep_included = args.deep
-        file_included = args.file
+        # --- Tách dispatcher flags (chỉ giữ --des và -a) ---
+        des_flag = False
+        antigravity_flag = False
+        feature_args = []
 
-        if args.des:
+        for arg in raw_args:
+            if arg == "--des":
+                des_flag = True
+            elif arg in ("-a", "--antigravity-IDE"):
+                antigravity_flag = True
+            else:
+                feature_args.append(arg)
+
+        # --- Tách type / action / remaining ---
+        type_included = feature_args[0] if len(feature_args) > 0 else None
+        action_included = feature_args[1] if len(feature_args) > 1 else None
+        remaining_args = feature_args[2:]
+
+        # --- Help: mod | mod -h | mod --help ---
+        if type_included is None or type_included in ("-h", "--help"):
+            print_help()
+
+        # --- Feature description: mod <type> <action> --des ---
+        if des_flag:
             print_feature_description(type_included, action_included)
 
-        # for coding
-        antigravity_included = args.antigravity_IDE
-        powershell_only_included = args.powershell_only
-        default_ide_prefix: str = "anti" if antigravity_included else "code"
+        # --- IDE prefix ---
+        default_ide_prefix: str = "anti" if antigravity_flag else "code"
 
-        if type_included == None:
-            if action_included == None:
-                print_help()
-            else:
-                raise Exception(MOD_WARNING_TYPE_MISSING)
-        elif type_included == MOD_TYPE_EDIT:
+        # --- Dispatch ---
+        if type_included == MOD_TYPE_EDIT:
             if action_included == MOD_EDIT_PROMPTS:
                 edit_prompts()
             elif action_included == MOD_EDIT_TO_COMMAND:
@@ -507,26 +432,17 @@ if __name__ == "__main__":
         elif type_included == MOD_TYPE_INIT:
             cmd_init()
         elif type_included == MOD_TYPE_GDRIVE:
-            gdrive_args = [value_included, extra_included]
-            if deep_included:
-                gdrive_args.append("-d")
-            if file_included:
-                gdrive_args.append("--file")
-            gdrive_execute(action_included, *gdrive_args)
+            gdrive_execute(action_included, remaining_args)
         elif type_included == MOD_TYPE_CODE:
-            if action_included == None:
+            if action_included is None:
                 open_mod_files_in_vscode(default_ide_prefix)
             elif action_included == MOD_CODE_VSCODE_WORKSPACE:
-                open_working_vscode(
-                    default_ide_prefix,
-                    value_included,
-                    powershell_only_included,
-                )
+                open_working_vscode(default_ide_prefix, remaining_args)
             elif action_included == MOD_CODE_TEST:
                 open_testing_folder_in_vscode(default_ide_prefix)
             elif action_included == MOD_CODE_TYPESCRIPT_TEMPLATE:
                 open_typescript_template_in_cursor(default_ide_prefix)
-            elif action_included == MOD_CODE_JS or action_included == MOD_CODE_TS:
+            elif action_included in (MOD_CODE_JS, MOD_CODE_TS):
                 open_testing_javascript_typescript_folder_in_vscode(default_ide_prefix)
             elif action_included == MOD_CODE_NESTJS:
                 open_template_nestjs_folder_in_vscode(default_ide_prefix)
@@ -537,42 +453,50 @@ if __name__ == "__main__":
             else:
                 raise Exception(MOD_WARNING_ACTION_WRONG)
         elif type_included == MOD_TYPE_GIT:
-            if action_included == MOD_GIT_COMMIT_AND_PUSH:
-                if not user_message_included:
-                    raise Exception("Missing commit message (use -m or --message)")
             if not action_included:
                 raise Exception(MOD_WARNING_ACTION_MISSING)
-            run_git_command(action_included, user_message_included)
+            run_git_command(action_included, remaining_args)
         elif type_included == MOD_TYPE_RUN:
             if action_included == MOD_RUN_UNIKEY_APP:
                 run_Unikey_app()
             elif action_included == MOD_RUN_CREATE_FILES_IN_FOLDER:
                 create_files_in_folder()
             elif action_included == MOD_RUN_SET_DOWNLOAD_PATH_IN_CHROME:
-                set_download_path_in_chrome(value_included)
+                set_download_path_in_chrome(remaining_args)
             elif action_included == MOD_RENAME_FILES:
-                rename_files(value_included, extra_included)
+                rename_files(remaining_args)
             elif action_included == MOD_DELETE_FILES:
-                delete_files(value_included, extra_included)
+                delete_files(remaining_args)
             elif action_included == MOD_KEEP_FILES:
-                keep_files(value_included, extra_included)
+                keep_files(remaining_args)
             elif action_included == MOD_GEN_QR_IMAGE:
                 gen_qr_image()
-            elif action_included == None:
+            elif action_included is None:
                 raise Exception(MOD_WARNING_ACTION_MISSING)
             else:
                 raise Exception(MOD_WARNING_ACTION_WRONG)
         elif type_included == MOD_TYPE_OPEN:
-            if action_included == None:
-                if file_included:
+            # Gom action + remaining để detect flag -f/--file
+            all_open_args = (
+                [action_included] if action_included else []
+            ) + remaining_args
+            has_file_flag = "-f" in all_open_args or "--file" in all_open_args
+            clean_action = (
+                action_included
+                if action_included not in ("-f", "--file", None)
+                else None
+            )
+
+            if clean_action is None:
+                if has_file_flag:
                     open_mod_file_in_system_folder()
                 else:
                     open_mod_files_in_vscode(default_ide_prefix)
-            elif action_included == MOD_OPEN_ENV:
+            elif clean_action == MOD_OPEN_ENV:
                 open_environment_variables_panel()
-            elif action_included == MOD_OPEN_PROMPTS_FOLDER:
+            elif clean_action == MOD_OPEN_PROMPTS_FOLDER:
                 open_prompts_folder()
-            elif action_included == MOD_CODE_VSCODE_WORKSPACE:
+            elif clean_action == MOD_CODE_VSCODE_WORKSPACE:
                 open_vscode_workspaces_in_system_folder()
             else:
                 raise Exception(MOD_WARNING_ACTION_WRONG)
@@ -589,7 +513,7 @@ if __name__ == "__main__":
                 print_cURL()
             elif action_included == MOD_PRINT_STATUSES_INFO:
                 print_statuses_info()
-            elif action_included == None:
+            elif action_included is None:
                 raise Exception(MOD_WARNING_ACTION_MISSING)
             else:
                 raise Exception(MOD_WARNING_ACTION_WRONG)

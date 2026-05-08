@@ -3,24 +3,16 @@
 import sys
 import subprocess
 import os
-from dotenv import load_dotenv
+from pathlib import Path
 
-load_dotenv(dotenv_path="D:/D-Documents/TOOLs/mod/.env")
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from configs.paths import PROJECT_ROOT
 
 mod_GIT_TYPE = "commit"
 mod_GIT_REMOTE = "remote"
 
 
-def resolve_mod_root_dir() -> str:
-    env_root = os.getenv("ROOT_FOLDER_PATH")
-    if env_root:
-        return env_root
-
-    # Fallback: this file is at <root>/src/features/system/_git.py
-    return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-
-mod_ROOT_DIR = resolve_mod_root_dir()
+mod_ROOT_DIR = PROJECT_ROOT
 
 
 def validate_working_repository() -> int:
@@ -43,7 +35,9 @@ def validate_working_repository() -> int:
 
     if result.returncode != 0 or result.stdout.strip().lower() != "true":
         print(f">>> Lỗi: Thư mục không phải git repository: {mod_ROOT_DIR}")
-        print(">>> Gợi ý: Kiểm tra ROOT_FOLDER_PATH trong .env hoặc clone/init repo trước khi commit.")
+        print(
+            ">>> Gợi ý: Kiểm tra ROOT_FOLDER_PATH trong .env hoặc clone/init repo trước khi commit."
+        )
         return 128
 
     return 0
@@ -98,6 +92,7 @@ def print_git_remote() -> int:
     result = subprocess.run(["git", "remote", "-v"], cwd=mod_ROOT_DIR)
     return result.returncode
 
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print(">>> No valid git command found.")
@@ -106,12 +101,20 @@ if __name__ == "__main__":
     git_type = sys.argv[1]
 
     if git_type == mod_GIT_TYPE:
-        if len(sys.argv) < 3:
-            print(">>> Missing commit message.")
+        remaining = sys.argv[2:]
+        message = None
+
+        # Parse -m / --message flag
+        for i, arg in enumerate(remaining):
+            if arg in ("-m", "--message") and i + 1 < len(remaining):
+                message = remaining[i + 1]
+                break
+
+        if not message:
+            print('>>> Missing commit message (use -m "message")')
             sys.exit(1)
 
-        commit_message = " ".join(sys.argv[2:])
-        sys.exit(git_commit_and_push(commit_message))
+        sys.exit(git_commit_and_push(message))
     elif git_type == mod_GIT_REMOTE:
         sys.exit(print_git_remote())
     else:

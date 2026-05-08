@@ -1,6 +1,6 @@
 # Mod CLI
 
-Mod CLI là công cụ dòng lệnh viết bằng Python để gom các tác vụ tự động hóa thường dùng trên Windows vào một lệnh `mod` thống nhất. Project này hoạt động theo mô hình dispatcher: `src/main.py` nhận lệnh, phân tích `type/action/value/extra`, rồi gọi các script con trong `src/features` hoặc `src/features/system`.
+Mod CLI là công cụ dòng lệnh viết bằng Python để gom các tác vụ tự động hóa thường dùng trên Windows vào một lệnh `mod` thống nhất. Project hoạt động theo mô hình dispatcher: `src/main.py` nhận lệnh, phân tích `type/action`, rồi forward toàn bộ các args còn lại cho script tính năng tương ứng tự xử lý.
 
 ---
 
@@ -60,33 +60,40 @@ MOD_APPDATA_FOLDER_PATH=<absolute-path-to-folder-for-generated-assets>
 
 Ý nghĩa:
 
-| Biến                            | Dùng cho                                                        |
-| ------------------------------- | --------------------------------------------------------------- |
-| `ROOT_FOLDER_PATH`              | Mở project, gọi script nội bộ, chạy Git helper.                 |
+| Biến                            | Dùng cho                                                                         |
+| ------------------------------- | -------------------------------------------------------------------------------- |
+| `ROOT_FOLDER_PATH`              | Mở project, gọi script nội bộ, chạy Git helper.                                  |
 | `FEATURES_FOLDER_PATH`          | Gọi các script trong `src/features`. Nếu thiếu, tool tự suy ra từ `src/main.py`. |
-| `CONTENTS_FOLDER_PATH`          | Đọc `help.txt`, `statuses.txt`, `cURL.txt`, `files_source.txt`. |
-| `TEMPLATE_REPLACER_FOLDER_PATH` | Mở/chỉnh sửa prompts của Template Replacer.                     |
-| `MOD_APPDATA_FOLDER_PATH`       | Nơi lưu ảnh QR được tạo bởi `mod run gen-qr`.                   |
+| `CONTENTS_FOLDER_PATH`          | Đọc `help.txt`, `statuses.txt`, `cURL.txt`, `files_source.txt`.                  |
+| `TEMPLATE_REPLACER_FOLDER_PATH` | Mở/chỉnh sửa prompts của Template Replacer.                                      |
+| `MOD_APPDATA_FOLDER_PATH`       | Nơi lưu ảnh QR được tạo bởi `mod run gen-qr`.                                    |
 
 ---
 
 ## Cú Pháp
 
 ```bash
-mod [<type> [<action> [<value> [<extra>]]]] [flags]
+mod <type> <action> [args...] [-a] [--des]
 ```
 
-Flags:
+Dispatcher chỉ xử lý 2 flag riêng. Mọi args sau `action` được forward nguyên vẹn cho feature script tự xử lý.
 
-| Flag                      | Mô tả                                                                                             |
-| ------------------------- | ------------------------------------------------------------------------------------------------- |
-| `-h`, `--help`            | In help mặc định của argparse. Khi không truyền type, tool in `src/contents/help.txt`.            |
-| `--des`                   | In mô tả chi tiết command từ `src/contents/app_features.yml`.                                     |
-| `-m`, `--message`         | Commit message cho `mod git commit`.                                                              |
-| `-a`, `--antigravity-IDE` | Dùng IDE command `anti` thay cho `code`.                                                          |
-| `-p`, `--powershell-only` | Với workspace preset, chỉ mở terminal, bỏ qua IDE.                                                |
-| `-d`, `--deep`            | Dùng cho `mod gdrive list` để liệt kê đệ quy.                                                     |
-| `-f`, `--file`            | Dùng cho `mod gdrive list` để liệt kê file; dùng với `mod open` để mở project bằng File Explorer. |
+### Dispatcher Flags
+
+| Flag                      | Mô tả                                                         |
+| ------------------------- | ------------------------------------------------------------- |
+| `--des`                   | In mô tả chi tiết command từ `src/contents/app_features.yml`. |
+| `-a`, `--antigravity-IDE` | Dùng IDE command `anti` thay cho `code`.                      |
+
+### Feature-level Flags (truyền sau action, do feature tự xử lý)
+
+| Flag                      | Feature             | Mô tả                                                     |
+| ------------------------- | ------------------- | --------------------------------------------------------- |
+| `-h`, `--help`            | (đặt ở type)        | In `src/contents/help.txt`.                               |
+| `-m`, `--message`         | `_git.py`           | Commit message cho `mod git commit`.                      |
+| `-p`, `--powershell-only` | `open_main_ws.py`   | Chỉ mở terminal, bỏ qua IDE.                              |
+| `-d`, `--deep`            | `sync_to_gdrive.py` | Liệt kê đệ quy sâu cho `gdrive list`.                     |
+| `-f`, `--file`            | dispatcher/script   | Mở File Explorer (`open`) hoặc list file (`gdrive list`). |
 
 ---
 
@@ -103,7 +110,7 @@ mod open proms
 ```
 
 - `mod open`: mở project trong IDE mặc định.
-- `mod open -f`: mở project bằng File Explorer.
+- `mod open -f`: mở project bằng File Explorer. Flag `-f` được dispatcher detect.
 - `mod open ws`: mở thư mục workspace.
 - `mod open env`: mở Environment Variables panel.
 - `mod open proms`: mở thư mục prompts.
@@ -112,7 +119,7 @@ mod open proms
 
 ```bash
 mod code
-mod code ws <value> [-a] [-p]
+mod code ws <value> [-p]
 mod code test
 mod code ts-template
 mod code js
@@ -123,8 +130,8 @@ mod code ext
 ```
 
 - `mod code`: mở project trong IDE.
-- `mod code ws <value>`: mở workspace preset được định nghĩa trong `open_main_ws.py`.
-- Các action còn lại mở những thư mục code/testing/template đã cấu hình trong source.
+- `mod code ws <value>`: mở workspace preset. Remaining args (`<value>`, `-p`) được forward cho `open_main_ws.py`.
+- Các action còn lại mở những thư mục code/testing/template đã cấu hình.
 
 ### `edit`
 
@@ -143,7 +150,7 @@ mod git commit -m "message"
 mod git remote
 ```
 
-- `commit`: chạy `git add .`, `git commit -m`, rồi `git push origin main`.
+- `commit`: remaining args (`-m "message"`) được forward cho `_git.py`. Script tự parse `-m` flag.
 - `remote`: in danh sách remote của repository.
 
 ### `run`
@@ -158,13 +165,13 @@ mod run keep-files <folder_path> <ext>
 mod run gen-qr
 ```
 
-- `unikey`: mở UniKey theo path trong source.
-- `cr-files`: tạo file/folder từ template trong `src/contents/files_source.txt`.
-- `dld-path`: tạo và set Chrome download path cho các profile.
-- `rn-files`: đổi tên toàn bộ file cấp 1 trong folder theo prefix.
-- `del-files`: xóa file cấp 1 có extension nằm trong danh sách.
-- `keep-files`: giữ một extension, xóa các file còn lại trong folder.
-- `gen-qr`: nhập text tương tác và lưu QR image vào `MOD_APPDATA_FOLDER_PATH`.
+- `unikey`: mở UniKey.
+- `cr-files`: tạo file/folder từ template (interactive, không nhận args).
+- `dld-path`: remaining args forward cho script tự parse folder name.
+- `rn-files`: remaining args forward cho script tự parse folder và prefix.
+- `del-files`: remaining args forward cho script tự parse folder và extension list.
+- `keep-files`: remaining args forward cho script tự parse folder và extension.
+- `gen-qr`: nhập text tương tác (không nhận args).
 
 ### `print`
 
@@ -196,10 +203,10 @@ mod gdrive reset
 mod gdrive guide
 ```
 
-- `sync`: đồng bộ folder local lên Google Drive bằng `rclone sync`.
-- `list`: liệt kê folder hoặc file trên remote.
+- `sync`: remaining args forward cho script tự parse source và dest.
+- `list`: remaining args (bao gồm `-d`, `--file`) forward cho script.
 - `remote`: in thông tin remote đang chọn.
-- `del-fd`: xóa một folder trên remote, có hỏi xác nhận.
+- `del-fd`: xóa folder trên remote, có xác nhận.
 - `url`: lấy link truy cập remote path.
 - `reset`: reset cấu hình `rclone` hoặc config nội bộ.
 - `guide`: mở hướng dẫn cấu hình Google Drive/rclone.
@@ -239,11 +246,14 @@ mod run del-files "D:/D-Downloads/Trash" "tmp,log"
 # Tạo QR image từ text nhập trong terminal
 mod run gen-qr
 
-# Liệt kê toàn bộ folder trên Google Drive remote
+# Liệt kê toàn bộ folder trên Google Drive remote (đệ quy)
 mod gdrive list "" -d
 
 # Commit và push nhanh project hiện tại
 mod git commit -m "update docs"
+
+# Mở workspace với chỉ terminal (không IDE)
+mod code ws ptb -p
 
 # In thông tin hệ thống
 mod print os

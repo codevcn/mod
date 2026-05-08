@@ -1,11 +1,12 @@
 import sys
 import os
 import argparse
-from dotenv import load_dotenv
-import yaml
+from pathlib import Path
 
-load_dotenv(dotenv_path="D:/D-Documents/TOOLs/mod/.env")
-MOD_ROOT_FOLDER = os.getenv("ROOT_FOLDER_PATH")
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from configs.paths import CONTENTS_FOLDER
+
+import yaml
 
 
 def warn_user_error(warning_message: str):
@@ -14,9 +15,7 @@ def warn_user_error(warning_message: str):
 
 
 def print_feature_description(cmd_type: str | None, action: str | None):
-    yaml_path = os.path.join(
-        MOD_ROOT_FOLDER or "", "src", "contents", "app_features.yml"
-    )
+    yaml_path = os.path.join(CONTENTS_FOLDER, "app_features.yml")
     if not os.path.exists(yaml_path):
         warn_user_error(f"Cannot find feature definitions: {yaml_path}")
 
@@ -62,11 +61,19 @@ def print_feature_description(cmd_type: str | None, action: str | None):
                             target_found = True
 
                     if target_found:
-                        print(f"\n--- Tính năng: {a.get('title')} ---")
-                        print(f"+) Lệnh:\t{a.get('command')}")
-                        print(f"+) Tóm tắt:\t{a.get('summary')}")
-                        print(f"+) Chi tiết:\t{a.get('details')}")
-                        print(f"+) Điều kiện:\t{a.get('conditions')}\n")
+                        # ANSI color codes
+                        C = "\033[36m"  # Cyan
+                        G = "\033[32m"  # Green
+                        Y = "\033[33m"  # Yellow
+                        W = "\033[97m"  # White bright
+                        D = "\033[2m"   # Dim
+                        R = "\033[0m"   # Reset
+
+                        print(f"\n{C}--- Tính năng: {a.get('title')} ---{R}")
+                        print(f"{G}+) Lệnh:{R}\t{Y}{a.get('command')}{R}")
+                        print(f"{G}+) Tóm tắt:{R}\t{W}{a.get('summary')}{R}")
+                        print(f"{G}+) Chi tiết:{R}\t{D}{a.get('details')}{R}")
+                        print(f"{G}+) Điều kiện:{R}\t{D}{a.get('conditions')}{R}\n")
                         sys.exit(0)
 
         cmd_str = f"mod {cmd_type or ''} {action or ''}".strip()

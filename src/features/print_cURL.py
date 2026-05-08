@@ -1,10 +1,10 @@
-import os
-from dotenv import load_dotenv
+import sys
+from pathlib import Path
 
-load_dotenv(dotenv_path="D:/D-Documents/TOOLs/mod/.env")
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from configs.paths import CONTENTS_FOLDER
 
-CONTENTS_FOLDER_PATH = os.getenv("CONTENTS_FOLDER_PATH")
-curl_file = f"{CONTENTS_FOLDER_PATH}/cURL.txt"
+curl_file = f"{CONTENTS_FOLDER}/cURL.txt"
 
 if __name__ == "__main__":
     try:

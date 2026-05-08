@@ -33,29 +33,31 @@ CLI entry point
   v
 src/main.py
   |
-  +-- parse args
-  +-- normalize flags/options
+  +-- manual parse sys.argv
+  +-- tách dispatcher flags (--des, -a)
+  +-- xác định type / action
+  +-- gom remaining args
   +-- dispatch by type/action
   |
   v
 handler function
   |
   v
-subprocess / helper script / system command
+subprocess (forward remaining args) / system command
 ```
 
 Các thành phần chính:
 
-| Thành phần          | Vai trò                                                                      |
-| ------------------- | ---------------------------------------------------------------------------- |
-| CLI entry point     | File lệnh mỏng, chỉ forward toàn bộ tham số vào `src/main.py`.               |
-| `src/main.py`       | Dispatcher trung tâm: parse CLI, kiểm tra type/action, gọi handler.          |
-| Handler functions   | Hàm nhỏ trong dispatcher, chỉ build command args rồi gọi script con.         |
-| `src/features/`     | Script tính năng độc lập, mỗi file xử lý một nhóm nghiệp vụ cụ thể.          |
+| Thành phần             | Vai trò                                                                      |
+| ---------------------- | ---------------------------------------------------------------------------- |
+| CLI entry point        | File lệnh mỏng, chỉ forward toàn bộ tham số vào `src/main.py`.               |
+| `src/main.py`          | Dispatcher trung tâm: parse CLI, kiểm tra type/action, gọi handler.          |
+| Handler functions      | Hàm nhỏ trong dispatcher, chỉ build command args rồi gọi script con.         |
+| `src/features/`        | Script tính năng độc lập, mỗi file xử lý một nhóm nghiệp vụ cụ thể.          |
 | `src/features/system/` | Script nội bộ phục vụ chính hệ CLI, ví dụ in nội dung, thao tác Git, status. |
-| `src/contents/`     | Tài liệu và dữ liệu tĩnh dùng để in help, mô tả feature, template.           |
-| `.env`              | Cấu hình local, path, token, hoặc thông tin thay đổi theo môi trường.        |
-| Remote Git repo     | Nơi lưu version project để backup và đồng bộ nhanh giữa nhiều máy.           |
+| `src/contents/`        | Tài liệu và dữ liệu tĩnh dùng để in help, mô tả feature, template.           |
+| `.env`                 | Cấu hình local, path, token, hoặc thông tin thay đổi theo môi trường.        |
+| Remote Git repo        | Nơi lưu version project để backup và đồng bộ nhanh giữa nhiều máy.           |
 
 Nguyên tắc thiết kế:
 
@@ -90,16 +92,23 @@ Không nên đặt logic nghiệp vụ trong wrapper.
 
 `src/main.py` là nơi định nghĩa:
 
-- Hằng số type/action/flag/warning.
-- Parser CLI bằng `argparse`.
+- Hằng số type/action/warning.
+- Manual parsing `sys.argv` (không dùng `argparse`).
 - Các handler function.
 - Khối dispatch chính.
 - Cơ chế gọi script con bằng `subprocess`.
 
+Dispatcher chỉ xử lý 2 flag riêng:
+
+- `--des`: in mô tả tính năng từ `app_features.yml`.
+- `-a` / `--antigravity-IDE`: chọn IDE prefix.
+
+Mọi args sau `action` được gom vào `remaining_args` và forward nguyên vẹn cho feature script.
+
 Mẫu command grammar:
 
 ```text
-<tool> [<type> [<action> [<value> [<extra>]]]] [flags]
+<tool> <type> <action> [args...] [--des] [-a]
 ```
 
 Ví dụ generic:
@@ -109,20 +118,20 @@ tool print help
 tool run rename-files "path/to/folder" "prefix"
 tool git commit -m "update feature"
 tool feature action --des
+tool -a code ws ptb -p
 ```
 
 ### 3.3. Handler
 
-Một handler tốt nên ngắn và có một trách nhiệm:
+Một handler tốt nên ngắn và chỉ forward remaining args:
 
 ```python
-def run_feature(value: str | None = None):
+def run_feature(remaining_args: list[str]):
     cmd_args = [
         "python",
         get_feature_path("feature_script.py"),
     ]
-    if value:
-        cmd_args.append(value)
+    cmd_args.extend(remaining_args)
 
     result = subprocess.run(cmd_args, check=False)
     sys.exit(result.returncode)
@@ -130,10 +139,10 @@ def run_feature(value: str | None = None):
 
 Quy ước:
 
-- Handler chỉ nhận dữ liệu đã parse từ CLI.
-- Handler build command list thay vì ghép chuỗi khi có thể.
-- Handler trả đúng exit code của script con nếu script con có ý nghĩa thành công/thất bại.
-- Script con chịu trách nhiệm validate nghiệp vụ chi tiết.
+- Handler nhận `remaining_args` (list các args sau action) từ dispatcher.
+- Handler build command list, extend với remaining_args, rồi gọi subprocess.
+- Handler trả đúng exit code của script con.
+- Script con chịu trách nhiệm parse args và validate nghiệp vụ chi tiết.
 
 ### 3.4. Script con
 
@@ -198,22 +207,28 @@ Quy ước:
 
 ### 4.3. Flag constants
 
-Mẫu:
+Dispatcher chỉ giữ 2 flag riêng. Các flag khác thuộc về feature script.
+
+Mẫu dispatcher flags:
 
 ```python
-APP_FLAG_HELP = "--help"
-APP_FLAG_MESSAGE = "--message"
+# Dispatcher flags (xử lý bởi main.py)
 APP_FLAG_DESCRIPTION = "--des"
+APP_FLAG_ANTIGRAVITY = "-a"
 ```
 
-Quy ước:
-
-- Format: `<APP>_FLAG_<FLAG_NAME>`.
-- Nếu có short flag và long flag, có thể đặt riêng:
+Feature-level flags (ví dụ, xử lý bởi script con):
 
 ```python
-APP_FLAG_M = "-m"
-APP_FLAG_MESSAGE = "--message"
+# Trong _git.py
+"-m", "--message"   # commit message
+
+# Trong open_main_ws.py
+"-p"                # powershell only
+
+# Trong sync_to_gdrive.py
+"-d", "--deep"      # deep recursive
+"--file"            # list files
 ```
 
 ### 4.4. Warning/status constants
@@ -290,13 +305,13 @@ project-root/
 
 Ý nghĩa từng thư mục:
 
-| Thư mục                           | Mục đích                                                                  |
-| --------------------------------- | ------------------------------------------------------------------------- |
-| `src/cmd/`                        | Batch/shell scripts phục vụ khởi tạo hoặc lệnh hệ điều hành.              |
-| `src/contents/`                   | File text/YAML dùng làm tài liệu và dữ liệu mô tả.                        |
-| `src/features/`                   | Script tính năng thực tế mà người dùng gọi qua CLI.                       |
-| `src/features/system/`            | Script nội bộ phục vụ framework CLI.                                      |
-| `src/features/<integration>/`     | Nhóm script/config cho một tích hợp lớn như cloud, storage, browser, API. |
+| Thư mục                       | Mục đích                                                                  |
+| ----------------------------- | ------------------------------------------------------------------------- |
+| `src/cmd/`                    | Batch/shell scripts phục vụ khởi tạo hoặc lệnh hệ điều hành.              |
+| `src/contents/`               | File text/YAML dùng làm tài liệu và dữ liệu mô tả.                        |
+| `src/features/`               | Script tính năng thực tế mà người dùng gọi qua CLI.                       |
+| `src/features/system/`        | Script nội bộ phục vụ framework CLI.                                      |
+| `src/features/<integration>/` | Nhóm script/config cho một tích hợp lớn như cloud, storage, browser, API. |
 
 Quy ước:
 
@@ -380,12 +395,20 @@ Cấu trúc đề xuất:
 # Help for <tool-name>
 
 # Usage:
-<tool> <type> <action> [value] [extra] [flags]
+<tool> <type> <action> [args...] [-a] [--des]
 
-# Flags:
--h, --help
--m, --message
+Dispatcher chỉ xử lý 2 flag: --des và -a.
+Mọi args sau <action> được forward cho feature script.
+
+# Dispatcher flags:
 --des
+-a
+
+# Feature-level flags (truyền sau action):
+-m, --message     (git commit)
+-p                (code ws)
+-d, --deep        (gdrive list)
+-f, --file        (gdrive list / open)
 
 # Types:
 run
@@ -394,8 +417,8 @@ git
 
 # Actions:
 ## run:
-  rename-files
-  delete-files
+  rename-files <folder_path> [prefix]
+  delete-files <folder_path> <ext1,ext2>
 
 ## print:
   help
@@ -403,6 +426,7 @@ git
 
 # Examples:
 <tool> run rename-files "path/to/folder" "prefix"
+<tool> git commit -m "update"
 <tool> feature action --des
 ```
 
@@ -410,6 +434,7 @@ Quy ước cập nhật:
 
 - Khi thêm type mới trong dispatcher, thêm type đó vào `help.txt`.
 - Khi thêm action mới, thêm action vào đúng nhóm.
+- Args sau action ghi rõ cú pháp feature script chấp nhận.
 - Mô tả trong `help.txt` chỉ nên ngắn. Chi tiết dài để trong `app_features.yml`.
 - Ví dụ command trong `help.txt` nên chạy được hoặc gần với cú pháp thật.
 
@@ -497,20 +522,19 @@ tool run compress-files <folder>
 
 Các bước:
 
-1. Tạo script `src/features/compress_files.py`.
+1. Tạo script `src/features/compress_files.py`. Script tự parse `sys.argv` để lấy args.
 2. Đặt hằng số:
 
 ```python
 APP_RUN_COMPRESS_FILES = "compress-files"
 ```
 
-3. Tạo handler:
+3. Tạo handler (nhận remaining_args):
 
 ```python
-def compress_files(folder_path: str | None = None):
+def compress_files(remaining_args: list[str]):
     cmd_args = ["python", get_feature_path("compress_files.py")]
-    if folder_path:
-        cmd_args.append(folder_path)
+    cmd_args.extend(remaining_args)
     result = subprocess.run(cmd_args, check=False)
     sys.exit(result.returncode)
 ```
@@ -519,7 +543,7 @@ def compress_files(folder_path: str | None = None):
 
 ```python
 elif action_included == APP_RUN_COMPRESS_FILES:
-    compress_files(value_included)
+    compress_files(remaining_args)
 ```
 
 5. Cập nhật `help.txt`.

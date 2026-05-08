@@ -1,16 +1,16 @@
 import qrcode
-from dotenv import load_dotenv
+import sys
 import os
+from pathlib import Path
 from datetime import datetime
 
-# Tải biến môi trường
-load_dotenv(dotenv_path="D:/D-Documents/TOOLs/mod/.env")
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from configs.paths import APPDATA_FOLDER
 
-# Lấy giá trị và kiểm tra kiểu dữ liệu
-data_folder_path = os.getenv("MOD_APPDATA_FOLDER_PATH")
+data_folder_path = APPDATA_FOLDER
 
 if data_folder_path is None:
-    print("Cảnh báo: Không tìm thấy MOD_APPDATA_FOLDER_PATH trong tệp .env")
+    print("Cảnh báo: Không tìm thấy APPDATA_FOLDER trong configs/paths.py")
 else:
     link = input("Nhập text cần tạo QR: ").strip()
 

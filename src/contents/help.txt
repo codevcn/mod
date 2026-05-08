@@ -1,20 +1,25 @@
 ===========================================
-# Update at 20/04/2026
+# Update at 09/05/2026
 # Repo Link: https://github.com/codevcn/tools-box.git
 ===========================================
 # Help for mod command:
 
 # Usage:
-mod [[-h] | <type> <action> [<value> [<extra>]] [-m "message"] [-a] [-p] [--des] [-d] [--file]]
+mod <type> <action> [args...] [-a] [--des]
 
-# Available flags:
+Dispatcher chỉ xử lý 2 flag: --des và -a.
+Mọi args sau <action> được forward nguyên vẹn cho feature script tự xử lý.
+
+# Dispatcher flags:
 -h, --help        :print this help.
--m, --message     :input message for external script.
 -a                :using Antigravity IDE instead of VSCode.
--p                :only open in PowerShell, not IDE.
 --des             :print description of typing commands.
--d, --deep        :deep recursive action (e.g. for gdrive list).
--f, --file        :list files instead of folders (for gdrive list).
+
+# Feature-level flags (truyền sau action, do feature tự xử lý):
+-m, --message     :input message for external script (git commit).
+-p                :only open in PowerShell, not IDE (code ws).
+-d, --deep        :deep recursive action (gdrive list).
+-f, --file        :list files instead of folders (gdrive list) or open in File Explorer (open).
 
 # Available types:
 open              :to open in system folder.
@@ -30,13 +35,14 @@ py                :to run python helpers.
 # Available actions:
 ## open:
                   :open mod files in vscode.
+   -f             :open mod files in File Explorer.
    ws             :open working workspaces in system folder.
    env            :open enviroment variables in system folder.
    proms          :open prompts folder in system folder (Template Replacer Extension).
 ## code:
                   :open mod files in vscode.
    test           :open testing folder in vscode.
-   ws             :open working workspace in vscode and cd to working folder in CLI.
+   ws <value> [-p]:open working workspace in vscode and cd to working folder in CLI.
    ts-template    :open typescript template in vscode.
    js             :open testing javascript folder in vscode.
    ts             :open testing typescript folder in vscode.
@@ -47,16 +53,19 @@ py                :to run python helpers.
    proms          :edit prompts in prompts folder in notepad (Template Replacer Extension).
    to             :edit to command in notepad (Template Replacer Extension).
 ## git:
-   commit         :add all files and commit with a message and push with upstream.
+   commit -m "msg":add all files and commit with a message and push with upstream.
 ## run:
    unikey         :run unikey.
    cr-files       :create files in standing folder in CLI.
-   dld-path       :set download path in Chrome.
-   rn-files       :rename files in specified folder with specified prefix.
+   dld-path [name]:set download path in Chrome.
+   rn-files <folder_path> [prefix]
+                  :rename files in specified folder with specified prefix.
                   // Example: mod run rn-files "D:/D-Documents/Làm về TikTok" "tiktok"
-   del-files      :delete files in specified folder with specified extensions (comma-separated).
+   del-files <folder_path> <ext1,ext2,...>
+                  :delete files in specified folder with specified extensions (comma-separated).
                   // Example: mod run del-files "D:/D-Documents/Làm về TikTok" "txt,jpg,png"
-   keep-files     :keep files in specified folder with specified extension, delete others.
+   keep-files <folder_path> <ext>
+                  :keep files in specified folder with specified extension, delete others.
                   // Example: mod run keep-files "D:/D-Documents/Làm về TikTok" "png"
    gen-qr         :generate QR code image from input data.
                   // Example: mod run gen-qr
@@ -69,13 +78,15 @@ py                :to run python helpers.
    cmds           :print some useful commands.
 
 ## gdrive:
-   sync           :sync a local folder to a gdrive folder.
+   sync <source> <dest>
+                  :sync a local folder to a gdrive folder.
                   // Example: mod gdrive sync "D:/D-Documents/tool" "mac_sync/tool"
-   list           :list folders on gdrive remote. Use -d for deep recursive listing, --file for files.
+   list [target_path] [-d] [--file]
+                  :list folders on gdrive remote. Use -d for deep recursive listing, --file for files.
                   // Example: mod gdrive list "mac_sync" -d
    remote         :print selected remote info.
-   del-fd         :delete a folder on gdrive remote.
-   url            :get share URL for a remote path.
+   del-fd <path>  :delete a folder on gdrive remote.
+   url <path>     :get share URL for a remote path.
    reset          :reset rclone configurations.
    guide          :display Google Drive authentication guide.
 
@@ -87,7 +98,8 @@ py                :to run python helpers.
 
 # Example:
 The command `mod open ws` will open the working workspaces in system folder.
-The command `mod run rn-files "D:/D-Documents/Làm về TikTok" "tiktok"` will rename files with prefix "tiktok" in folder "D:/D-Documents/Làm về TikTok".
-The command `mod git commit -m "update git command"` will execute git add all files and commit with a message and push with upstream.
+The command `mod run rn-files "D:/path" "tiktok"` will rename files with prefix "tiktok".
+The command `mod git commit -m "update"` will execute git add, commit and push.
 The command `mod run del-files --des` will print description of del-files command.
+The command `mod gdrive list "mac_sync" -d` will list all folders recursively.
 ===========================================

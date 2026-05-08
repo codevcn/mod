@@ -1,10 +1,10 @@
-import os
-from dotenv import load_dotenv
+import sys
+from pathlib import Path
 
-load_dotenv(dotenv_path="D:/D-Documents/TOOLs/mod/.env")
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from configs.paths import CONTENTS_FOLDER
 
-CONTENTS_FOLDER_PATH = os.getenv("CONTENTS_FOLDER_PATH")
-statuses_file = rf"{CONTENTS_FOLDER_PATH}/statuses.txt"
+statuses_file = rf"{CONTENTS_FOLDER}/statuses.txt"
 
 if __name__ == "__main__":
     try:

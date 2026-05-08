@@ -2,9 +2,6 @@ import sys
 import subprocess
 import os
 import json
-from dotenv import load_dotenv
-
-load_dotenv(dotenv_path="D:/D-Documents/TOOLs/mod/.env")
 
 GDRIVE_ACTION_SYNC = "sync"
 GDRIVE_ACTION_GUIDE = "guide"
