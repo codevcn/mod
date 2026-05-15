@@ -1,0 +1,187 @@
+PS C:\Users\dell> mod gdrive list --deep
+Kiểm tra các tham số đầu vào...
+Đang lấy danh sách thư mục đệ quy (deep) từ "codevcn-dell-pc:"
+--------------------------------------------------
+Google AI Studio
+liên minh 3 đứa
+ae-b6
+Anything
+ae-b6/B6-VPS
+ae-b6/tiktok-affiliate-VN
+ae-b6/game-24KE
+ae-b6/tiktok-beta-JAPAN
+liên minh 3 đứa/apps
+ae-b6/game-24KE/fanpage
+ae-b6/game-24KE/Media
+ae-b6/game-24KE/server mail
+ae-b6/tiktok-affiliate-VN/projects
+ae-b6/tiktok-affiliate-VN/doc
+ae-b6/tiktok-affiliate-VN/outfits
+ae-b6/tiktok-affiliate-VN/materials
+ae-b6/tiktok-affiliate-VN/backgrounds
+ae-b6/tiktok-affiliate-VN/glossary
+ae-b6/tiktok-affiliate-VN/models
+ae-b6/tiktok-affiliate-VN/warehouse
+ae-b6/tiktok-beta-JAPAN/kaggle
+ae-b6/tiktok-beta-JAPAN/team
+ae-b6/tiktok-beta-JAPAN/re-up
+liên minh 3 đứa/apps/Quiin Downloader V1.0
+ae-b6/game-24KE/server mail/các vấn đề
+ae-b6/game-24KE/server mail/vấn đề or lỗi đã fix
+ae-b6/game-24KE/server mail/kết quả test gửi mail qua lại
+ae-b6/tiktok-affiliate-VN/models/Miyumi
+ae-b6/tiktok-affiliate-VN/models/Gigi
+ae-b6/tiktok-affiliate-VN/models/Susuki
+ae-b6/tiktok-affiliate-VN/models/Rosa
+ae-b6/tiktok-affiliate-VN/models/Reina
+ae-b6/tiktok-beta-JAPAN/kaggle/transcribe music flow
+ae-b6/tiktok-beta-JAPAN/kaggle/transcribe audio file
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc
+ae-b6/tiktok-beta-JAPAN/re-up/phase bkt
+ae-b6/tiktok-beta-JAPAN/team/Bảo
+ae-b6/tiktok-beta-JAPAN/team/Hiệp
+ae-b6/tiktok-affiliate-VN/projects/project-8
+ae-b6/tiktok-affiliate-VN/projects/project-9
+ae-b6/tiktok-affiliate-VN/projects/project-7
+ae-b6/tiktok-affiliate-VN/projects/project-6
+ae-b6/tiktok-affiliate-VN/projects/project-5
+ae-b6/tiktok-affiliate-VN/projects/project-2
+ae-b6/tiktok-affiliate-VN/projects/project-3
+ae-b6/tiktok-affiliate-VN/projects/project-4
+ae-b6/tiktok-affiliate-VN/materials/hold-outfit
+ae-b6/tiktok-affiliate-VN/outfits/normal
+ae-b6/tiktok-affiliate-VN/projects/project-1
+ae-b6/tiktok-affiliate-VN/materials/people
+ae-b6/tiktok-affiliate-VN/materials/mannequins
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/phim ngắn kinh dị
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/hài độc thoại
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/hài hước
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/nhạc
+ae-b6/tiktok-beta-JAPAN/kaggle/transcribe music flow/data-input
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/truyền động lực
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/dance cover
+ae-b6/tiktok-beta-JAPAN/re-up/phase bkt/truyền cảm hứng
+ae-b6/tiktok-affiliate-VN/projects/project-8/result
+ae-b6/tiktok-affiliate-VN/projects/project-5/result
+ae-b6/tiktok-affiliate-VN/projects/project-3/result
+ae-b6/tiktok-affiliate-VN/projects/project-2/result
+ae-b6/tiktok-affiliate-VN/projects/project-9/result
+ae-b6/tiktok-affiliate-VN/projects/project-1/result
+ae-b6/tiktok-affiliate-VN/projects/project-6/result
+ae-b6/tiktok-affiliate-VN/projects/project-4/result
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/nhạc/project-8
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/nhạc/project-7
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/nhạc/project-6
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/nhạc/data-input
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/phim ngắn kinh dị/data-input
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/nhạc/project-5
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/nhạc/project-4
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/nhạc/project-1
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/nhạc/project-2
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/nhạc/project-3
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/hài hước/project-3
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/hài hước/project-1
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/hài hước/project-2
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/hài độc thoại/data-input
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-37
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-35
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-36
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-33
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-32
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-31
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-34
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-30
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-28
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-29
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-27
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-26
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-25
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-24
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-23
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-22
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-21
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-20
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-19
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-18
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-17
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-16
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-14
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-11
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-10
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-9
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-8
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-7
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-12
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/truyền động lực/project-2
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/truyền động lực/project-1
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/truyền động lực/project-3
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-6
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-5
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-4
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-3
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-2
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-1
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/dance cover/project-6
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/dance cover/project-5
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/dance cover/project-4
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/dance cover/project-3
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/dance cover/project-2
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/dance cover/project-1
+ae-b6/tiktok-beta-JAPAN/re-up/phase bkt/truyền cảm hứng/project-3
+ae-b6/tiktok-beta-JAPAN/re-up/phase bkt/truyền cảm hứng/project-2
+ae-b6/tiktok-beta-JAPAN/re-up/phase bkt/truyền cảm hứng/project-1
+ae-b6/tiktok-affiliate-VN/projects/project-1/result/warehouse
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/nhạc/project-1/gdrive-data-input
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-12/result
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-11/result
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-10/result
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-11/main--frames--20260505_183436
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-9/result
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-10/main--frames--20260505_182812
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-8/result
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-9/main--frames--20260505_180117
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-7/result
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-8/main--frames--20260505_174424
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-6/result
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-7/main--frames--20260505_172839
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-12/main--frames--20260505_172314
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/truyền động lực/project-1/main--frames--20260503_205010
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/truyền động lực/project-1/result
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/truyền động lực/project-3/main--frames--20260504_002800
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/truyền động lực/project-3/result
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/truyền động lực/project-2/result
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/truyền động lực/project-2/main--frames--20260503_232707
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-5/result
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-6/main--frames--20260504_170645
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-4/result
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-5/main--frames--20260504_164729
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-3/result
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-4/main--frames--20260504_163339
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-2/result
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-3/main--frames--20260504_153608
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-1/result
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-2/main--frames--20260504_152205
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/girl xinh/project-1/main--frames--20260504_150417
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/dance cover/project-6/result
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/dance cover/project-4/result
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/dance cover/project-6/main--frames--20260503_112035
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/dance cover/project-5/result
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/dance cover/project-5/main--frames--20260503_102837
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/dance cover/project-3/result
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/dance cover/project-4/main--frames--20260503_021303
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/dance cover/project-2/result
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/dance cover/project-3/main--frames--20260503_012501
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/dance cover/project-1/result
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/dance cover/project-2/main--frames--20260503_004917
+ae-b6/tiktok-beta-JAPAN/re-up/phase nuôi acc/dance cover/project-1/danc--frames--20260502_205653
+ae-b6/tiktok-beta-JAPAN/re-up/phase bkt/truyền cảm hứng/project-3/downloads
+ae-b6/tiktok-beta-JAPAN/re-up/phase bkt/truyền cảm hứng/project-3/result
+ae-b6/tiktok-beta-JAPAN/re-up/phase bkt/truyền cảm hứng/project-2/result
+ae-b6/tiktok-beta-JAPAN/re-up/phase bkt/truyền cảm hứng/project-3/clip--frames--20260420_023338
+ae-b6/tiktok-beta-JAPAN/re-up/phase bkt/truyền cảm hứng/project-1/result
+ae-b6/tiktok-beta-JAPAN/re-up/phase bkt/truyền cảm hứng/project-2/downloads
+ae-b6/tiktok-beta-JAPAN/re-up/phase bkt/truyền cảm hứng/project-2/clip--frames--20260420_011019
+ae-b6/tiktok-beta-JAPAN/re-up/phase bkt/truyền cảm hứng/project-1/split-audio
+--------------------------------------------------
+PS C:\Users\dell>

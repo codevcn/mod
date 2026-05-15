@@ -86,7 +86,7 @@ py                :to run python helpers.
                   // Example: mod gdrive list "mac_sync" -d
    remote         :print selected remote info.
    del-fd <path>  :delete a folder on gdrive remote.
-   url <path>     :get share URL for a remote path.
+   url|link <path>:get share URL for a remote path.
    reset          :reset rclone configurations.
    guide          :display Google Drive authentication guide.
 

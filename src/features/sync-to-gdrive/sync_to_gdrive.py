@@ -10,6 +10,7 @@ GDRIVE_ACTION_LIST = "list"
 GDRIVE_ACTION_REMOTE = "remote"
 GDRIVE_ACTION_DEL_FD = "del-fd"
 GDRIVE_ACTION_URL = "url"
+GDRIVE_ACTION_LINK = "link"
 
 # Tên tệp cấu hình JSON sẽ lưu trữ thông tin remote
 FEATURE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -236,6 +237,7 @@ def list_directories(target_path, remote_name, is_deep=False, is_file=False):
         print("-" * 50)
         output = result.stdout.strip()
         if output:
+            lines_to_print = []
             if is_deep:
                 for line in output.split("\n"):
                     if not is_file:
@@ -247,11 +249,17 @@ def list_directories(target_path, remote_name, is_deep=False, is_file=False):
                         continue
 
                     if clean_target_path:
-                        print(f"{clean_target_path}/{line}")
+                        lines_to_print.append(f"{clean_target_path}/{line}")
                     else:
-                        print(line)
+                        lines_to_print.append(line)
             else:
-                print(output)
+                for line in output.split("\n"):
+                    if line.strip():
+                        lines_to_print.append(line.strip())
+
+            lines_to_print.sort()
+            for line in lines_to_print:
+                print(line)
         else:
             print(f"(Không có {item_type} nào)")
         print("-" * 50)
@@ -492,10 +500,10 @@ def switch_actions():
             delete_folder_on_remote(target_path, rclone_remote)
         else:
             print("Đã hủy bỏ thao tác xóa.")
-    elif action == GDRIVE_ACTION_URL:
+    elif action in (GDRIVE_ACTION_URL, GDRIVE_ACTION_LINK):
         target_path = sys.argv[2] if len(sys.argv) > 2 else ""
         if not target_path:
-            print("Cú pháp: mod gdrive url <đường_dẫn_trên_remote>")
+            print("Cú pháp: mod gdrive url|link <đường_dẫn_trên_remote>")
             sys.exit(1)
 
         rclone_remote = load_remote_name()

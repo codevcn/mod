@@ -258,7 +258,7 @@ mod_tool:
           conditions: "Cần truyền tên folder."
         - id: "ACTION 35"
           title: "Lấy URL remote path"
-          command: "mod gdrive url <remote_path>"
+          command: "mod gdrive url <remote_path> | mod gdrive link <remote_path>"
           summary: "Lấy link truy cập cho remote path."
           details: "Remaining args forward cho script."
           conditions: "Cần truyền path."
