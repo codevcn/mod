@@ -25,6 +25,8 @@ Mọi args sau <action> được forward nguyên vẹn cho feature script tự x
 open              :to open in system folder.
 code              :to open in vscode.
 run               :to execute something.
+file              :to execute file operations.
+folder            :to execute folder operations.
 edit              :to edit helper targets.
 print             :to print something.
 git               :to run git command.
@@ -56,19 +58,24 @@ py                :to run python helpers.
    commit -m "msg":add all files and commit with a message and push with upstream.
 ## run:
    unikey         :run unikey.
-   cr-files       :create files in standing folder in CLI.
-   dld-path [name]:set download path in Chrome.
-   rn-files <folder_path> [prefix]
-                  :rename files in specified folder with specified prefix.
-                  // Example: mod run rn-files "D:/D-Documents/Làm về TikTok" "tiktok"
-   del-files <folder_path> <ext1,ext2,...>
-                  :delete files in specified folder with specified extensions (comma-separated).
-                  // Example: mod run del-files "D:/D-Documents/Làm về TikTok" "txt,jpg,png"
-   keep-files <folder_path> <ext>
-                  :keep files in specified folder with specified extension, delete others.
-                  // Example: mod run keep-files "D:/D-Documents/Làm về TikTok" "png"
    gen-qr         :generate QR code image from input data.
                   // Example: mod run gen-qr
+## file:
+   create         :create files in standing folder in CLI.
+   rename <folder_path> [prefix]
+                  :rename files in specified folder with specified prefix.
+                  // Example: mod file rename "D:/D-Documents/Làm về TikTok" "tiktok"
+   delete <folder_path> <ext1,ext2,...>
+                  :delete files in specified folder with specified extensions (comma-separated).
+                  // Example: mod file delete "D:/D-Documents/Làm về TikTok" "txt,jpg,png"
+   keep <folder_path> <ext>
+                  :keep files in specified folder with specified extension, delete others.
+                  // Example: mod file keep "D:/D-Documents/Làm về TikTok" "png"
+## folder:
+   create <folder_path> [pattern] [starting_index] [num_folders]
+                  :create one or multiple folders using a pattern.
+                  // Example: mod folder create "D:/D-Documents/tool" "folder" 1 5
+   dld-path [name]:set download path in Chrome.
 ## print:
    os             :print OS info.
    stts           :print mod-status description.

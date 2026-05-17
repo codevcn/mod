@@ -196,7 +196,8 @@ def sync_to_gdrive(source_path, dest_path, remote_name):
                 check=True,
             )
             folder_link = link_result.stdout.strip()
-            print(f"URL truy cập: {folder_link}")
+            print(f"URL truy cập:")
+            print(folder_link)
             print("-" * 50)
         except subprocess.CalledProcessError as e:
             print(

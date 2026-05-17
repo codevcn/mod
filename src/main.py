@@ -21,6 +21,8 @@ MOD_TYPE_GDRIVE = "gdrive"
 MOD_TYPE_INIT = "init"
 MOD_TYPE_PY = "py"
 MOD_TYPE_EDIT = "edit"
+MOD_TYPE_FILE = "file"
+MOD_TYPE_FOLDER = "folder"
 
 # --- Actions ---
 # open
@@ -37,12 +39,15 @@ MOD_CODE_PY = "py"
 MOD_CODE_EXTENSIONS = "ext"
 # run
 MOD_RUN_UNIKEY_APP = "unikey"
-MOD_RUN_CREATE_FILES_IN_FOLDER = "cr-files"
-MOD_RUN_SET_DOWNLOAD_PATH_IN_CHROME = "dld-path"
-MOD_RENAME_FILES = "rn-files"
-MOD_DELETE_FILES = "del-files"
-MOD_KEEP_FILES = "keep-files"
 MOD_GEN_QR_IMAGE = "gen-qr"
+# file
+MOD_FILE_CREATE = "create"
+MOD_FILE_RENAME = "rename"
+MOD_FILE_DELETE = "delete"
+MOD_FILE_KEEP = "keep"
+# folder
+MOD_FOLDER_CREATE = "create"
+MOD_FOLDER_DLD_PATH = "dld-path"
 # edit
 MOD_EDIT_PROMPTS = "proms"
 MOD_EDIT_TO_COMMAND = "to"
@@ -293,6 +298,16 @@ def set_download_path_in_chrome(remaining_args: list[str]):
     sys.exit(0)
 
 
+def create_folders_in_path(remaining_args: list[str]):
+    cmd_args = [
+        "py",
+        get_feature_path("create_folders_in_path.py"),
+    ]
+    cmd_args.extend(remaining_args)
+    subprocess.run(cmd_args, shell=True)
+    sys.exit(0)
+
+
 def edit_prompts():
     subprocess.run(
         [f"{TEMPLATE_REPLACER_FOLDER_PATH}/edit-prompts.cmd"],
@@ -459,18 +474,30 @@ if __name__ == "__main__":
         elif type_included == MOD_TYPE_RUN:
             if action_included == MOD_RUN_UNIKEY_APP:
                 run_Unikey_app()
-            elif action_included == MOD_RUN_CREATE_FILES_IN_FOLDER:
-                create_files_in_folder()
-            elif action_included == MOD_RUN_SET_DOWNLOAD_PATH_IN_CHROME:
-                set_download_path_in_chrome(remaining_args)
-            elif action_included == MOD_RENAME_FILES:
-                rename_files(remaining_args)
-            elif action_included == MOD_DELETE_FILES:
-                delete_files(remaining_args)
-            elif action_included == MOD_KEEP_FILES:
-                keep_files(remaining_args)
             elif action_included == MOD_GEN_QR_IMAGE:
                 gen_qr_image()
+            elif action_included is None:
+                raise Exception(MOD_WARNING_ACTION_MISSING)
+            else:
+                raise Exception(MOD_WARNING_ACTION_WRONG)
+        elif type_included == MOD_TYPE_FILE:
+            if action_included == MOD_FILE_CREATE:
+                create_files_in_folder()
+            elif action_included == MOD_FILE_RENAME:
+                rename_files(remaining_args)
+            elif action_included == MOD_FILE_DELETE:
+                delete_files(remaining_args)
+            elif action_included == MOD_FILE_KEEP:
+                keep_files(remaining_args)
+            elif action_included is None:
+                raise Exception(MOD_WARNING_ACTION_MISSING)
+            else:
+                raise Exception(MOD_WARNING_ACTION_WRONG)
+        elif type_included == MOD_TYPE_FOLDER:
+            if action_included == MOD_FOLDER_CREATE:
+                create_folders_in_path(remaining_args)
+            elif action_included == MOD_FOLDER_DLD_PATH:
+                set_download_path_in_chrome(remaining_args)
             elif action_included is None:
                 raise Exception(MOD_WARNING_ACTION_MISSING)
             else:
