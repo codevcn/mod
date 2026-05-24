@@ -466,7 +466,7 @@ def get_url_from_remote(target_path, remote_name):
             check=True,
         )
         folder_link = link_result.stdout.strip()
-        print(f"URL: {folder_link}")
+        print(f"URL: \n{folder_link}")
     except subprocess.CalledProcessError as e:
         print(f"Lỗi khi lấy URL: {e.stderr.strip()}")
 

@@ -10,8 +10,10 @@ if hasattr(sys.stdout, "reconfigure"):
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
-# --- Static parameters (constants) ---
+# --- Status ---
 MOD_STATUS = "OK"
+
+# --- Types ---
 MOD_TYPE_OPEN = "open"
 MOD_TYPE_CODE = "code"
 MOD_TYPE_RUN = "run"
@@ -40,6 +42,7 @@ MOD_CODE_EXTENSIONS = "ext"
 # run
 MOD_RUN_UNIKEY_APP = "unikey"
 MOD_GEN_QR_IMAGE = "gen-qr"
+MOD_KEEP_AWAKE = "keep-awake"
 # file
 MOD_FILE_CREATE = "create"
 MOD_FILE_RENAME = "rename"
@@ -122,9 +125,48 @@ def open_vscode_extensions_in_vscode(ide_prefix):
 
 
 def warn_user_error(warning_message: str):
-    global MOD_STATUS
-    print(">>> Warn: " + warning_message)
-    sys.exit(0)
+    messages = {
+        MOD_WARNING_TYPE_WRONG: {
+            "title": "Sai nhóm lệnh",
+            "reason": "Type bạn nhập không tồn tại trong danh sách lệnh hỗ trợ.",
+            "suggestion": "Chạy `mod --help` để xem danh sách type hợp lệ.",
+        },
+        MOD_WARNING_TYPE_MISSING: {
+            "title": "Thiếu nhóm lệnh",
+            "reason": "Bạn chưa nhập type của command.",
+            "suggestion": "Ví dụ: `mod run keep-awake <healthcheck_url>`",
+        },
+        MOD_WARNING_ACTION_WRONG: {
+            "title": "Sai action",
+            "reason": "Action bạn nhập không hợp lệ với type hiện tại.",
+            "suggestion": "Chạy `mod --help` hoặc `mod <type> <action> --des` để xem mô tả.",
+        },
+        MOD_WARNING_ACTION_MISSING: {
+            "title": "Thiếu action",
+            "reason": "Type này cần thêm action phía sau.",
+            "suggestion": "Ví dụ: `mod run keep-awake <healthcheck_url>`",
+        },
+    }
+
+    info = messages.get(warning_message)
+
+    print()
+    print("=" * 70)
+
+    if info:
+        print(f"❌ {info['title']}")
+        print("-" * 70)
+        print(f"Nguyên nhân : {info['reason']}")
+        print(f"Gợi ý      : {info['suggestion']}")
+    else:
+        print("❌ Lỗi không xác định")
+        print("-" * 70)
+        print(f"Chi tiết   : {warning_message}")
+
+    print("=" * 70)
+    print()
+
+    sys.exit(1)
 
 
 def open_testing_folder_in_vscode(ide_prefix):
@@ -396,6 +438,16 @@ def gen_qr_image():
     sys.exit(0)
 
 
+def keep_server_awake(remaining_args):
+    cmd_args = [
+        "python",
+        get_feature_path("keep_server_awake.py"),
+    ]
+    cmd_args.extend(remaining_args)
+    subprocess.run(cmd_args, shell=True)
+    sys.exit(0)
+
+
 # --- Main ---
 
 if __name__ == "__main__":
@@ -476,6 +528,8 @@ if __name__ == "__main__":
                 run_Unikey_app()
             elif action_included == MOD_GEN_QR_IMAGE:
                 gen_qr_image()
+            elif action_included == MOD_KEEP_AWAKE:
+                keep_server_awake(remaining_args)
             elif action_included is None:
                 raise Exception(MOD_WARNING_ACTION_MISSING)
             else:
