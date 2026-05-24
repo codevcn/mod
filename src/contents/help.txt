@@ -60,6 +60,8 @@ py                :to run python helpers.
    unikey         :run unikey.
    gen-qr         :generate QR code image from input data.
                   // Example: mod run gen-qr
+   keep-awake     :keep server awake by sending periodic requests to a specified URL with a specified interval.
+                  // Example: mod run keep-awake "http://example.com/keep-alive" -i 5m
 ## file:
    create         :create files in standing folder in CLI.
    rename <folder_path> [prefix]

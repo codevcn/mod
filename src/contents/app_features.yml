@@ -128,7 +128,7 @@ mod_tool:
           title: "Git Commit & Push"
           command: 'mod git commit -m "message"'
           summary: "Chạy tuần tự `git add .`, `git commit`, `git push` ngay trong tab terminal hiện tại."
-          details: "Dispatcher forward toàn bộ remaining args (`-m \"message\"`) cho `_git.py`. Script `_git.py` tự parse flag `-m`/`--message` để lấy commit message. Chạy tại thư mục `MOD_ROOT_FOLDER`."
+          details: 'Dispatcher forward toàn bộ remaining args (`-m "message"`) cho `_git.py`. Script `_git.py` tự parse flag `-m`/`--message` để lấy commit message. Chạy tại thư mục `MOD_ROOT_FOLDER`.'
           conditions: 'Flag `-m "message"` là bắt buộc (do _git.py validate). Cần `git` đã cài và `MOD_ROOT_FOLDER` phải là git repository có remote `origin`.'
 
     - name: "run"
@@ -146,6 +146,12 @@ mod_tool:
           summary: "Sinh QR image từ text nhập tương tác."
           details: "Không nhận args từ CLI. Script chạy interactive, hỏi text input."
           conditions: "Package `qrcode` phải được cài đặt. Biến `MOD_APPDATA_FOLDER_PATH` phải có trong `.env`."
+        - id: "ACTION 40"
+          title: "Giữ Nhịp Máy Chủ (Keep-Awake)"
+          command: "mod run keep-awake [healthcheck_url] [-i interval]"
+          summary: "Chạy công cụ giữ nhịp (keep-alive) để ngăn máy chủ từ xa rơi vào trạng thái ngủ đông."
+          details: "Các đối số còn lại (remaining args) được chuyển tiếp cho tập lệnh Python xử lý việc giữ nhịp (ví dụ: `keep_awake.py`). Tập lệnh này sẽ tự động phân tích URL kiểm tra sức khỏe và cờ `-i`/`--interval`. Hỗ trợ thời gian chờ cố định (ví dụ: 6s, 2m, 1.5h) hoặc ngẫu nhiên nếu không truyền tham số."
+          conditions: "Môi trường Python phải được cài đặt thư viện `requests`."
 
     - name: "file"
       description: "Thao tác với file"
@@ -166,13 +172,13 @@ mod_tool:
           title: "Delete Files by Extensions"
           command: "mod file delete <folder_path> <ext1,ext2,...>"
           summary: "Xóa tất cả file có extension nằm trong danh sách chỉ định."
-          details: 'Remaining args được forward cho `delete_files.py`. Script tự parse `sys.argv[1]` (folder) và `sys.argv[2]` (extension list). Chỉ xử lý file cấp 1.'
+          details: "Remaining args được forward cho `delete_files.py`. Script tự parse `sys.argv[1]` (folder) và `sys.argv[2]` (extension list). Chỉ xử lý file cấp 1."
           conditions: "Cả 2 tham số đều bắt buộc (do script validate)."
         - id: "ACTION 21"
           title: "Keep Files by Extension"
           command: "mod file keep <folder_path> <ext>"
           summary: "Giữ lại chỉ các file có extension chỉ định, xóa toàn bộ file còn lại trong folder."
-          details: 'Remaining args được forward cho `keep_files_with_ext.py`. Script tự parse `sys.argv[1]` (folder) và `sys.argv[2]` (extension). Chỉ xử lý file cấp 1.'
+          details: "Remaining args được forward cho `keep_files_with_ext.py`. Script tự parse `sys.argv[1]` (folder) và `sys.argv[2]` (extension). Chỉ xử lý file cấp 1."
           conditions: "Cả 2 tham số đều bắt buộc."
 
     - name: "folder"
