@@ -43,6 +43,7 @@ MOD_CODE_EXTENSIONS = "ext"
 MOD_RUN_UNIKEY_APP = "unikey"
 MOD_GEN_QR_IMAGE = "gen-qr"
 MOD_KEEP_AWAKE = "keep-awake"
+MOD_SRT_COUNT_LINE = "srt-count-line"
 # file
 MOD_FILE_CREATE = "create"
 MOD_FILE_RENAME = "rename"
@@ -448,6 +449,16 @@ def keep_server_awake(remaining_args):
     sys.exit(0)
 
 
+def srt_count_lines(remaining_args):
+    cmd_args = [
+        "python",
+        get_feature_path("srt_count_line.py"),
+    ]
+    cmd_args.extend(remaining_args)
+    subprocess.run(cmd_args, shell=True)
+    sys.exit(0)
+
+
 # --- Main ---
 
 if __name__ == "__main__":
@@ -530,6 +541,8 @@ if __name__ == "__main__":
                 gen_qr_image()
             elif action_included == MOD_KEEP_AWAKE:
                 keep_server_awake(remaining_args)
+            elif action_included == MOD_SRT_COUNT_LINE:
+                srt_count_lines(remaining_args)
             elif action_included is None:
                 raise Exception(MOD_WARNING_ACTION_MISSING)
             else:

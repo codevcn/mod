@@ -3,6 +3,13 @@ import subprocess
 import os
 import json
 
+# Thêm src vào sys.path để có thể import các module dùng chung
+SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if SRC_DIR not in sys.path:
+    sys.path.append(SRC_DIR)
+
+from utils.notifications import get_notifier
+
 GDRIVE_ACTION_SYNC = "sync"
 GDRIVE_ACTION_GUIDE = "guide"
 GDRIVE_ACTION_RESET = "reset"
@@ -156,7 +163,7 @@ def run_setup_flow():
         sys.exit(1)
 
 
-def sync_to_gdrive(source_path, dest_path, remote_name):
+def sync_to_gdrive(source_path, dest_path, remote_name, noti_platform=None):
     """Thực hiện lệnh đồng bộ dữ liệu."""
     if not os.path.exists(source_path):
         print(f"Lỗi: Thư mục nguồn '{source_path}' không tồn tại.")
@@ -185,6 +192,7 @@ def sync_to_gdrive(source_path, dest_path, remote_name):
         print("Đồng bộ hoàn tất thành công!")
 
         # Bổ sung tính năng lấy link Web cho folder đích sau khi sync
+        folder_link = None
         try:
             print("Đang tạo/lấy URL thư mục đích...")
             link_result = subprocess.run(
@@ -203,6 +211,14 @@ def sync_to_gdrive(source_path, dest_path, remote_name):
             print(
                 f"Không thể tạo URL thư mục đích (Lỗi do remote hoặc cấp quyền). Chi tiết: {e.stderr.strip()}"
             )
+
+        if noti_platform:
+            print(f"Đang gửi thông báo qua {noti_platform}...")
+            notifier = get_notifier(noti_platform)
+            msg = f"✅ <b>Đồng bộ GDrive thành công!</b>\n\n📁 <b>Nguồn:</b> <code>{os.path.abspath(source_path)}</code>\n☁️ <b>Đích:</b> <code>{remote_dest}</code>"
+            if folder_link:
+                msg += f"\n🔗 <b>URL:</b> {folder_link}"
+            notifier.send_message(msg)
 
     except subprocess.CalledProcessError as e:
         print(f"Lỗi khi thực thi rclone: {e}")
@@ -534,14 +550,28 @@ def switch_actions():
 
         list_directories(target_path, rclone_remote, is_deep, is_file)
     elif action == GDRIVE_ACTION_SYNC:
-        if len(sys.argv) < 4:
+        args_list = sys.argv[2:]
+        noti_platform = None
+
+        # Parse --noti flag
+        if "--noti" in args_list:
+            idx = args_list.index("--noti")
+            # Kiểm tra xem có value phía sau --noti hay không
+            if idx + 1 < len(args_list) and not args_list[idx + 1].startswith("-"):
+                noti_platform = args_list[idx + 1]
+                del args_list[idx : idx + 2]
+            else:
+                noti_platform = "telegram"  # Default
+                del args_list[idx]
+
+        if len(args_list) < 2:
             print(
-                'Cú pháp: py sync_to_gdrive.py sync "<folder nguồn>" "<path đích trên gdrive>"'
+                'Cú pháp: mod gdrive sync "<folder nguồn>" "<path đích trên gdrive>" [--noti [platform]]'
             )
             sys.exit(1)
 
-        source_dir = sys.argv[2]
-        dest_dir = sys.argv[3]
+        source_dir = args_list[0]
+        dest_dir = args_list[1]
 
         # Bước 1: Lấy tên remote từ tệp JSON
         rclone_remote = load_remote_name()
@@ -551,7 +581,7 @@ def switch_actions():
             rclone_remote = run_setup_flow()
 
         # Bước 3: Tiến hành đồng bộ
-        sync_to_gdrive(source_dir, dest_dir, rclone_remote)
+        sync_to_gdrive(source_dir, dest_dir, rclone_remote, noti_platform)
     else:
         print(f"Lỗi: Không tìm thấy hành động '{action}'.")
         sys.exit(1)

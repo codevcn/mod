@@ -1,5 +1,7 @@
 # Python version requirement
-python>=3.12.0
+# python>=3.12.0
 
 # Dependencies
 PyYAML>=6.0.1
+requests>=2.31.0
+python-dotenv>=1.0.1

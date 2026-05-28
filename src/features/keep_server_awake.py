@@ -5,52 +5,71 @@ import argparse
 from datetime import datetime
 import re
 
+# ==========================================
+# CẤU HÌNH THÔNG SỐ MẶC ĐỊNH
+# ==========================================
 DEFAULT_HEALTHCHECK_URL = (
     "https://b6-remote-server-kaggle-2026.onrender.com/healthcheck"
 )
 
+# Thời gian random mặc định nếu người dùng không truyền cờ -i
 RANDOM_MIN_INTERVAL_SECONDS = 3 * 60
 RANDOM_MAX_INTERVAL_SECONDS = 6 * 60
 
+# Khoảng thời gian chờ khẩn cấp khi máy chủ phản hồi quá chậm
+TIMEOUT_RETRY_INTERVAL_SECONDS = 2 * 60
 
-def parse_readable_interval(value: str) -> float:
+# ==========================================
+
+
+def parse_interval_config(value: str) -> tuple:
     """
-    Parse interval dạng dễ đọc sang giây.
+    Phân tích tham số đầu vào của cờ -i.
 
-    Hỗ trợ:
-    - 6s    -> 6 giây
-    - 2m    -> 120 giây
-    - 1.5h  -> 5400 giây
-    - 300   -> 300 giây, nếu không ghi unit thì mặc định là giây
+    Hỗ trợ 2 dạng:
+    1. Khoảng random (mm:ss-mm:ss) -> Trả về: ("random", min_seconds, max_seconds)
+       Ví dụ: "03:00-06:00", "01:30-02:45"
+    2. Cố định (có hoặc không có đơn vị s, m, h) -> Trả về: ("fixed", seconds)
+       Ví dụ: "6s", "2m", "1.5h", "300"
     """
 
-    pattern = r"^\s*(\d+(?:\.\d+)?)\s*([smhSMH]?)\s*$"
-    match = re.match(pattern, value)
+    # Kiểm tra định dạng mm:ss-mm:ss
+    range_pattern = r"^\s*(\d+):(\d{1,2})\s*-\s*(\d+):(\d{1,2})\s*$"
+    range_match = re.match(range_pattern, value)
 
-    if not match:
-        raise argparse.ArgumentTypeError(
-            "interval không hợp lệ. Ví dụ hợp lệ: 6s, 2m, 1.5h, 300"
-        )
+    if range_match:
+        m1, s1, m2, s2 = map(int, range_match.groups())
+        min_sec = (m1 * 60) + s1
+        max_sec = (m2 * 60) + s2
 
-    number = float(match.group(1))
-    unit = match.group(2).lower() or "s"
+        if min_sec >= max_sec:
+            raise argparse.ArgumentTypeError(
+                "Khoảng thời gian không hợp lệ. Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc."
+            )
+        return ("random", min_sec, max_sec)
 
-    if number <= 0:
-        raise argparse.ArgumentTypeError("interval phải lớn hơn 0.")
+    # Kiểm tra định dạng đơn lẻ cố định
+    single_pattern = r"^\s*(\d+(?:\.\d+)?)\s*([smhSMH]?)\s*$"
+    single_match = re.match(single_pattern, value)
 
-    unit_to_seconds = {
-        "s": 1,
-        "m": 60,
-        "h": 60 * 60,
-    }
+    if single_match:
+        number = float(single_match.group(1))
+        unit = single_match.group(2).lower() or "s"
 
-    return number * unit_to_seconds[unit]
+        if number <= 0:
+            raise argparse.ArgumentTypeError("Thời gian phải lớn hơn 0.")
 
+        unit_to_seconds = {
+            "s": 1,
+            "m": 60,
+            "h": 60 * 60,
+        }
+        return ("fixed", int(number * unit_to_seconds[unit]))
 
-def get_random_interval_seconds() -> int:
-    return random.randint(
-        RANDOM_MIN_INTERVAL_SECONDS,
-        RANDOM_MAX_INTERVAL_SECONDS,
+    # Nếu không khớp định dạng nào
+    raise argparse.ArgumentTypeError(
+        "Tham số -i không hợp lệ. Vui lòng nhập số cố định (Ví dụ: 6s, 2m, 300) "
+        "hoặc khoảng thời gian theo định dạng mm:ss-mm:ss (Ví dụ: 03:00-06:00)."
     )
 
 
@@ -59,33 +78,27 @@ def format_seconds(seconds: float) -> str:
         return f"{seconds:g} giây"
 
     total_seconds = int(seconds)
-
     hours = total_seconds // 3600
     minutes = (total_seconds % 3600) // 60
     remain_seconds = total_seconds % 60
 
     parts = []
-
     if hours > 0:
         parts.append(f"{hours} giờ")
-
     if minutes > 0:
         parts.append(f"{minutes} phút")
-
     if remain_seconds > 0:
         parts.append(f"{remain_seconds} giây")
 
     return " ".join(parts)
 
 
-def get_next_interval_seconds(fixed_interval_seconds: int | None) -> int:
-    if fixed_interval_seconds is not None:
-        return fixed_interval_seconds
-
-    return get_random_interval_seconds()
-
-
-def ping_server(healthcheck_url: str, request_index: int):
+def ping_server(healthcheck_url: str, request_index: int) -> bool:
+    """
+    Gửi yêu cầu HTTP GET đến máy chủ.
+    Trả về True nếu xảy ra lỗi Timeout (máy chủ phản hồi quá chậm).
+    Trả về False đối với trạng thái thành công hoặc các lỗi hệ thống khác.
+    """
     current_time = datetime.now().strftime("%H:%M:%S")
 
     print(
@@ -96,7 +109,7 @@ def ping_server(healthcheck_url: str, request_index: int):
         response = requests.get(healthcheck_url, timeout=15)
         response.raise_for_status()
 
-        # Xử lý lỗi giải mã JSON tiềm ẩn tại đây
+        # Xử lý lỗi giải mã JSON tiềm ẩn
         try:
             data = response.json()
             timestamp_info = data.get("timestamp", "Không có dữ liệu thời gian")
@@ -105,23 +118,26 @@ def ping_server(healthcheck_url: str, request_index: int):
                 f"Máy chủ phản hồi ổn định (JSON) - {timestamp_info}"
             )
         except ValueError:
-            # Nếu phản hồi không phải là JSON (ví dụ: Text hoặc HTML)
             print(
                 f"[{current_time}] [REQ #{request_index}] THÀNH CÔNG: "
                 f"Máy chủ phản hồi ổn định (Text/HTML) - Mã trạng thái: {response.status_code}"
             )
+
+        return False
 
     except requests.exceptions.Timeout:
         print(
             f"[{current_time}] [REQ #{request_index}] CẢNH BÁO: "
             f"Máy chủ phản hồi quá chậm."
         )
+        return True
 
     except requests.exceptions.RequestException as e:
         print(
             f"[{current_time}] [REQ #{request_index}] LỖI HỆ THỐNG: "
             f"Không thể kết nối đến máy chủ. Chi tiết: {e}"
         )
+        return False
 
 
 if __name__ == "__main__":
@@ -137,39 +153,46 @@ if __name__ == "__main__":
     parser.add_argument(
         "-i",
         "--interval",
-        type=parse_readable_interval,
+        type=parse_interval_config,
         default=None,
         help=(
-            "Thời gian cố định giữa các lần request. "
-            "Hỗ trợ dạng readable: 6s, 2m, 1.5h. "
-            "Nếu không truyền, chương trình sẽ random mỗi lần trong khoảng 180-360 giây."
+            "Thời gian nghỉ giữa các lần request. "
+            "Nhập thời gian cố định (Ví dụ: 6s, 2m) hoặc khoảng thời gian random (Ví dụ: 03:00-06:00). "
+            "Nếu không truyền, chương trình sẽ ngẫu nhiên trong khoảng 3 phút đến 6 phút."
         ),
     )
 
     args = parser.parse_args()
 
     HEALTHCHECK_URL = args.healthcheck_url
-    FIXED_INTERVAL_SECONDS = args.interval
+
+    # Thiết lập khoảng thời gian dựa trên tham số người dùng
+    if args.interval is None:
+        interval_config = (
+            "random",
+            RANDOM_MIN_INTERVAL_SECONDS,
+            RANDOM_MAX_INTERVAL_SECONDS,
+        )
+    else:
+        interval_config = args.interval
 
     print("=" * 70)
     print("🚀 KHỞI ĐỘNG TRÌNH GIỮ NHỊP (KEEP-ALIVE) CHO MÁY CHỦ TỪ XA")
     print(f"Mục tiêu giám sát : {HEALTHCHECK_URL}")
 
-    if FIXED_INTERVAL_SECONDS is not None:
+    if interval_config[0] == "fixed":
         print("Chế độ interval : CỐ ĐỊNH")
-        print(
-            f"Thời gian nghỉ   : {FIXED_INTERVAL_SECONDS} giây "
-            f"({format_seconds(FIXED_INTERVAL_SECONDS)})"
-        )
+        print(f"Thời gian nghỉ   : {format_seconds(interval_config[1])}")
     else:
-        print("Chế độ interval : RANDOM")
+        print("Chế độ interval : NGẪU NHIÊN")
         print(
-            "Thời gian nghỉ   : Random sau mỗi request trong khoảng "
-            f"{RANDOM_MIN_INTERVAL_SECONDS}-{RANDOM_MAX_INTERVAL_SECONDS} giây "
-            f"({format_seconds(RANDOM_MIN_INTERVAL_SECONDS)} - "
-            f"{format_seconds(RANDOM_MAX_INTERVAL_SECONDS)})"
+            f"Thời gian nghỉ   : Nằm trong khoảng {format_seconds(interval_config[1])} "
+            f"đến {format_seconds(interval_config[2])}"
         )
 
+    print(
+        "Quy tắc an toàn   : Giảm thời gian chờ xuống 2 phút nếu máy chủ phản hồi chậm."
+    )
     print("Nhấn tổ hợp phím [Ctrl + C] để dừng chương trình.")
     print("=" * 70 + "\n")
 
@@ -177,21 +200,32 @@ if __name__ == "__main__":
 
     try:
         while True:
-            ping_server(HEALTHCHECK_URL, request_index)
-
-            next_interval_seconds = get_next_interval_seconds(FIXED_INTERVAL_SECONDS)
+            # ping_server sẽ trả về True nếu bị Timeout
+            is_timeout = ping_server(HEALTHCHECK_URL, request_index)
             current_time = datetime.now().strftime("%H:%M:%S")
 
-            if FIXED_INTERVAL_SECONDS is not None:
+            # Quyết định thời gian chờ tiếp theo dựa trên kết quả của lần gửi vừa rồi
+            if is_timeout:
+                next_interval_seconds = TIMEOUT_RETRY_INTERVAL_SECONDS
                 print(
-                    f"[{current_time}] Chế độ CỐ ĐỊNH: "
-                    f"lần gọi tiếp theo sau {format_seconds(next_interval_seconds)}."
+                    f"[{current_time}] Chế độ PHỤC HỒI: "
+                    f"Rút ngắn lần gọi tiếp theo xuống còn {format_seconds(next_interval_seconds)}."
                 )
             else:
-                print(
-                    f"[{current_time}] Chế độ RANDOM: "
-                    f"đã random lần gọi tiếp theo sau {format_seconds(next_interval_seconds)}."
-                )
+                if interval_config[0] == "fixed":
+                    next_interval_seconds = interval_config[1]
+                    print(
+                        f"[{current_time}] Chế độ CỐ ĐỊNH: "
+                        f"Lần gọi tiếp theo sau {format_seconds(next_interval_seconds)}."
+                    )
+                else:
+                    next_interval_seconds = random.randint(
+                        interval_config[1], interval_config[2]
+                    )
+                    print(
+                        f"[{current_time}] Chế độ NGẪU NHIÊN: "
+                        f"Đã chọn lần gọi tiếp theo sau {format_seconds(next_interval_seconds)}."
+                    )
 
             print("-" * 70)
 
