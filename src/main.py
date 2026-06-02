@@ -52,9 +52,11 @@ MOD_FILE_KEEP = "keep"
 # folder
 MOD_FOLDER_CREATE = "create"
 MOD_FOLDER_DLD_PATH = "dld-path"
+MOD_FOLDER_TREE = "tree"
 # edit
 MOD_EDIT_PROMPTS = "proms"
 MOD_EDIT_TO_COMMAND = "to"
+MOD_EDIT_USEFUL_COMMANDS = "cmds"
 # git
 MOD_GIT_COMMIT_AND_PUSH = "commit"
 # print
@@ -76,6 +78,7 @@ MOD_SRC_FOLDER = Path(__file__).resolve().parent
 MOD_ROOT_FOLDER = PROJECT_ROOT
 MOD_FEATURES_FOLDER_PATH = FEATURES_FOLDER
 MOD_SYSTEM_FEATURES_FOLDER_PATH = str(Path(MOD_FEATURES_FOLDER_PATH) / "system")
+MOD_CONTENT_FOLDER_PATH = str(Path(MOD_SRC_FOLDER) / "contents")
 
 TEMPLATE_REPLACER_FOLDER_PATH = TEMPLATE_REPLACER_FOLDER
 
@@ -88,6 +91,10 @@ def get_feature_path(*parts: str) -> str:
 
 def get_system_feature_path(filename: str) -> str:
     return str(Path(MOD_SYSTEM_FEATURES_FOLDER_PATH, filename))
+
+
+def get_content_path(filename: str) -> str:
+    return str(Path(MOD_CONTENT_FOLDER_PATH, filename))
 
 
 def gdrive_execute(action, remaining_args):
@@ -430,6 +437,15 @@ def edit_to_command():
     sys.exit(0)
 
 
+def edit_useful_commands():
+    cmd_args = [
+        "notepad",
+        get_content_path("list_useful_commands.txt"),
+    ]
+    subprocess.run(cmd_args, shell=True)
+    sys.exit(0)
+
+
 def gen_qr_image():
     cmd_args = [
         "python",
@@ -453,6 +469,16 @@ def srt_count_lines(remaining_args):
     cmd_args = [
         "python",
         get_feature_path("srt_count_line.py"),
+    ]
+    cmd_args.extend(remaining_args)
+    subprocess.run(cmd_args, shell=True)
+    sys.exit(0)
+
+
+def print_folder_tree(remaining_args):
+    cmd_args = [
+        "python",
+        get_feature_path("print_folder_tree.py"),
     ]
     cmd_args.extend(remaining_args)
     subprocess.run(cmd_args, shell=True)
@@ -500,6 +526,8 @@ if __name__ == "__main__":
                 edit_prompts()
             elif action_included == MOD_EDIT_TO_COMMAND:
                 edit_to_command()
+            elif action_included == MOD_EDIT_USEFUL_COMMANDS:
+                edit_useful_commands()
             else:
                 raise Exception(MOD_WARNING_ACTION_MISSING)
         elif type_included == MOD_TYPE_PY:
@@ -567,6 +595,8 @@ if __name__ == "__main__":
                 set_download_path_in_chrome(remaining_args)
             elif action_included is None:
                 raise Exception(MOD_WARNING_ACTION_MISSING)
+            elif action_included == MOD_FOLDER_TREE:
+                print_folder_tree(remaining_args)
             else:
                 raise Exception(MOD_WARNING_ACTION_WRONG)
         elif type_included == MOD_TYPE_OPEN:
