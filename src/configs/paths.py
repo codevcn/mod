@@ -18,7 +18,9 @@ PROJECT_ROOT = get_project_root()
 SRC_FOLDER = f"{PROJECT_ROOT}/src"
 FEATURES_FOLDER = f"{PROJECT_ROOT}/src/features"
 CONTENTS_FOLDER = f"{PROJECT_ROOT}/src/contents"
-TOAST_SOUND_AUDIO_FILE_PATH = f"{PROJECT_ROOT}/data/media/audio/universfield-new-notification-012-363675.mp3"
+TOAST_SOUND_AUDIO_FILE_PATH = (
+    f"{PROJECT_ROOT}/data/media/audio/burnttoast-notification-sound.mp3"
+)
 
 # === Đường dẫn ngoài project (SỬA KHI CHUYỂN MÁY) ===
 APPDATA_FOLDER = "D:/D-AppData/me-mod"
@@ -26,4 +28,3 @@ TEMPLATE_REPLACER_FOLDER = (
     "D:/D-Documents/Browser-Extensions/codevoicainay/template_replacer"
 )
 LOCAL_ABSOLUTE_FOLDER_PATH = "D:/D-Documents/MCP"
-
