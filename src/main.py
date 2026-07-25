@@ -3,6 +3,13 @@ import subprocess
 import sys
 from pathlib import Path
 from configs.paths import PROJECT_ROOT, FEATURES_FOLDER, TEMPLATE_REPLACER_FOLDER
+from utils.errors import (
+    handle_cli_error,
+    InvalidTypeError,
+    MissingTypeError,
+    InvalidActionError,
+    MissingActionError,
+)
 
 os.environ.setdefault("PYTHONIOENCODING", "utf-8")
 if hasattr(sys.stdout, "reconfigure"):
@@ -25,6 +32,11 @@ MOD_TYPE_PY = "py"
 MOD_TYPE_EDIT = "edit"
 MOD_TYPE_FILE = "file"
 MOD_TYPE_FOLDER = "folder"
+MOD_TYPE_TUNNEL = "tunnel"
+MOD_TYPE_PROXY = "proxy"
+MOD_TYPE_MCP = "mcp"
+MOD_TYPE_TOAST = "toast"
+
 
 # --- Actions ---
 # open
@@ -43,6 +55,7 @@ MOD_CODE_EXTENSIONS = "ext"
 MOD_RUN_UNIKEY_APP = "unikey"
 MOD_GEN_QR_IMAGE = "gen-qr"
 MOD_KEEP_AWAKE = "keep-awake"
+MOD_RUN_KEEP_SCREEN = "keep-screen"
 MOD_SRT_COUNT_LINE = "srt-count-line"
 # file
 MOD_FILE_CREATE = "create"
@@ -68,11 +81,13 @@ MOD_PRINT_DIRECTORY = "dir"
 MOD_PRINT_USEFUL_COMMANDS = "cmds"
 # py
 MOD_PY_ENV = "env"
+# proxy
+MOD_PROXY_TEST = "test"
+# mcp
+MOD_MCP_SET = "set"
 
-MOD_WARNING_TYPE_WRONG = "WRONG-TYPE"
-MOD_WARNING_TYPE_MISSING = "MISSING-TYPE"
-MOD_WARNING_ACTION_WRONG = "WRONG-ACTION"
-MOD_WARNING_ACTION_MISSING = "MISSING-ACTION"
+
+# --- Warnings (deprecated, replaced by utils.errors) ---
 
 MOD_SRC_FOLDER = Path(__file__).resolve().parent
 MOD_ROOT_FOLDER = PROJECT_ROOT
@@ -130,51 +145,6 @@ def print_content(content_filename):
 def open_vscode_extensions_in_vscode(ide_prefix):
     subprocess.run([ide_prefix, "D:/D-Documents/Browser-Extensions"], shell=True)
     sys.exit(0)
-
-
-def warn_user_error(warning_message: str):
-    messages = {
-        MOD_WARNING_TYPE_WRONG: {
-            "title": "Sai nhóm lệnh",
-            "reason": "Type bạn nhập không tồn tại trong danh sách lệnh hỗ trợ.",
-            "suggestion": "Chạy `mod --help` để xem danh sách type hợp lệ.",
-        },
-        MOD_WARNING_TYPE_MISSING: {
-            "title": "Thiếu nhóm lệnh",
-            "reason": "Bạn chưa nhập type của command.",
-            "suggestion": "Ví dụ: `mod run keep-awake <healthcheck_url>`",
-        },
-        MOD_WARNING_ACTION_WRONG: {
-            "title": "Sai action",
-            "reason": "Action bạn nhập không hợp lệ với type hiện tại.",
-            "suggestion": "Chạy `mod --help` hoặc `mod <type> <action> --des` để xem mô tả.",
-        },
-        MOD_WARNING_ACTION_MISSING: {
-            "title": "Thiếu action",
-            "reason": "Type này cần thêm action phía sau.",
-            "suggestion": "Ví dụ: `mod run keep-awake <healthcheck_url>`",
-        },
-    }
-
-    info = messages.get(warning_message)
-
-    print()
-    print("=" * 70)
-
-    if info:
-        print(f"❌ {info['title']}")
-        print("-" * 70)
-        print(f"Nguyên nhân : {info['reason']}")
-        print(f"Gợi ý      : {info['suggestion']}")
-    else:
-        print("❌ Lỗi không xác định")
-        print("-" * 70)
-        print(f"Chi tiết   : {warning_message}")
-
-    print("=" * 70)
-    print()
-
-    sys.exit(1)
 
 
 def open_testing_folder_in_vscode(ide_prefix):
@@ -410,6 +380,39 @@ def print_feature_description(cmd_type: str | None, action: str | None):
     sys.exit(0)
 
 
+def cmd_tunnel(action, remaining_args):
+    cmd_args = [
+        "python",
+        get_feature_path("cloudflare", "cloudflared_wrapper.py"),
+    ]
+    if action is not None:
+        cmd_args.append(action)
+    cmd_args.extend(remaining_args)
+
+    result = subprocess.run(
+        cmd_args,
+        check=False,
+    )
+    sys.exit(result.returncode)
+
+
+def cmd_proxy(action, remaining_args):
+    cmd_args = [
+        "python",
+        get_feature_path("test_proxy.py"),
+    ]
+    if action is not None:
+        if action != MOD_PROXY_TEST:
+            raise InvalidActionError(MOD_TYPE_PROXY, action, [MOD_PROXY_TEST])
+    cmd_args.extend(remaining_args)
+
+    result = subprocess.run(
+        cmd_args,
+        check=False,
+    )
+    sys.exit(result.returncode)
+
+
 def cmd_init():
     subprocess.run(
         [f"{MOD_ROOT_FOLDER}/src/cmd/init.cmd"],
@@ -465,6 +468,15 @@ def keep_server_awake(remaining_args):
     sys.exit(0)
 
 
+def keep_screen():
+    cmd_args = [
+        "python",
+        get_feature_path("keep_screen.py"),
+    ]
+    subprocess.run(cmd_args, shell=True)
+    sys.exit(0)
+
+
 def srt_count_lines(remaining_args):
     cmd_args = [
         "python",
@@ -483,6 +495,38 @@ def print_folder_tree(remaining_args):
     cmd_args.extend(remaining_args)
     subprocess.run(cmd_args, shell=True)
     sys.exit(0)
+
+
+def cmd_mcp(action, remaining_args):
+    cmd_args = [
+        "python",
+        get_feature_path("mcp_set.py"),
+    ]
+    if action is not None:
+        cmd_args.append(action)
+    cmd_args.extend(remaining_args)
+
+    result = subprocess.run(
+        cmd_args,
+        check=False,
+    )
+    sys.exit(result.returncode)
+
+
+def cmd_toast(title, remaining_args):
+    cmd_args = [
+        "python",
+        get_feature_path("send_toast.py"),
+    ]
+    if title is not None:
+        cmd_args.append(title)
+    cmd_args.extend(remaining_args)
+
+    result = subprocess.run(
+        cmd_args,
+        check=False,
+    )
+    sys.exit(result.returncode)
 
 
 # --- Main ---
@@ -522,24 +566,52 @@ if __name__ == "__main__":
 
         # --- Dispatch ---
         if type_included == MOD_TYPE_EDIT:
+            valid_actions = [MOD_EDIT_PROMPTS, MOD_EDIT_TO_COMMAND, MOD_EDIT_USEFUL_COMMANDS]
             if action_included == MOD_EDIT_PROMPTS:
                 edit_prompts()
             elif action_included == MOD_EDIT_TO_COMMAND:
                 edit_to_command()
             elif action_included == MOD_EDIT_USEFUL_COMMANDS:
                 edit_useful_commands()
+            elif action_included is None:
+                raise MissingActionError(type_included, valid_actions)
             else:
-                raise Exception(MOD_WARNING_ACTION_MISSING)
+                raise InvalidActionError(type_included, action_included, valid_actions)
         elif type_included == MOD_TYPE_PY:
+            valid_actions = [MOD_PY_ENV]
             if action_included == MOD_PY_ENV:
                 py_setup_venv()
+            elif action_included is None:
+                raise MissingActionError(type_included, valid_actions)
             else:
-                raise Exception(MOD_WARNING_ACTION_MISSING)
+                raise InvalidActionError(type_included, action_included, valid_actions)
         elif type_included == MOD_TYPE_INIT:
             cmd_init()
         elif type_included == MOD_TYPE_GDRIVE:
             gdrive_execute(action_included, remaining_args)
+        elif type_included == MOD_TYPE_TUNNEL:
+            cmd_tunnel(action_included, remaining_args)
+        elif type_included == MOD_TYPE_PROXY:
+            valid_actions = [MOD_PROXY_TEST]
+            if action_included is None:
+                raise MissingActionError(type_included, valid_actions)
+            if action_included != MOD_PROXY_TEST:
+                raise InvalidActionError(type_included, action_included, valid_actions)
+            cmd_proxy(action_included, remaining_args)
+        elif type_included == MOD_TYPE_MCP:
+            valid_actions = [MOD_MCP_SET]
+            if action_included is None:
+                raise MissingActionError(type_included, valid_actions)
+            if action_included != MOD_MCP_SET:
+                raise InvalidActionError(type_included, action_included, valid_actions)
+            cmd_mcp(action_included, remaining_args)
+        elif type_included == MOD_TYPE_TOAST:
+            cmd_toast(action_included, remaining_args)
         elif type_included == MOD_TYPE_CODE:
+            valid_actions = [
+                MOD_CODE_VSCODE_WORKSPACE, MOD_CODE_TEST, MOD_CODE_TYPESCRIPT_TEMPLATE,
+                MOD_CODE_JS, MOD_CODE_TS, MOD_CODE_NESTJS, MOD_CODE_PY, MOD_CODE_EXTENSIONS
+            ]
             if action_included is None:
                 open_mod_files_in_vscode(default_ide_prefix)
             elif action_included == MOD_CODE_VSCODE_WORKSPACE:
@@ -557,25 +629,33 @@ if __name__ == "__main__":
             elif action_included == MOD_CODE_EXTENSIONS:
                 open_vscode_extensions_in_vscode(default_ide_prefix)
             else:
-                raise Exception(MOD_WARNING_ACTION_WRONG)
+                raise InvalidActionError(type_included, action_included, valid_actions)
         elif type_included == MOD_TYPE_GIT:
+            valid_actions = ["commit", "remote"]
             if not action_included:
-                raise Exception(MOD_WARNING_ACTION_MISSING)
+                raise MissingActionError(type_included, valid_actions)
             run_git_command(action_included, remaining_args)
         elif type_included == MOD_TYPE_RUN:
+            valid_actions = [
+                MOD_RUN_UNIKEY_APP, MOD_GEN_QR_IMAGE, MOD_KEEP_AWAKE,
+                MOD_RUN_KEEP_SCREEN, MOD_SRT_COUNT_LINE
+            ]
             if action_included == MOD_RUN_UNIKEY_APP:
                 run_Unikey_app()
             elif action_included == MOD_GEN_QR_IMAGE:
                 gen_qr_image()
             elif action_included == MOD_KEEP_AWAKE:
                 keep_server_awake(remaining_args)
+            elif action_included == MOD_RUN_KEEP_SCREEN:
+                keep_screen()
             elif action_included == MOD_SRT_COUNT_LINE:
                 srt_count_lines(remaining_args)
             elif action_included is None:
-                raise Exception(MOD_WARNING_ACTION_MISSING)
+                raise MissingActionError(type_included, valid_actions)
             else:
-                raise Exception(MOD_WARNING_ACTION_WRONG)
+                raise InvalidActionError(type_included, action_included, valid_actions)
         elif type_included == MOD_TYPE_FILE:
+            valid_actions = [MOD_FILE_CREATE, MOD_FILE_RENAME, MOD_FILE_DELETE, MOD_FILE_KEEP]
             if action_included == MOD_FILE_CREATE:
                 create_files_in_folder()
             elif action_included == MOD_FILE_RENAME:
@@ -585,21 +665,23 @@ if __name__ == "__main__":
             elif action_included == MOD_FILE_KEEP:
                 keep_files(remaining_args)
             elif action_included is None:
-                raise Exception(MOD_WARNING_ACTION_MISSING)
+                raise MissingActionError(type_included, valid_actions)
             else:
-                raise Exception(MOD_WARNING_ACTION_WRONG)
+                raise InvalidActionError(type_included, action_included, valid_actions)
         elif type_included == MOD_TYPE_FOLDER:
+            valid_actions = [MOD_FOLDER_CREATE, MOD_FOLDER_DLD_PATH, MOD_FOLDER_TREE]
             if action_included == MOD_FOLDER_CREATE:
                 create_folders_in_path(remaining_args)
             elif action_included == MOD_FOLDER_DLD_PATH:
                 set_download_path_in_chrome(remaining_args)
-            elif action_included is None:
-                raise Exception(MOD_WARNING_ACTION_MISSING)
             elif action_included == MOD_FOLDER_TREE:
                 print_folder_tree(remaining_args)
+            elif action_included is None:
+                raise MissingActionError(type_included, valid_actions)
             else:
-                raise Exception(MOD_WARNING_ACTION_WRONG)
+                raise InvalidActionError(type_included, action_included, valid_actions)
         elif type_included == MOD_TYPE_OPEN:
+            valid_actions = [MOD_OPEN_ENV, MOD_OPEN_PROMPTS_FOLDER, MOD_CODE_VSCODE_WORKSPACE]
             # Gom action + remaining để detect flag -f/--file
             all_open_args = (
                 [action_included] if action_included else []
@@ -623,8 +705,12 @@ if __name__ == "__main__":
             elif clean_action == MOD_CODE_VSCODE_WORKSPACE:
                 open_vscode_workspaces_in_system_folder()
             else:
-                raise Exception(MOD_WARNING_ACTION_WRONG)
+                raise InvalidActionError(type_included, clean_action, valid_actions)
         elif type_included == MOD_TYPE_PRINT:
+            valid_actions = [
+                MOD_PRINT_OS_INFO, MOD_PRINT_VSCODE_WORKSPACES, MOD_PRINT_DIRECTORY,
+                MOD_PRINT_USEFUL_COMMANDS, MOD_PRINT_CURL, MOD_PRINT_STATUSES_INFO
+            ]
             if action_included == MOD_PRINT_OS_INFO:
                 print_os_info()
             elif action_included == MOD_PRINT_VSCODE_WORKSPACES:
@@ -638,11 +724,11 @@ if __name__ == "__main__":
             elif action_included == MOD_PRINT_STATUSES_INFO:
                 print_statuses_info()
             elif action_included is None:
-                raise Exception(MOD_WARNING_ACTION_MISSING)
+                raise MissingActionError(type_included, valid_actions)
             else:
-                raise Exception(MOD_WARNING_ACTION_WRONG)
+                raise InvalidActionError(type_included, action_included, valid_actions)
         else:
-            raise Exception(MOD_WARNING_TYPE_WRONG)
+            raise InvalidTypeError(type_included)
 
         # Nếu chạy đến đây (không rẽ nhánh nào) thì báo lỗi.
         MOD_STATUS = "OUT-OF-MAIN-SECTION"
@@ -652,5 +738,4 @@ if __name__ == "__main__":
         print("\n\n>>> Tiến trình đã bị hủy bởi người dùng (KeyboardInterrupt).")
         sys.exit(0)
     except Exception as e:
-        warn_user_error(str(e))
-        sys.exit(1)
+        handle_cli_error(e)

@@ -119,7 +119,7 @@ def main():
         print(f"Error: path is not a folder: {folder_path}")
         return
 
-    print(folder_path.name)
+    print(str(folder_path))
     print_tree(
         folder_path,
         threshold=args.max,

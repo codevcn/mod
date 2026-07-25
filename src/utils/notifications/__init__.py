@@ -1,5 +1,6 @@
 from .base import BaseNotifier
 from .telegram_notifier import TelegramNotifier
+from .toast_notifier import ToastNotifier
 
 def get_notifier(platform: str) -> BaseNotifier:
     """
@@ -8,6 +9,8 @@ def get_notifier(platform: str) -> BaseNotifier:
     platform = platform.lower()
     if platform == "telegram":
         return TelegramNotifier()
+    elif platform in ("toast", "windows"):
+        return ToastNotifier()
     else:
         # Nếu platform không được hỗ trợ, có thể trả về một Dummy Notifier hoặc raise Exception.
         # Ở đây ta print cảnh báo và trả về một Dummy Notifier.

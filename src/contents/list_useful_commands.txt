@@ -101,3 +101,21 @@ icacls "absolute/path/to/key" /grant:r "$($env:username):R"
 
 # Mở 1 tunnel của cloudflare để truy cập local server với HTTPS
 cloudflared tunnel --url http://localhost:3000
+
+# Mở Live Captions trên Windows
+cloudflared tunnel --url http://localhost:3000
+
+# Tải file từ VPS về máy
+scp vmadmin@160.25.81.154:/home/some-text.tar.gz.sha256 "D:\location"
+
+# Nén 1 folder thành 1 file zip trên Ubuntu VPS
+tar -czvf some-text.tar.gz folder_name
+
+# Lệnh kill all nodejs processes
+taskkill /F /IM node.exe
+
+# Lệnh nén file zip trên Windows
+Compress-Archive -Path "D:\path\to\folder\*" -DestinationPath "D:\path\to\output.zip" -Force
+
+# Lệnh git hủy commit mới nhất và quay về staged changes
+git reset --soft HEAD~1

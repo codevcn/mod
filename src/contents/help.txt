@@ -33,6 +33,10 @@ git               :to run git command.
 gdrive            :to operate with Google Drive via rclone.
 init              :to run init.cmd script.
 py                :to run python helpers.
+tunnel            :to run cloudflare tunnel wrapper.
+proxy             :to test and check proxies.
+mcp               :to run MCP related tools.
+toast             :to send Windows desktop toast notification.
 
 # Available actions:
 ## open:
@@ -54,14 +58,20 @@ py                :to run python helpers.
 ## edit:
    proms          :edit prompts in prompts folder in notepad (Template Replacer Extension).
    to             :edit to command in notepad (Template Replacer Extension).
+   cmds           :edit useful commands in notepad.
 ## git:
    commit -m "msg":add all files and commit with a message and push with upstream.
+   remote         :print git remote URL (git remote -v).
 ## run:
    unikey         :run unikey.
    gen-qr         :generate QR code image from input data.
                   // Example: mod run gen-qr
    keep-awake     :keep server awake by sending periodic requests to a specified URL with a specified interval.
                   // Example: mod run keep-awake "http://example.com/keep-alive" -i 5m
+   keep-screen    :keep Windows screen awake until 'q' or 'Ctrl+C' is pressed.
+                  // Example: mod run keep-screen
+   srt-count-line :count lines in an srt file.
+                  // Example: mod run srt-count-line "path/to/file.srt"
 ## file:
    create         :create files in standing folder in CLI.
    rename <folder_path> [prefix]
@@ -78,6 +88,7 @@ py                :to run python helpers.
                   :create one or multiple folders using a pattern.
                   // Example: mod folder create "D:/D-Documents/tool" "folder" 1 5
    dld-path [name]:set download path in Chrome.
+   tree           :print folder tree structure.
 ## print:
    os             :print OS info.
    stts           :print mod-status description.
@@ -96,6 +107,9 @@ py                :to run python helpers.
    remote         :print selected remote info.
    del-fd <path>  :delete a folder on gdrive remote.
    url|link <path>:get share URL for a remote path.
+   dl <url> [--dest <path>] [--folder <name>]
+                  :download file from URL to local directory via gdrive dl tool.
+                  // Example: mod gdrive dl "https://example.com/file.zip" --dest "."
    reset          :reset rclone configurations.
    guide          :display Google Drive authentication guide.
 
@@ -105,10 +119,31 @@ py                :to run python helpers.
 ## py:
    env            :setup python venv in current project.
 
+## tunnel:
+   [port]         :run quick cloudflare tunnel on specified port (default: 3000).
+                  // Example: mod tunnel 8080
+
+## proxy:
+   test <ip>:<port>[:<login>:<password>] [--protocol socks5]
+                  :test a proxy connection using Python, cURL and check IP via ipify.
+                  // Example: mod proxy test 192.168.1.1:8080:user:pass --protocol http
+
+## mcp:
+   set [mcp_folder_name] [dest_folder_path]
+                  :copy a folder from LOCAL_ABSOLUTE_FOLDER_PATH to dest_folder_path.
+                  // Example: mod mcp set iconify .
+
+## toast:
+   <title> [msg...] [--audio <path>]
+                  :send a Windows desktop toast notification with title, message(s), and custom audio.
+                  // Example: mod toast "Hoàn thành" "Product updated successfully." --audio "D:/sound.mp3"
+   --syntax       :print 1-line command syntax of mod toast (easy to copy).
+
 # Example:
 The command `mod open ws` will open the working workspaces in system folder.
-The command `mod run rn-files "D:/path" "tiktok"` will rename files with prefix "tiktok".
+The command `mod file rename "D:/path" "tiktok"` will rename files with prefix "tiktok".
 The command `mod git commit -m "update"` will execute git add, commit and push.
-The command `mod run del-files --des` will print description of del-files command.
+The command `mod file delete "D:/path" "txt,jpg"` will delete files with specified extensions.
 The command `mod gdrive list "mac_sync" -d` will list all folders recursively.
+The command `mod gdrive dl "https://example.com/file.zip"` will download file to current directory.
 ===========================================

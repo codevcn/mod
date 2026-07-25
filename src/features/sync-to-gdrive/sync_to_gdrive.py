@@ -18,6 +18,7 @@ GDRIVE_ACTION_REMOTE = "remote"
 GDRIVE_ACTION_DEL_FD = "del-fd"
 GDRIVE_ACTION_URL = "url"
 GDRIVE_ACTION_LINK = "link"
+GDRIVE_ACTION_DL = "dl"
 
 # Tên tệp cấu hình JSON sẽ lưu trữ thông tin remote
 FEATURE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -582,6 +583,120 @@ def switch_actions():
 
         # Bước 3: Tiến hành đồng bộ
         sync_to_gdrive(source_dir, dest_dir, rclone_remote, noti_platform)
+    elif action == GDRIVE_ACTION_DL:
+        args_list = sys.argv[2:]
+        if len(args_list) < 1:
+            print("Cú pháp: mod gdrive dl <url_cần_tải> [--dest <đường_dẫn_lưu>]")
+            sys.exit(1)
+
+        url = args_list[0]
+        dest_path = os.getcwd()
+
+        if "--dest" in args_list:
+            idx = args_list.index("--dest")
+            if idx + 1 < len(args_list) and not args_list[idx + 1].startswith("-"):
+                dest_path = args_list[idx + 1]
+
+        if dest_path == ".":
+            dest_path = os.getcwd()
+
+        # Xử lý flag --folder <tên_thư_mục>
+        folder_suffix = None
+        if "--folder" in args_list:
+            idx = args_list.index("--folder")
+            if idx + 1 < len(args_list) and not args_list[idx + 1].startswith("-"):
+                folder_suffix = args_list[idx + 1]
+        
+        if folder_suffix:
+            # Loại bỏ drive letter và dấu xuyệt ở đầu để ép nó nằm bên trong dest_path
+            _, tail = os.path.splitdrive(folder_suffix)
+            dest_path = os.path.join(dest_path, tail.lstrip("\\/"))
+
+        # Đảm bảo đường dẫn đích tồn tại
+        if not os.path.exists(dest_path):
+            os.makedirs(dest_path, exist_ok=True)
+
+        print(f"Đang tải xuống từ URL: {url}")
+        print(f"Thư mục đích: {dest_path}")
+
+        # Kiểm tra xem đây có phải là link Google Drive hay không
+        is_gdrive_link = "drive.google.com" in url or "docs.google.com" in url
+        is_folder = "folders/" in url or "drive/folders" in url
+
+        rclone_success = False
+        print(">> Thử sử dụng rclone...")
+
+        if is_gdrive_link:
+            import re
+            match = re.search(r'[/=]([a-zA-Z0-9_-]{25,})', url)
+            gdrive_id = match.group(1) if match else None
+
+            if gdrive_id:
+                print(f">> Nhận diện được Google Drive ID: {gdrive_id}")
+                
+                # Gọi hàm load remote để dùng rclone (nếu chưa có thì gọi setup)
+                rclone_remote = load_remote_name()
+                if not rclone_remote or not check_remote_exists(rclone_remote):
+                    rclone_remote = run_setup_flow()
+                
+                if is_folder:
+                    rclone_cmd = ["rclone", "copy", f"{rclone_remote}", dest_path, "--drive-root-folder-id", gdrive_id, "--progress"]
+                else:
+                    # Đối với file, dùng backend copyid và output dir có gạch chéo cuối để lấy tên gốc
+                    output_dir = os.path.join(dest_path, "")
+                    rclone_cmd = ["rclone", "backend", "copyid", f"{rclone_remote}", gdrive_id, output_dir]
+                
+                try:
+                    subprocess.run(rclone_cmd, check=True)
+                    rclone_success = True
+                    print(">> Tải xuống thành công bằng rclone.")
+                except subprocess.CalledProcessError as e:
+                    print(f">> rclone gặp lỗi (có thể do ID truy cập bị chặn hoặc cấu hình lỗi): {e}")
+            else:
+                print(">> Không thể trích xuất ID từ link Google Drive, không thể dùng rclone API.")
+        else:
+            # Thử tải xuống bằng rclone copyurl cho các link thông thường
+            rclone_cmd = ["rclone", "copyurl", url, dest_path, "--auto-filename"]
+            try:
+                subprocess.run(rclone_cmd, check=True)
+                rclone_success = True
+                print(">> Tải xuống thành công bằng rclone.")
+            except subprocess.CalledProcessError as e:
+                print(f">> rclone gặp lỗi: {e}")
+
+        if rclone_success:
+            sys.exit(0)
+
+        print(">> Chuyển sang sử dụng thư viện gdown (fallback)...")
+
+        # Fallback qua thư viện gdown
+        try:
+            import gdown
+        except ImportError:
+            print(">> Thư viện gdown chưa được cài đặt. Đang tiến hành cài đặt gdown...")
+            try:
+                subprocess.run([sys.executable, "-m", "pip", "install", "gdown"], check=True)
+                import gdown
+            except subprocess.CalledProcessError as e:
+                print(f">> Lỗi khi cài đặt gdown: {e}")
+                sys.exit(1)
+
+        try:
+            # Thêm dấu gạch chéo vào cuối để gdown nhận diện đây là thư mục và tự lấy tên file
+            output_dir = os.path.join(dest_path, "")
+            gdown_cmd = [sys.executable, "-m", "gdown", url, "-O", output_dir]
+            
+            # Gdown tự động nhận diện ID từ URL ở các phiên bản mới, không cần truyền flag fuzzy
+            
+            # Nếu URL là folder, cần thêm cờ --folder cho gdown
+            if "folders/" in url or "drive/folders" in url:
+                gdown_cmd.append("--folder")
+            
+            subprocess.run(gdown_cmd, check=True)
+            print(">> Tải xuống thành công bằng gdown.")
+        except Exception as e:
+            print(f">> Lỗi khi tải xuống bằng gdown: {e}")
+            sys.exit(1)
     else:
         print(f"Lỗi: Không tìm thấy hành động '{action}'.")
         sys.exit(1)

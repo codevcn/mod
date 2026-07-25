@@ -17,6 +17,8 @@ mod_tool:
       description: "Liệt kê đệ quy sâu. Do sync_to_gdrive.py tự parse."
     - flag: "-f / --file"
       description: "Liệt kê file thay vì folder (gdrive list) hoặc mở File Explorer (open). Dispatcher detect flag này cho type open."
+    - flag: "--protocol"
+      description: "Chỉ định protocol test proxy (http, socks5, v.v.). Mặc định là socks5. Dùng trong mod proxy test."
 
   types:
     - name: "open"
@@ -120,6 +122,12 @@ mod_tool:
           summary: "Mở file $PROFILE trong notepad."
           details: "Chạy `notepad $PROFILE`."
           conditions: "Không có điều kiện đặc biệt."
+        - id: "ACTION 14b"
+          title: "Edit Useful Commands"
+          command: "mod edit cmds"
+          summary: "Chỉnh sửa danh sách các lệnh hữu ích."
+          details: "Mở file `contents/list_useful_commands.txt` trong notepad để người dùng tự chỉnh sửa."
+          conditions: "File `list_useful_commands.txt` phải tồn tại."
 
     - name: "git"
       description: "Thao tác Git"
@@ -130,6 +138,12 @@ mod_tool:
           summary: "Chạy tuần tự `git add .`, `git commit`, `git push` ngay trong tab terminal hiện tại."
           details: 'Dispatcher forward toàn bộ remaining args (`-m "message"`) cho `_git.py`. Script `_git.py` tự parse flag `-m`/`--message` để lấy commit message. Chạy tại thư mục `MOD_ROOT_FOLDER`.'
           conditions: 'Flag `-m "message"` là bắt buộc (do _git.py validate). Cần `git` đã cài và `MOD_ROOT_FOLDER` phải là git repository có remote `origin`.'
+        - id: "ACTION 15b"
+          title: "Xem Git Remote URL"
+          command: "mod git remote"
+          summary: "In danh sách remote URL của git repository (git remote -v)."
+          details: "Chạy `git remote -v` tại `MOD_ROOT_FOLDER` để hiển thị các remote."
+          conditions: "Cần `git` đã cài và `MOD_ROOT_FOLDER` phải là git repository."
 
     - name: "run"
       description: "Thực thi script"
@@ -152,6 +166,18 @@ mod_tool:
           summary: "Chạy công cụ giữ nhịp (keep-alive) để ngăn máy chủ từ xa rơi vào trạng thái ngủ đông."
           details: "Các đối số còn lại (remaining args) được chuyển tiếp cho tập lệnh Python xử lý việc giữ nhịp (ví dụ: `keep_awake.py`). Tập lệnh này sẽ tự động phân tích URL kiểm tra sức khỏe và cờ `-i`/`--interval`. Hỗ trợ thời gian chờ cố định (ví dụ: 6s, 2m, 1.5h) hoặc ngẫu nhiên nếu không truyền tham số."
           conditions: "Môi trường Python phải được cài đặt thư viện `requests`."
+        - id: "ACTION 46"
+          title: "Giữ Màn Hình Mở (Keep-Screen)"
+          command: "mod run keep-screen"
+          summary: "Chạy công cụ giữ màn hình Windows luôn mở."
+          details: "Sử dụng thư viện `ctypes` để gọi API hệ thống Windows (SetThreadExecutionState) nhằm ngăn màn hình tắt. Chương trình sẽ chạy ngầm định và chỉ thoát khi nhấn phím 'q' hoặc tổ hợp 'Ctrl+C'."
+          conditions: "Chỉ hoạt động trên hệ điều hành Windows."
+        - id: "ACTION 44"
+          title: "Đếm Dòng SRT"
+          command: "mod run srt-count-line [file_path]"
+          summary: "Đếm số dòng text thực tế trong file phụ đề SRT."
+          details: "Chuyển tiếp cho `srt_count_line.py` để phân tích và đếm."
+          conditions: "Cần truyền file path hợp lệ."
 
     - name: "file"
       description: "Thao tác với file"
@@ -196,6 +222,12 @@ mod_tool:
           summary: "Thay đổi thư mục download mặc định của Chrome cho tất cả profile."
           details: "Remaining args được forward cho `set_download_path_in_chrome.py`. Script tự parse `sys.argv[1]` nếu có để lấy folder_name. Nếu không truyền tên, tự tạo `download-{N}`."
           conditions: "Chrome phải được tắt hoàn toàn trước khi chạy."
+        - id: "ACTION 45"
+          title: "In Cấu Trúc Cây Thư Mục"
+          command: "mod folder tree"
+          summary: "In ra cấu trúc dạng cây của thư mục hiện tại."
+          details: "Gọi `print_folder_tree.py` để in ra terminal."
+          conditions: "Không có điều kiện đặc biệt."
 
     - name: "print"
       description: "In thông tin"
@@ -288,6 +320,12 @@ mod_tool:
           summary: "In thông tin cấu hình và dung lượng của remote."
           details: "Không cần args."
           conditions: "Cần có rclone."
+        - id: "ACTION 36b"
+          title: "Tải File từ URL (GDrive DL)"
+          command: "mod gdrive dl <url> [--dest <path>] [--folder <name>]"
+          summary: "Tải file từ mạng/URL về máy cục bộ vào thư mục chỉ định."
+          details: "Sử dụng tính năng tải file của gdrive tool. Có thể truyền `--dest <path>` để chỉ định thư mục lưu hoặc `--folder <name>` để tạo/lưu vào thư mục con."
+          conditions: "Cần URL hợp lệ."
 
     - name: "init"
       description: "Khởi tạo máy tính"
@@ -308,6 +346,48 @@ mod_tool:
           summary: "Thiết lập môi trường ảo Python cho project hiện tại."
           details: "Chạy `setup_venv_in_project.py`. Không nhận remaining args từ dispatcher."
           conditions: "Cần Python trong PATH."
+
+    - name: "tunnel"
+      description: "Cloudflare Tunnel Wrapper"
+      actions:
+        - id: "ACTION 41"
+          title: "Khởi tạo Cloudflare Tunnel"
+          command: "mod tunnel [port]"
+          summary: "Chạy cloudflared tunnel trỏ tới localhost tại port được chỉ định."
+          details: "Mặc định sử dụng port 3000. Wrapper tự động kiểm tra xem cloudflared đã được cài đặt hay chưa. Cần có file binary cloudflared trong PATH."
+          conditions: "File binary cloudflared phải nằm trong PATH hệ thống."
+
+    - name: "proxy"
+      description: "Kiểm tra Proxy"
+      actions:
+        - id: "ACTION 42"
+          title: "Kiểm tra Proxy"
+          command: "mod proxy test <ip>:<port>[:<login>:<password>] [--protocol <scheme>]"
+          summary: "Kiểm tra kết nối và tính hợp lệ của proxy."
+          details: "Kiểm tra bằng cách: 1. Sử dụng Python requests gửi request tới google.com. 2. Dùng lệnh hệ thống cURL để lấy HTTP header từ google.com. 3. Trích xuất IP đầu ra của proxy thông qua api.ipify.org. Mặc định kiểm tra với giao thức socks5."
+          conditions: "Tham số truyền vào phải đúng định dạng ip:port hoặc ip:port:login:pass."
+
+    - name: "mcp"
+      description: "Quản lý MCP"
+      actions:
+        - id: "ACTION 43"
+          title: "Thiết lập MCP Folder"
+          command: "mod mcp set [mcp_folder_name] [dest_folder_path]"
+          summary: "Sao chép thư mục MCP từ đường dẫn gốc vào thư mục đích."
+          details: "Liệt kê và cho phép chọn các thư mục trong LOCAL_ABSOLUTE_FOLDER_PATH, sau đó copy toàn bộ nội dung thư mục đó vào dest_folder_path. Nếu dest_folder_path không có, mặc định là thư mục hiện tại (.)."
+          conditions: "Đường dẫn LOCAL_ABSOLUTE_FOLDER_PATH phải tồn tại trong cấu hình."
+
+    - name: "toast"
+      description: "Thông báo Desktop Windows"
+      actions:
+        - id: "ACTION 47"
+          title: "Gửi Toast Notification & Cú pháp Notifier"
+          command: "mod toast <title> [message...] [--audio <path>] | mod toast --syntax"
+          summary: "Hiển thị thông báo Toast kèm âm thanh tùy chỉnh, hoặc xem cú pháp lệnh mod toast 1 dòng."
+          details: "Sử dụng lệnh PowerShell `New-BurntToastNotification` kết hợp với đối tượng `[Microsoft.Toolkit.Uwp.Notifications.ToastAudio]` để gửi thông báo. Tham số đầu tiên sau `toast` là tiêu đề (title), các tham số tiếp theo là nội dung thông báo (message). Có thể chỉ định cờ `--audio <path>` để phát âm thanh mp3/wav cá nhân; mặc định sử dụng file âm thanh trong cấu hình (`TOAST_SOUND_AUDIO_FILE_PATH`). Dùng cờ `--syntax` để in ra cú pháp lệnh `mod toast` trên đúng 1 dòng (trên dòng mới để dễ copy)."
+          conditions: "Yêu cầu hệ điều hành Windows và đã cài đặt module PowerShell `BurntToast`."
+
+
 
 config:
   ROOT_FOLDER_PATH: "Đường dẫn gốc của mod project."
