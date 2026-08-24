@@ -10,6 +10,7 @@ from utils.errors import (
     InvalidActionError,
     MissingActionError,
 )
+from utils.interactive_cli import run_interactive_session
 
 os.environ.setdefault("PYTHONIOENCODING", "utf-8")
 if hasattr(sys.stdout, "reconfigure"):
@@ -529,6 +530,195 @@ def cmd_toast(title, remaining_args):
     sys.exit(result.returncode)
 
 
+def dispatch_command(
+    feature_args: list[str],
+    des_flag: bool = False,
+    antigravity_flag: bool = False,
+):
+    type_included = feature_args[0] if len(feature_args) > 0 else None
+    action_included = feature_args[1] if len(feature_args) > 1 else None
+    remaining_args = feature_args[2:]
+
+    # --- Feature description: mod <type> <action> --des ---
+    if des_flag:
+        print_feature_description(type_included, action_included)
+
+    # --- IDE prefix ---
+    default_ide_prefix: str = "anti" if antigravity_flag else "code"
+
+    # --- Dispatch ---
+    if type_included == MOD_TYPE_EDIT:
+        valid_actions = [MOD_EDIT_PROMPTS, MOD_EDIT_TO_COMMAND, MOD_EDIT_USEFUL_COMMANDS]
+        if action_included == MOD_EDIT_PROMPTS:
+            edit_prompts()
+        elif action_included == MOD_EDIT_TO_COMMAND:
+            edit_to_command()
+        elif action_included == MOD_EDIT_USEFUL_COMMANDS:
+            edit_useful_commands()
+        elif action_included is None:
+            raise MissingActionError(type_included, valid_actions)
+        else:
+            raise InvalidActionError(type_included, action_included, valid_actions)
+    elif type_included == MOD_TYPE_PY:
+        valid_actions = [MOD_PY_ENV]
+        if action_included == MOD_PY_ENV:
+            py_setup_venv()
+        elif action_included is None:
+            raise MissingActionError(type_included, valid_actions)
+        else:
+            raise InvalidActionError(type_included, action_included, valid_actions)
+    elif type_included == MOD_TYPE_INIT:
+        cmd_init()
+    elif type_included == MOD_TYPE_GDRIVE:
+        gdrive_execute(action_included, remaining_args)
+    elif type_included == MOD_TYPE_TUNNEL:
+        cmd_tunnel(action_included, remaining_args)
+    elif type_included == MOD_TYPE_PROXY:
+        valid_actions = [MOD_PROXY_TEST]
+        if action_included is None:
+            raise MissingActionError(type_included, valid_actions)
+        if action_included != MOD_PROXY_TEST:
+            raise InvalidActionError(type_included, action_included, valid_actions)
+        cmd_proxy(action_included, remaining_args)
+    elif type_included == MOD_TYPE_MCP:
+        valid_actions = [MOD_MCP_SET]
+        if action_included is None:
+            raise MissingActionError(type_included, valid_actions)
+        if action_included != MOD_MCP_SET:
+            raise InvalidActionError(type_included, action_included, valid_actions)
+        cmd_mcp(action_included, remaining_args)
+    elif type_included == MOD_TYPE_TOAST:
+        cmd_toast(action_included, remaining_args)
+    elif type_included == MOD_TYPE_CODE:
+        valid_actions = [
+            MOD_CODE_VSCODE_WORKSPACE, MOD_CODE_TEST, MOD_CODE_TYPESCRIPT_TEMPLATE,
+            MOD_CODE_JS, MOD_CODE_TS, MOD_CODE_NESTJS, MOD_CODE_PY, MOD_CODE_EXTENSIONS
+        ]
+        if action_included is None:
+            open_mod_files_in_vscode(default_ide_prefix)
+        elif action_included == MOD_CODE_VSCODE_WORKSPACE:
+            open_working_vscode(default_ide_prefix, remaining_args)
+        elif action_included == MOD_CODE_TEST:
+            open_testing_folder_in_vscode(default_ide_prefix)
+        elif action_included == MOD_CODE_TYPESCRIPT_TEMPLATE:
+            open_typescript_template_in_cursor(default_ide_prefix)
+        elif action_included in (MOD_CODE_JS, MOD_CODE_TS):
+            open_testing_javascript_typescript_folder_in_vscode(default_ide_prefix)
+        elif action_included == MOD_CODE_NESTJS:
+            open_template_nestjs_folder_in_vscode(default_ide_prefix)
+        elif action_included == MOD_CODE_PY:
+            open_testing_python_folder_in_vscode(default_ide_prefix)
+        elif action_included == MOD_CODE_EXTENSIONS:
+            open_vscode_extensions_in_vscode(default_ide_prefix)
+        else:
+            raise InvalidActionError(type_included, action_included, valid_actions)
+    elif type_included == MOD_TYPE_GIT:
+        valid_actions = ["commit", "remote"]
+        if not action_included:
+            raise MissingActionError(type_included, valid_actions)
+        run_git_command(action_included, remaining_args)
+    elif type_included == MOD_TYPE_RUN:
+        valid_actions = [
+            MOD_RUN_UNIKEY_APP, MOD_GEN_QR_IMAGE, MOD_KEEP_AWAKE,
+            MOD_RUN_KEEP_SCREEN, MOD_SRT_COUNT_LINE
+        ]
+        if action_included == MOD_RUN_UNIKEY_APP:
+            run_Unikey_app()
+        elif action_included == MOD_GEN_QR_IMAGE:
+            gen_qr_image()
+        elif action_included == MOD_KEEP_AWAKE:
+            keep_server_awake(remaining_args)
+        elif action_included == MOD_RUN_KEEP_SCREEN:
+            keep_screen()
+        elif action_included == MOD_SRT_COUNT_LINE:
+            srt_count_lines(remaining_args)
+        elif action_included is None:
+            raise MissingActionError(type_included, valid_actions)
+        else:
+            raise InvalidActionError(type_included, action_included, valid_actions)
+    elif type_included == MOD_TYPE_FILE:
+        valid_actions = [MOD_FILE_CREATE, MOD_FILE_RENAME, MOD_FILE_DELETE, MOD_FILE_KEEP]
+        if action_included == MOD_FILE_CREATE:
+            create_files_in_folder()
+        elif action_included == MOD_FILE_RENAME:
+            rename_files(remaining_args)
+        elif action_included == MOD_FILE_DELETE:
+            delete_files(remaining_args)
+        elif action_included == MOD_FILE_KEEP:
+            keep_files(remaining_args)
+        elif action_included is None:
+            raise MissingActionError(type_included, valid_actions)
+        else:
+            raise InvalidActionError(type_included, action_included, valid_actions)
+    elif type_included == MOD_TYPE_FOLDER:
+        valid_actions = [MOD_FOLDER_CREATE, MOD_FOLDER_DLD_PATH, MOD_FOLDER_TREE]
+        if action_included == MOD_FOLDER_CREATE:
+            create_folders_in_path(remaining_args)
+        elif action_included == MOD_FOLDER_DLD_PATH:
+            set_download_path_in_chrome(remaining_args)
+        elif action_included == MOD_FOLDER_TREE:
+            print_folder_tree(remaining_args)
+        elif action_included is None:
+            raise MissingActionError(type_included, valid_actions)
+        else:
+            raise InvalidActionError(type_included, action_included, valid_actions)
+    elif type_included == MOD_TYPE_OPEN:
+        valid_actions = [MOD_OPEN_ENV, MOD_OPEN_PROMPTS_FOLDER, MOD_CODE_VSCODE_WORKSPACE]
+        # Gom action + remaining để detect flag -f/--file
+        all_open_args = (
+            [action_included] if action_included else []
+        ) + remaining_args
+        has_file_flag = "-f" in all_open_args or "--file" in all_open_args
+        clean_action = (
+            action_included
+            if action_included not in ("-f", "--file", None)
+            else None
+        )
+
+        if clean_action is None:
+            if has_file_flag:
+                open_mod_file_in_system_folder()
+            else:
+                open_mod_files_in_vscode(default_ide_prefix)
+        elif clean_action == MOD_OPEN_ENV:
+            open_environment_variables_panel()
+        elif clean_action == MOD_OPEN_PROMPTS_FOLDER:
+            open_prompts_folder()
+        elif clean_action == MOD_CODE_VSCODE_WORKSPACE:
+            open_vscode_workspaces_in_system_folder()
+        else:
+            raise InvalidActionError(type_included, clean_action, valid_actions)
+    elif type_included == MOD_TYPE_PRINT:
+        valid_actions = [
+            MOD_PRINT_OS_INFO, MOD_PRINT_VSCODE_WORKSPACES, MOD_PRINT_DIRECTORY,
+            MOD_PRINT_USEFUL_COMMANDS, MOD_PRINT_CURL, MOD_PRINT_STATUSES_INFO
+        ]
+        if action_included == MOD_PRINT_OS_INFO:
+            print_os_info()
+        elif action_included == MOD_PRINT_VSCODE_WORKSPACES:
+            print_vscode_workspaces("D:/D-Documents/VSCode-Workspaces")
+        elif action_included == MOD_PRINT_DIRECTORY:
+            print_mod_files_root_dir()
+        elif action_included == MOD_PRINT_USEFUL_COMMANDS:
+            print_useful_commands()
+        elif action_included == MOD_PRINT_CURL:
+            print_cURL()
+        elif action_included == MOD_PRINT_STATUSES_INFO:
+            print_statuses_info()
+        elif action_included is None:
+            raise MissingActionError(type_included, valid_actions)
+        else:
+            raise InvalidActionError(type_included, action_included, valid_actions)
+    else:
+        raise InvalidTypeError(type_included)
+
+    # Nếu chạy đến đây (không rẽ nhánh nào) thì báo lỗi.
+    global MOD_STATUS
+    MOD_STATUS = "OUT-OF-MAIN-SECTION"
+    print(">>> These commands end up with mod-status: " + MOD_STATUS)
+    sys.exit(1)
+
+
 # --- Main ---
 
 if __name__ == "__main__":
@@ -548,192 +738,22 @@ if __name__ == "__main__":
             else:
                 feature_args.append(arg)
 
-        # --- Tách type / action / remaining ---
-        type_included = feature_args[0] if len(feature_args) > 0 else None
-        action_included = feature_args[1] if len(feature_args) > 1 else None
-        remaining_args = feature_args[2:]
+        # --- Khi user gõ `mod` không có tham số: chạy phiên tương tác ---
+        if not feature_args:
+            if des_flag:
+                print_feature_description(None, None)
+            else:
+                run_interactive_session(dispatch_command, print_help)
+            sys.exit(0)
 
-        # --- Help: mod | mod -h | mod --help ---
-        if type_included is None or type_included in ("-h", "--help"):
+        type_included = feature_args[0]
+        # --- Help: mod -h | mod --help ---
+        if type_included in ("-h", "--help"):
             print_help()
 
-        # --- Feature description: mod <type> <action> --des ---
-        if des_flag:
-            print_feature_description(type_included, action_included)
+        # --- Thực thi lệnh trực tiếp ---
+        dispatch_command(feature_args, des_flag, antigravity_flag)
 
-        # --- IDE prefix ---
-        default_ide_prefix: str = "anti" if antigravity_flag else "code"
-
-        # --- Dispatch ---
-        if type_included == MOD_TYPE_EDIT:
-            valid_actions = [MOD_EDIT_PROMPTS, MOD_EDIT_TO_COMMAND, MOD_EDIT_USEFUL_COMMANDS]
-            if action_included == MOD_EDIT_PROMPTS:
-                edit_prompts()
-            elif action_included == MOD_EDIT_TO_COMMAND:
-                edit_to_command()
-            elif action_included == MOD_EDIT_USEFUL_COMMANDS:
-                edit_useful_commands()
-            elif action_included is None:
-                raise MissingActionError(type_included, valid_actions)
-            else:
-                raise InvalidActionError(type_included, action_included, valid_actions)
-        elif type_included == MOD_TYPE_PY:
-            valid_actions = [MOD_PY_ENV]
-            if action_included == MOD_PY_ENV:
-                py_setup_venv()
-            elif action_included is None:
-                raise MissingActionError(type_included, valid_actions)
-            else:
-                raise InvalidActionError(type_included, action_included, valid_actions)
-        elif type_included == MOD_TYPE_INIT:
-            cmd_init()
-        elif type_included == MOD_TYPE_GDRIVE:
-            gdrive_execute(action_included, remaining_args)
-        elif type_included == MOD_TYPE_TUNNEL:
-            cmd_tunnel(action_included, remaining_args)
-        elif type_included == MOD_TYPE_PROXY:
-            valid_actions = [MOD_PROXY_TEST]
-            if action_included is None:
-                raise MissingActionError(type_included, valid_actions)
-            if action_included != MOD_PROXY_TEST:
-                raise InvalidActionError(type_included, action_included, valid_actions)
-            cmd_proxy(action_included, remaining_args)
-        elif type_included == MOD_TYPE_MCP:
-            valid_actions = [MOD_MCP_SET]
-            if action_included is None:
-                raise MissingActionError(type_included, valid_actions)
-            if action_included != MOD_MCP_SET:
-                raise InvalidActionError(type_included, action_included, valid_actions)
-            cmd_mcp(action_included, remaining_args)
-        elif type_included == MOD_TYPE_TOAST:
-            cmd_toast(action_included, remaining_args)
-        elif type_included == MOD_TYPE_CODE:
-            valid_actions = [
-                MOD_CODE_VSCODE_WORKSPACE, MOD_CODE_TEST, MOD_CODE_TYPESCRIPT_TEMPLATE,
-                MOD_CODE_JS, MOD_CODE_TS, MOD_CODE_NESTJS, MOD_CODE_PY, MOD_CODE_EXTENSIONS
-            ]
-            if action_included is None:
-                open_mod_files_in_vscode(default_ide_prefix)
-            elif action_included == MOD_CODE_VSCODE_WORKSPACE:
-                open_working_vscode(default_ide_prefix, remaining_args)
-            elif action_included == MOD_CODE_TEST:
-                open_testing_folder_in_vscode(default_ide_prefix)
-            elif action_included == MOD_CODE_TYPESCRIPT_TEMPLATE:
-                open_typescript_template_in_cursor(default_ide_prefix)
-            elif action_included in (MOD_CODE_JS, MOD_CODE_TS):
-                open_testing_javascript_typescript_folder_in_vscode(default_ide_prefix)
-            elif action_included == MOD_CODE_NESTJS:
-                open_template_nestjs_folder_in_vscode(default_ide_prefix)
-            elif action_included == MOD_CODE_PY:
-                open_testing_python_folder_in_vscode(default_ide_prefix)
-            elif action_included == MOD_CODE_EXTENSIONS:
-                open_vscode_extensions_in_vscode(default_ide_prefix)
-            else:
-                raise InvalidActionError(type_included, action_included, valid_actions)
-        elif type_included == MOD_TYPE_GIT:
-            valid_actions = ["commit", "remote"]
-            if not action_included:
-                raise MissingActionError(type_included, valid_actions)
-            run_git_command(action_included, remaining_args)
-        elif type_included == MOD_TYPE_RUN:
-            valid_actions = [
-                MOD_RUN_UNIKEY_APP, MOD_GEN_QR_IMAGE, MOD_KEEP_AWAKE,
-                MOD_RUN_KEEP_SCREEN, MOD_SRT_COUNT_LINE
-            ]
-            if action_included == MOD_RUN_UNIKEY_APP:
-                run_Unikey_app()
-            elif action_included == MOD_GEN_QR_IMAGE:
-                gen_qr_image()
-            elif action_included == MOD_KEEP_AWAKE:
-                keep_server_awake(remaining_args)
-            elif action_included == MOD_RUN_KEEP_SCREEN:
-                keep_screen()
-            elif action_included == MOD_SRT_COUNT_LINE:
-                srt_count_lines(remaining_args)
-            elif action_included is None:
-                raise MissingActionError(type_included, valid_actions)
-            else:
-                raise InvalidActionError(type_included, action_included, valid_actions)
-        elif type_included == MOD_TYPE_FILE:
-            valid_actions = [MOD_FILE_CREATE, MOD_FILE_RENAME, MOD_FILE_DELETE, MOD_FILE_KEEP]
-            if action_included == MOD_FILE_CREATE:
-                create_files_in_folder()
-            elif action_included == MOD_FILE_RENAME:
-                rename_files(remaining_args)
-            elif action_included == MOD_FILE_DELETE:
-                delete_files(remaining_args)
-            elif action_included == MOD_FILE_KEEP:
-                keep_files(remaining_args)
-            elif action_included is None:
-                raise MissingActionError(type_included, valid_actions)
-            else:
-                raise InvalidActionError(type_included, action_included, valid_actions)
-        elif type_included == MOD_TYPE_FOLDER:
-            valid_actions = [MOD_FOLDER_CREATE, MOD_FOLDER_DLD_PATH, MOD_FOLDER_TREE]
-            if action_included == MOD_FOLDER_CREATE:
-                create_folders_in_path(remaining_args)
-            elif action_included == MOD_FOLDER_DLD_PATH:
-                set_download_path_in_chrome(remaining_args)
-            elif action_included == MOD_FOLDER_TREE:
-                print_folder_tree(remaining_args)
-            elif action_included is None:
-                raise MissingActionError(type_included, valid_actions)
-            else:
-                raise InvalidActionError(type_included, action_included, valid_actions)
-        elif type_included == MOD_TYPE_OPEN:
-            valid_actions = [MOD_OPEN_ENV, MOD_OPEN_PROMPTS_FOLDER, MOD_CODE_VSCODE_WORKSPACE]
-            # Gom action + remaining để detect flag -f/--file
-            all_open_args = (
-                [action_included] if action_included else []
-            ) + remaining_args
-            has_file_flag = "-f" in all_open_args or "--file" in all_open_args
-            clean_action = (
-                action_included
-                if action_included not in ("-f", "--file", None)
-                else None
-            )
-
-            if clean_action is None:
-                if has_file_flag:
-                    open_mod_file_in_system_folder()
-                else:
-                    open_mod_files_in_vscode(default_ide_prefix)
-            elif clean_action == MOD_OPEN_ENV:
-                open_environment_variables_panel()
-            elif clean_action == MOD_OPEN_PROMPTS_FOLDER:
-                open_prompts_folder()
-            elif clean_action == MOD_CODE_VSCODE_WORKSPACE:
-                open_vscode_workspaces_in_system_folder()
-            else:
-                raise InvalidActionError(type_included, clean_action, valid_actions)
-        elif type_included == MOD_TYPE_PRINT:
-            valid_actions = [
-                MOD_PRINT_OS_INFO, MOD_PRINT_VSCODE_WORKSPACES, MOD_PRINT_DIRECTORY,
-                MOD_PRINT_USEFUL_COMMANDS, MOD_PRINT_CURL, MOD_PRINT_STATUSES_INFO
-            ]
-            if action_included == MOD_PRINT_OS_INFO:
-                print_os_info()
-            elif action_included == MOD_PRINT_VSCODE_WORKSPACES:
-                print_vscode_workspaces("D:/D-Documents/VSCode-Workspaces")
-            elif action_included == MOD_PRINT_DIRECTORY:
-                print_mod_files_root_dir()
-            elif action_included == MOD_PRINT_USEFUL_COMMANDS:
-                print_useful_commands()
-            elif action_included == MOD_PRINT_CURL:
-                print_cURL()
-            elif action_included == MOD_PRINT_STATUSES_INFO:
-                print_statuses_info()
-            elif action_included is None:
-                raise MissingActionError(type_included, valid_actions)
-            else:
-                raise InvalidActionError(type_included, action_included, valid_actions)
-        else:
-            raise InvalidTypeError(type_included)
-
-        # Nếu chạy đến đây (không rẽ nhánh nào) thì báo lỗi.
-        MOD_STATUS = "OUT-OF-MAIN-SECTION"
-        print(">>> These commands end up with mod-status: " + MOD_STATUS)
-        sys.exit(1)
     except KeyboardInterrupt:
         print("\n\n>>> Tiến trình đã bị hủy bởi người dùng (KeyboardInterrupt).")
         sys.exit(0)

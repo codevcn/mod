@@ -119,3 +119,6 @@ Compress-Archive -Path "D:\path\to\folder\*" -DestinationPath "D:\path\to\output
 
 # Lệnh git hủy commit mới nhất và quay về staged changes
 git reset --soft HEAD~1
+
+# Tổ hợp phím bật Live Caption trên Windows 11
+[window] + [control] + [l]
