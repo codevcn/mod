@@ -147,12 +147,12 @@ compress          :to compress project into a zip file.
    --syntax       :print 1-line command syntax of mod toast (easy to copy).
 
 ## compress:
-   (no action)    :compress project into a zip file using .compressignore.
+   (no action)    :compress project into a zip file named 'mod-{dd}-{mm}-{yyyy}-{hh}-{mm}-{ss}.zip' using .compressignore.
                   // Example: mod compress
 
 # Example:
 The command `mod open ws` will open the working workspaces in system folder.
-The command `mod compress` will compress current project to a zip file in parent folder.
+The command `mod compress` will compress current project to 'mod-{timestamp}.zip' in parent folder.
 The command `mod file rename "D:/path" "tiktok"` will rename files with prefix "tiktok".
 The command `mod git commit -m "update"` will execute git add, commit and push.
 The command `mod file delete "D:/path" "txt,jpg"` will delete files with specified extensions.

@@ -185,7 +185,7 @@ Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--des]`
 | `print` | `dir` | | In đường dẫn thư mục `src` của mod. |
 | `print` | `cmds` | | In danh sách các lệnh hữu ích thường dùng. |
 | `skill` | `set` | `[skill_name] [dest_path]` | Sao chép thư mục Skill AI từ kho `SKILLS_FOLDER_PATH` vào thư mục đích. |
-| `compress` | *(không có)* | `[output_path]` | Nén toàn bộ dự án thành file zip tại thư mục cha (hoặc output_path), áp dụng bộ lọc `.compressignore`. |
+| `compress` | *(không có)* | `[output_path]` | Nén toàn bộ dự án thành file `mod-{dd}-{mm}-{yyyy}-{hh}-{mm}-{ss}.zip` tại thư mục cha (hoặc output_path), áp dụng bộ lọc `.compressignore`. |
 | `edit` | `proms` | | Mở thư mục prompts của extension trong Notepad. |
 | `edit` | `to` | | Mở PowerShell Profile trong Notepad. |
 | `edit` | `cmds` | | Mở file `list_useful_commands.txt` trong Notepad để chỉnh sửa. |
