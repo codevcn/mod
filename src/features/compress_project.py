@@ -1,6 +1,7 @@
 import os
 import sys
 import fnmatch
+import glob
 import zipfile
 from datetime import datetime
 from pathlib import Path
@@ -101,13 +102,19 @@ def compress_project(output_path: str | None = None):
     print(f"📍 Thư mục nguồn : {project_root}")
     print(f"📄 File cấu hình : {'.compressignore' if os.path.exists(ignore_file) else 'Không có (nén tất cả)'}")
 
-    # Xóa file mod.zip cũ nếu đã tồn tại trước khi nén mới
-    if os.path.exists(dest_zip):
-        try:
-            os.remove(dest_zip)
-            print(f"🗑️  Đã dọn dẹp file `{os.path.basename(dest_zip)}` cũ thành công.")
-        except Exception as e:
-            print(f"⚠️ Cảnh báo: Không thể xóa file cũ: {e}")
+    # Xóa toàn bộ file zip cũ của dự án (mod-*.zip và mod.zip) trong thư mục đích trước khi tạo mới
+    old_zip_patterns = [
+        os.path.join(dest_folder, "mod.zip"),
+        os.path.join(dest_folder, "mod-*.zip"),
+    ]
+    for pattern in old_zip_patterns:
+        for old_file in glob.glob(pattern):
+            if os.path.abspath(old_file) != os.path.abspath(dest_zip):
+                try:
+                    os.remove(old_file)
+                    print(f"🗑️  Đã dọn dẹp file zip cũ: `{os.path.basename(old_file)}`")
+                except Exception as e:
+                    print(f"⚠️ Cảnh báo: Không thể xóa file `{os.path.basename(old_file)}`: {e}")
 
     print(f"──────────────────────────────────────────────────────────────────────")
 
