@@ -411,7 +411,7 @@ mod_tool:
           title: "Nén thư mục tùy chỉnh theo cấu hình JSON"
           command: "mod compress folder <local_folder_path> [--config-file <config_path>]"
           summary: "Nén thư mục cục bộ theo quy tắc include-items và exclude-items từ file cấu hình JSON."
-          details: "Mặc định tìm file `compress-config.json` tại thư mục đang đứng (cwd) hoặc trong thư mục đích. Hỗ trợ truyền file cấu hình tùy ý qua cờ `--config-file` (hoặc `-c`). File cấu hình chứa 2 trường: `include-items` (danh sách tệp/thư mục chỉ định nén) và `exclude-items` (danh sách tệp/thư mục bỏ qua). File zip được tạo trực tiếp tại thư mục đích và tự dọn dẹp các file zip cũ."
+          details: "Mặc định tìm file `compress-config.json` tại root folder của thư mục đích được chỉ định. Hỗ trợ truyền file cấu hình tùy ý qua cờ `--config-file` (hoặc `-c`). File cấu hình chứa 2 trường: `include-items` (danh sách tệp/thư mục chỉ định nén) và `exclude-items` (danh sách tệp/thư mục bỏ qua). File zip được tạo trực tiếp tại thư mục đích và tự dọn dẹp các file zip cũ."
           conditions: "Tham số <local_folder_path> phải là thư mục hợp lệ tồn tại trên máy tính."
 
 

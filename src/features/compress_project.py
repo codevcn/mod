@@ -292,12 +292,9 @@ def compress_folder(target_folder_path: str, custom_config_path: str | None = No
             print(f"❌ Lỗi: Không tìm thấy file cấu hình được chỉ định: `{resolved_custom}`")
             sys.exit(1)
     else:
-        # Mặc định tìm compress-config.json ở thư mục đang đứng (cwd), sau đó là bên trong target_folder
-        cwd_config = os.path.join(os.getcwd(), "compress-config.json")
+        # Mặc định tìm compress-config.json ngay tại root folder của thư mục được chỉ định
         target_internal_config = os.path.join(target_folder, "compress-config.json")
-        if os.path.exists(cwd_config):
-            config_file = cwd_config
-        elif os.path.exists(target_internal_config):
+        if os.path.exists(target_internal_config):
             config_file = target_internal_config
 
     include_items, exclude_items = ([], [])
