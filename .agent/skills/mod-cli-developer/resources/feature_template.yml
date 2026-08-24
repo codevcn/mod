@@ -1,0 +1,10 @@
+# Template khai báo cho src/contents/app_features.yml
+- name: "<type_name>"
+  description: "<Mô tả ngắn gọn về nhóm lệnh>"
+  actions:
+    - id: "ACTION <số_thứ_tự>"
+      title: "<Tiêu đề tính năng>"
+      command: "mod <type> <action> [args...]"
+      summary: "<Tóm tắt chức năng 1 câu>"
+      details: "<Giải thích chi tiết cách thức hoạt động, luồng xử lý và các cờ>"
+      conditions: "<Điều kiện tiên quyết hoặc định dạng tham số bắt buộc>"

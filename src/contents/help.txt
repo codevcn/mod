@@ -36,7 +36,9 @@ py                :to run python helpers.
 tunnel            :to run cloudflare tunnel wrapper.
 proxy             :to test and check proxies.
 mcp               :to run MCP related tools.
+skill             :to run SKILL related tools.
 toast             :to send Windows desktop toast notification.
+compress          :to compress project into a zip file.
 
 # Available actions:
 ## open:
@@ -133,14 +135,24 @@ toast             :to send Windows desktop toast notification.
                   :copy a folder from LOCAL_ABSOLUTE_FOLDER_PATH to dest_folder_path.
                   // Example: mod mcp set iconify .
 
+## skill:
+   set [skill_name] [dest_folder_path]
+                  :copy a folder from SKILLS_FOLDER_PATH to dest_folder_path.
+                  // Example: mod skill set split-code .
+
 ## toast:
    <title> [msg...] [--audio <path>]
                   :send a Windows desktop toast notification with title, message(s), and custom audio.
                   // Example: mod toast "Hoàn thành" "Product updated successfully." --audio "D:/sound.mp3"
    --syntax       :print 1-line command syntax of mod toast (easy to copy).
 
+## compress:
+   (no action)    :compress project into a zip file using .compressignore.
+                  // Example: mod compress
+
 # Example:
 The command `mod open ws` will open the working workspaces in system folder.
+The command `mod compress` will compress current project to a zip file in parent folder.
 The command `mod file rename "D:/path" "tiktok"` will rename files with prefix "tiktok".
 The command `mod git commit -m "update"` will execute git add, commit and push.
 The command `mod file delete "D:/path" "txt,jpg"` will delete files with specified extensions.

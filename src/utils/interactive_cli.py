@@ -27,6 +27,7 @@ class Colors:
 # Danh mục Type và danh sách Action tương ứng (được sắp xếp A-Z)
 TYPE_ACTION_MAP = {
     "code": ["ext", "js", "nestjs", "py", "test", "ts", "ts-template", "ws"],
+    "compress": [],
     "edit": ["cmds", "proms", "to"],
     "file": ["create", "delete", "keep", "rename"],
     "folder": ["create", "dld-path", "tree"],
@@ -39,6 +40,7 @@ TYPE_ACTION_MAP = {
     "proxy": ["test"],
     "py": ["env"],
     "run": ["gen-qr", "keep-awake", "keep-screen", "srt-count-line", "unikey"],
+    "skill": ["set"],
     "toast": ["--syntax"],
     "tunnel": [],
 }
@@ -46,6 +48,7 @@ TYPE_ACTION_MAP = {
 TYPE_DESCRIPTIONS = {
     "open": "Mở thư mục gốc hoặc các tài nguyên trong Explorer/IDE",
     "code": "Mở các dự án, template, workspace trong IDE",
+    "compress": "Nén toàn bộ dự án thành file zip (áp dụng .compressignore)",
     "file": "Thao tác xử lý file hàng loạt (create, rename, delete, keep)",
     "folder": "Thao tác xử lý folder (create, dld-path, tree)",
     "run": "Thực thi các script tiện ích (unikey, gen-qr, keep-awake...)",
@@ -56,6 +59,7 @@ TYPE_DESCRIPTIONS = {
     "tunnel": "Mở Cloudflare Quick Tunnel cho cổng cục bộ",
     "proxy": "Kiểm tra kết nối và tính hợp lệ của proxy",
     "mcp": "Thiết lập và copy các thư mục MCP",
+    "skill": "Thiết lập và copy các thư mục Skill AI từ kho lưu trữ",
     "toast": "Gửi Windows Toast notification kèm âm thanh tùy chỉnh",
     "py": "Thiết lập môi trường ảo Python (venv) cho dự án",
     "init": "Dọn dẹp các tiến trình Windows chạy ngầm và khởi động Unikey",

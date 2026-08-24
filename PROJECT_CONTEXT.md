@@ -51,6 +51,8 @@ src/main.py (Central Dispatcher)
 ```text
 d:\D-Documents\TOOLs\mod\
 ├── mod.cmd                             # File thực thi CLI cho Windows (gọi Python vào src/main.py)
+├── compress.cmd                        # Shortcut thực thi nhanh lệnh mod compress
+├── .compressignore                     # Cấu hình danh sách tệp/thư mục bỏ qua khi nén dự án
 ├── requirements.txt                    # Danh sách thư viện Python (PyYAML, requests, python-dotenv, qrcode)
 ├── ARCHITECTURE.md                     # Tài liệu thiết kế kiến trúc chuẩn
 ├── README.md                           # Hướng dẫn sử dụng tổng quan cho người dùng
@@ -58,6 +60,13 @@ d:\D-Documents\TOOLs\mod\
 ├── note.md                             # Ghi chú cá nhân
 ├── print_project_tree.py               # Tiện ích in cây thư mục ra file project_tree.txt
 ├── project_tree.txt                    # Output cây thư mục
+├── .agent/                             # Cấu hình & Kỹ năng chuẩn cho AI Agent (Antigravity/Agentic Framework)
+│   └── skills/
+│       └── mod-cli-developer/          # Skill hướng dẫn AI Agent phát triển và bảo trì Mod CLI
+│           ├── SKILL.md                # Tài liệu kỹ năng chính kèm YAML frontmatter
+│           ├── examples/               # Mã nguồn mẫu (feature script template)
+│           ├── references/             # Checklist và tài liệu tham khảo kiến trúc
+│           └── resources/              # Template YAML khai báo tính năng
 ├── data/
 │   └── media/audio/
 │       └── burnttoast-notification-sound.mp3 # File âm thanh thông báo mặc định cho Toast Notifier
@@ -98,6 +107,7 @@ d:\D-Documents\TOOLs\mod\
         │   ├── configs.json            # Lưu tên remote rclone đang active
         │   ├── AUTH_GUIDE.txt          # Hướng dẫn chi tiết cách tạo Google Cloud OAuth credentials
         │   └── sync_to_gdrive.py       # Script thực thi sync, list, remote info, del-fd, link, dl (download)
+        ├── compress_project.py         # Nén toàn bộ mã nguồn dự án thành file zip (lọc qua .compressignore)
         ├── create_files_in_folder.py   # Tạo file/thư mục từ template trong files_source.txt (interactive)
         ├── create_folders_in_path.py   # Tạo folder tự động theo pattern và tự tăng index
         ├── delete_files.py             # Xóa file cấp 1 theo danh sách extension (vd: "tmp,log")
@@ -115,6 +125,7 @@ d:\D-Documents\TOOLs\mod\
         ├── send_toast.py               # CLI wrapper gửi Toast notification qua `ToastNotifier`
         ├── set_download_path_in_chrome.py # Sửa file Preferences của tất cả Google Chrome profiles
         ├── setup_venv_in_project.py    # Setup toàn diện venv Python: tạo venv, nâng cấp pip, ins.cmd, venv.cmd
+        ├── skill_set.py                # Copy thư mục Skill AI từ kho SKILLS_FOLDER_PATH vào project đích
         ├── srt_count_line.py           # Phân tích file phụ đề SRT và thống kê theo số lượng dòng thoại
         └── test_proxy.py               # Kiểm tra kết nối proxy (Python requests, cURL header, ipify IP check)
 ```
@@ -173,6 +184,8 @@ Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--des]`
 | `print` | `curl` | | In snippet mẫu cURL CRUD. |
 | `print` | `dir` | | In đường dẫn thư mục `src` của mod. |
 | `print` | `cmds` | | In danh sách các lệnh hữu ích thường dùng. |
+| `skill` | `set` | `[skill_name] [dest_path]` | Sao chép thư mục Skill AI từ kho `SKILLS_FOLDER_PATH` vào thư mục đích. |
+| `compress` | *(không có)* | `[output_path]` | Nén toàn bộ dự án thành file zip tại thư mục cha (hoặc output_path), áp dụng bộ lọc `.compressignore`. |
 | `edit` | `proms` | | Mở thư mục prompts của extension trong Notepad. |
 | `edit` | `to` | | Mở PowerShell Profile trong Notepad. |
 | `edit` | `cmds` | | Mở file `list_useful_commands.txt` trong Notepad để chỉnh sửa. |
@@ -195,6 +208,7 @@ File này tập trung toàn bộ cấu hình đường dẫn của hệ thống:
   - `APPDATA_FOLDER`: `D:/D-AppData/me-mod` (Nơi lưu QR Code sinh ra).
   - `TEMPLATE_REPLACER_FOLDER`: Đường dẫn đến extension Template Replacer.
   - `LOCAL_ABSOLUTE_FOLDER_PATH`: `D:/D-Documents/MCP` (Kho chứa MCP templates).
+  - `SKILLS_FOLDER_PATH`: `D:/D-Documents/SKILLs` (Kho chứa các thư mục AI Skill).
 
 ### 5.2. File `.env` tại thư mục gốc
 Dùng cho các thông tin bảo mật và cấu hình runtime:

@@ -377,6 +377,16 @@ mod_tool:
           details: "Liệt kê và cho phép chọn các thư mục trong LOCAL_ABSOLUTE_FOLDER_PATH, sau đó copy toàn bộ nội dung thư mục đó vào dest_folder_path. Nếu dest_folder_path không có, mặc định là thư mục hiện tại (.)."
           conditions: "Đường dẫn LOCAL_ABSOLUTE_FOLDER_PATH phải tồn tại trong cấu hình."
 
+    - name: "skill"
+      description: "Quản lý AI Skills"
+      actions:
+        - id: "ACTION 48"
+          title: "Thiết lập Skill Folder"
+          command: "mod skill set [skill_name] [dest_folder_path]"
+          summary: "Sao chép thư mục Skill AI từ kho lưu trữ vào thư mục đích."
+          details: "Liệt kê và cho phép chọn các thư mục trong SKILLS_FOLDER_PATH (D:/D-Documents/SKILLs), sau đó copy toàn bộ nội dung thư mục đó vào dest_folder_path. Nếu dest_folder_path không truyền, mặc định là thư mục hiện tại (.)."
+          conditions: "Đường dẫn SKILLS_FOLDER_PATH phải tồn tại trong cấu hình."
+
     - name: "toast"
       description: "Thông báo Desktop Windows"
       actions:
@@ -387,6 +397,16 @@ mod_tool:
           details: "Sử dụng lệnh PowerShell `New-BurntToastNotification` kết hợp với đối tượng `[Microsoft.Toolkit.Uwp.Notifications.ToastAudio]` để gửi thông báo. Tham số đầu tiên sau `toast` là tiêu đề (title), các tham số tiếp theo là nội dung thông báo (message). Có thể chỉ định cờ `--audio <path>` để phát âm thanh mp3/wav cá nhân; mặc định sử dụng file âm thanh trong cấu hình (`TOAST_SOUND_AUDIO_FILE_PATH`). Dùng cờ `--syntax` để in ra cú pháp lệnh `mod toast` trên đúng 1 dòng (trên dòng mới để dễ copy)."
           conditions: "Yêu cầu hệ điều hành Windows và đã cài đặt module PowerShell `BurntToast`."
 
+    - name: "compress"
+      description: "Nén dự án"
+      actions:
+        - id: "ACTION 49"
+          title: "Nén dự án thành file zip"
+          command: "mod compress [output_path]"
+          summary: "Nén toàn bộ mã nguồn dự án thành file zip và áp dụng bộ lọc .compressignore."
+          details: "Đọc file `.compressignore` từ thư mục gốc dự án để bỏ qua các thư mục nặng hoặc nhạy cảm (.git, .venv, node_modules, cache, .env...). Tạo file zip mặc định tại thư mục cha của dự án (hoặc output_path nếu truyền) và in ra đường dẫn lưu trữ cùng dung lượng sau khi nén."
+          conditions: "Không có điều kiện bắt buộc."
+
 
 
 config:
@@ -395,3 +415,4 @@ config:
   CONTENTS_FOLDER_PATH: "Đường dẫn đến thư mục `contents`."
   TEMPLATE_REPLACER_FOLDER_PATH: "Đường dẫn đến extension Template Replacer."
   MOD_APPDATA_FOLDER_PATH: "Nơi lưu ảnh QR được tạo bởi gen-qr."
+  SKILLS_FOLDER_PATH: "Kho lưu trữ các thư mục AI Skill."

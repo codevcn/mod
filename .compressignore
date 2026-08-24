@@ -1,0 +1,43 @@
+# ==========================================
+# .compressignore - Bỏ qua các tệp/thư mục khi nén dự án Mod
+# ==========================================
+
+# Version control
+.git/
+.gitignore
+
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.pytest_cache/
+
+# Virtual Environments
+.venv/
+venv/
+env/
+**/.venv-build/
+build/
+dist/
+
+# Node.js
+node_modules/
+package-lock.json
+
+# Environment & Sensitive Files
+.env
+.env.*
+
+# Archives (tránh nén lồng file nén)
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# IDE & Editor files
+.vscode/
+.idea/
+
+# Temp & Logs
+*.tmp
+*.log

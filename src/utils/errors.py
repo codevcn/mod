@@ -17,7 +17,7 @@ class Colors:
 
 VALID_TYPES = [
     "open", "code", "run", "print", "git", "gdrive",
-    "init", "py", "edit", "file", "folder", "tunnel", "proxy", "mcp", "toast"
+    "init", "py", "edit", "file", "folder", "tunnel", "proxy", "mcp", "skill", "toast", "compress"
 ]
 
 class ModCLIError(Exception):

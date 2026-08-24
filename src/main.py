@@ -36,7 +36,9 @@ MOD_TYPE_FOLDER = "folder"
 MOD_TYPE_TUNNEL = "tunnel"
 MOD_TYPE_PROXY = "proxy"
 MOD_TYPE_MCP = "mcp"
+MOD_TYPE_SKILL = "skill"
 MOD_TYPE_TOAST = "toast"
+MOD_TYPE_COMPRESS = "compress"
 
 
 # --- Actions ---
@@ -86,6 +88,8 @@ MOD_PY_ENV = "env"
 MOD_PROXY_TEST = "test"
 # mcp
 MOD_MCP_SET = "set"
+# skill
+MOD_SKILL_SET = "set"
 
 
 # --- Warnings (deprecated, replaced by utils.errors) ---
@@ -514,6 +518,22 @@ def cmd_mcp(action, remaining_args):
     sys.exit(result.returncode)
 
 
+def cmd_skill(action, remaining_args):
+    cmd_args = [
+        "python",
+        get_feature_path("skill_set.py"),
+    ]
+    if action is not None:
+        cmd_args.append(action)
+    cmd_args.extend(remaining_args)
+
+    result = subprocess.run(
+        cmd_args,
+        check=False,
+    )
+    sys.exit(result.returncode)
+
+
 def cmd_toast(title, remaining_args):
     cmd_args = [
         "python",
@@ -521,6 +541,20 @@ def cmd_toast(title, remaining_args):
     ]
     if title is not None:
         cmd_args.append(title)
+    cmd_args.extend(remaining_args)
+
+    result = subprocess.run(
+        cmd_args,
+        check=False,
+    )
+    sys.exit(result.returncode)
+
+
+def cmd_compress(remaining_args):
+    cmd_args = [
+        "python",
+        get_feature_path("compress_project.py"),
+    ]
     cmd_args.extend(remaining_args)
 
     result = subprocess.run(
@@ -547,7 +581,9 @@ def dispatch_command(
     default_ide_prefix: str = "anti" if antigravity_flag else "code"
 
     # --- Dispatch ---
-    if type_included == MOD_TYPE_EDIT:
+    if type_included == MOD_TYPE_COMPRESS:
+        cmd_compress(feature_args[1:])
+    elif type_included == MOD_TYPE_EDIT:
         valid_actions = [MOD_EDIT_PROMPTS, MOD_EDIT_TO_COMMAND, MOD_EDIT_USEFUL_COMMANDS]
         if action_included == MOD_EDIT_PROMPTS:
             edit_prompts()
@@ -587,6 +623,13 @@ def dispatch_command(
         if action_included != MOD_MCP_SET:
             raise InvalidActionError(type_included, action_included, valid_actions)
         cmd_mcp(action_included, remaining_args)
+    elif type_included == MOD_TYPE_SKILL:
+        valid_actions = [MOD_SKILL_SET]
+        if action_included is None:
+            raise MissingActionError(type_included, valid_actions)
+        if action_included != MOD_SKILL_SET:
+            raise InvalidActionError(type_included, action_included, valid_actions)
+        cmd_skill(action_included, remaining_args)
     elif type_included == MOD_TYPE_TOAST:
         cmd_toast(action_included, remaining_args)
     elif type_included == MOD_TYPE_CODE:

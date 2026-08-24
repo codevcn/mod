@@ -28,3 +28,4 @@ TEMPLATE_REPLACER_FOLDER = (
     "D:/D-Documents/Browser-Extensions/codevoicainay/template_replacer"
 )
 LOCAL_ABSOLUTE_FOLDER_PATH = "D:/D-Documents/MCP"
+SKILLS_FOLDER_PATH = "D:/D-Documents/SKILLs"
