@@ -27,7 +27,7 @@ class Colors:
 # Danh mục Type và danh sách Action tương ứng (được sắp xếp A-Z)
 TYPE_ACTION_MAP = {
     "code": ["ext", "js", "nestjs", "py", "test", "ts", "ts-template", "ws"],
-    "compress": [],
+    "compress": ["folder"],
     "edit": ["cmds", "proms", "to"],
     "file": ["create", "delete", "keep", "rename"],
     "folder": ["create", "dld-path", "tree"],
@@ -48,7 +48,7 @@ TYPE_ACTION_MAP = {
 TYPE_DESCRIPTIONS = {
     "open": "Mở thư mục gốc hoặc các tài nguyên trong Explorer/IDE",
     "code": "Mở các dự án, template, workspace trong IDE",
-    "compress": "Nén toàn bộ dự án thành file zip (áp dụng .compressignore)",
+    "compress": "Nén toàn bộ dự án hoặc nén thư mục theo cấu hình JSON",
     "file": "Thao tác xử lý file hàng loạt (create, rename, delete, keep)",
     "folder": "Thao tác xử lý folder (create, dld-path, tree)",
     "run": "Thực thi các script tiện ích (unikey, gen-qr, keep-awake...)",

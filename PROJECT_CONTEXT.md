@@ -186,6 +186,7 @@ Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--des]`
 | `print` | `cmds` | | In danh sách các lệnh hữu ích thường dùng. |
 | `skill` | `set` | `[skill_name] [dest_path]` | Sao chép thư mục Skill AI từ kho `SKILLS_FOLDER_PATH` vào thư mục đích. |
 | `compress` | *(không có)* | `[output_path]` | Nén toàn bộ dự án thành file `mod-{dd}-{mm}-{yyyy}-{hh}-{mm}-{ss}.zip` tại thư mục gốc dự án (hoặc output_path), áp dụng bộ lọc `.compressignore`. |
+| `compress` | `folder` | `<path> [--config-file C]` | Nén thư mục cục bộ theo quy tắc `include-items` & `exclude-items` trong file JSON config. |
 | `edit` | `proms` | | Mở thư mục prompts của extension trong Notepad. |
 | `edit` | `to` | | Mở PowerShell Profile trong Notepad. |
 | `edit` | `cmds` | | Mở file `list_useful_commands.txt` trong Notepad để chỉnh sửa. |

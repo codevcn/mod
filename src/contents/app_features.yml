@@ -398,7 +398,7 @@ mod_tool:
           conditions: "Yêu cầu hệ điều hành Windows và đã cài đặt module PowerShell `BurntToast`."
 
     - name: "compress"
-      description: "Nén dự án"
+      description: "Nén dự án hoặc thư mục tùy chỉnh"
       actions:
         - id: "ACTION 49"
           title: "Nén dự án thành file zip"
@@ -406,6 +406,13 @@ mod_tool:
           summary: "Nén toàn bộ mã nguồn dự án thành file zip 'mod-{dd}-{mm}-{yyyy}-{hh}-{mm}-{ss}.zip' và áp dụng bộ lọc .compressignore."
           details: "Đọc file `.compressignore` từ thư mục gốc dự án để bỏ qua các thư mục nặng hoặc nhạy cảm (.git, .venv, node_modules, cache, .env...). Tạo file zip với tên định dạng `mod-{dd}-{mm}-{yyyy}-{hh}-{mm}-{ss}.zip` tại thư mục gốc của dự án (hoặc output_path nếu truyền) và in ra đường dẫn lưu trữ cùng dung lượng sau khi nén."
           conditions: "Không có điều kiện bắt buộc."
+
+        - id: "ACTION 50"
+          title: "Nén thư mục tùy chỉnh theo cấu hình JSON"
+          command: "mod compress folder <local_folder_path> [--config-file <config_path>]"
+          summary: "Nén thư mục cục bộ theo quy tắc include-items và exclude-items từ file cấu hình JSON."
+          details: "Mặc định tìm file `compress-config.json` tại thư mục đang đứng (cwd) hoặc trong thư mục đích. Hỗ trợ truyền file cấu hình tùy ý qua cờ `--config-file` (hoặc `-c`). File cấu hình chứa 2 trường: `include-items` (danh sách tệp/thư mục chỉ định nén) và `exclude-items` (danh sách tệp/thư mục bỏ qua). File zip được tạo trực tiếp tại thư mục đích và tự dọn dẹp các file zip cũ."
+          conditions: "Tham số <local_folder_path> phải là thư mục hợp lệ tồn tại trên máy tính."
 
 
 

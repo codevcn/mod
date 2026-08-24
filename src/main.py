@@ -90,6 +90,8 @@ MOD_PROXY_TEST = "test"
 MOD_MCP_SET = "set"
 # skill
 MOD_SKILL_SET = "set"
+# compress
+MOD_COMPRESS_FOLDER = "folder"
 
 
 # --- Warnings (deprecated, replaced by utils.errors) ---
@@ -582,6 +584,9 @@ def dispatch_command(
 
     # --- Dispatch ---
     if type_included == MOD_TYPE_COMPRESS:
+        valid_actions = [MOD_COMPRESS_FOLDER]
+        if action_included is not None and action_included != MOD_COMPRESS_FOLDER:
+            raise InvalidActionError(type_included, action_included, valid_actions)
         cmd_compress(feature_args[1:])
     elif type_included == MOD_TYPE_EDIT:
         valid_actions = [MOD_EDIT_PROMPTS, MOD_EDIT_TO_COMMAND, MOD_EDIT_USEFUL_COMMANDS]
