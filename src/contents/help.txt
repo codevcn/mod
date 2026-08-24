@@ -152,7 +152,7 @@ compress          :to compress project into a zip file.
 
 # Example:
 The command `mod open ws` will open the working workspaces in system folder.
-The command `mod compress` will compress current project to 'mod-{timestamp}.zip' in parent folder.
+The command `mod compress` will compress current project to 'mod-{timestamp}.zip' in root folder.
 The command `mod file rename "D:/path" "tiktok"` will rename files with prefix "tiktok".
 The command `mod git commit -m "update"` will execute git add, commit and push.
 The command `mod file delete "D:/path" "txt,jpg"` will delete files with specified extensions.

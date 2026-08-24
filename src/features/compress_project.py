@@ -81,15 +81,13 @@ def compress_project(output_path: str | None = None):
     timestamp_str = datetime.now().strftime("%d-%m-%Y-%H-%M-%S")
     default_zip_name = f"mod-{timestamp_str}.zip"
 
-    # Mặc định lưu file zip tại thư mục cha của dự án (tránh làm phình thư mục dự án)
-    parent_dir = os.path.dirname(project_root)
-    
+    # Mặc định lưu file zip ngay tại root folder của dự án
     if output_path:
         dest_zip = os.path.abspath(output_path)
         if os.path.isdir(dest_zip):
             dest_zip = os.path.join(dest_zip, default_zip_name)
     else:
-        dest_zip = os.path.join(parent_dir, default_zip_name)
+        dest_zip = os.path.join(project_root, default_zip_name)
 
     dest_folder = os.path.dirname(dest_zip)
     os.makedirs(dest_folder, exist_ok=True)

@@ -404,7 +404,7 @@ mod_tool:
           title: "Nén dự án thành file zip"
           command: "mod compress [output_path]"
           summary: "Nén toàn bộ mã nguồn dự án thành file zip 'mod-{dd}-{mm}-{yyyy}-{hh}-{mm}-{ss}.zip' và áp dụng bộ lọc .compressignore."
-          details: "Đọc file `.compressignore` từ thư mục gốc dự án để bỏ qua các thư mục nặng hoặc nhạy cảm (.git, .venv, node_modules, cache, .env...). Tạo file zip với tên định dạng `mod-{dd}-{mm}-{yyyy}-{hh}-{mm}-{ss}.zip` tại thư mục cha của dự án (hoặc output_path nếu truyền) và in ra đường dẫn lưu trữ cùng dung lượng sau khi nén."
+          details: "Đọc file `.compressignore` từ thư mục gốc dự án để bỏ qua các thư mục nặng hoặc nhạy cảm (.git, .venv, node_modules, cache, .env...). Tạo file zip với tên định dạng `mod-{dd}-{mm}-{yyyy}-{hh}-{mm}-{ss}.zip` tại thư mục gốc của dự án (hoặc output_path nếu truyền) và in ra đường dẫn lưu trữ cùng dung lượng sau khi nén."
           conditions: "Không có điều kiện bắt buộc."
 
 
