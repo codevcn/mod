@@ -103,7 +103,15 @@ d:\D-Documents\TOOLs\mod\
         │   └── _statuses.py            # In nội dung statuses.txt
         ├── cloudflare/
         │   └── cloudflared_wrapper.py  # Mở quick tunnel Cloudflare, hiển thị public URL & mã QR ASCII
+        ├── gist/                       # Module quản lý CRUD & kiểm toán dung lượng GitHub Gist
+        │   ├── __init__.py             # Export GistManager, GistStorageAuditor
+        │   ├── README.md               # Tài liệu hướng dẫn sử dụng chi tiết (in qua mod gist --des)
+        │   ├── gist_manager.py         # Thực thi CRUD Gist qua GitHub REST API v3
+        │   ├── gist_auditor.py         # Kiểm toán dung lượng, phát hiện file lớn & rate limit
+        │   └── gist_cli.py             # CLI wrapper cho toàn bộ thao tác mod gist
+
         ├── sync-to-gdrive/             # Module tương tác với Google Drive qua rclone & gdown
+
         │   ├── configs.json            # Lưu tên remote rclone đang active
         │   ├── AUTH_GUIDE.txt          # Hướng dẫn chi tiết cách tạo Google Cloud OAuth credentials
         │   └── sync_to_gdrive.py       # Script thực thi sync, list, remote info, del-fd, link, dl (download)
@@ -173,7 +181,17 @@ Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--des]`
 | `gdrive` | `url` / `link` | `<remote_path>` | Lấy link truy cập web trực tiếp cho thư mục trên Google Drive. |
 | `gdrive` | `reset` | | Xóa cấu hình remote rclone hiện tại hoặc xóa toàn bộ file config. |
 | `gdrive` | `guide` | | Mở file tài liệu hướng dẫn cấu hình OAuth Client ID cho Google Drive. |
+| `gist` | `create` | `[files...] [--desc <text>] [--public]` | Tạo Gist mới từ file cục bộ hoặc nhập tương tác trực tiếp. |
+| `gist` | `list` | `[--page N] [--limit N] [--all] [--public-only] [--secret-only]` | Liệt kê danh sách Gist của tài khoản dạng bảng trực quan. |
+| `gist` | `get` | `<gist_id> [--raw <file>] [--save <dir>]` | Xem metadata Gist, in raw file hoặc lưu toàn bộ file về máy. |
+| `gist` | `update` | `<gist_id> [--add <name> <path>] [--delete <name>] [--desc <desc>]` | Cập nhật file và mô tả trong Gist đã có. |
+| `gist` | `delete` | `<gist_id> [-y]` | Xóa vĩnh viễn Gist (có bước hỏi xác nhận an toàn). |
+| `gist` | `reset` | `<gist_id> [--placeholder <name>] [--file <path>] [-y]` | Reset Gist: Xóa toàn bộ file hiện có và tạo placeholder tối thiểu. |
+| `gist` | `audit` | | Quét toàn bộ Gist, tính tổng dung lượng, phân loại đuôi file, cảnh báo file $\ge 8\text{MB}$ và kiểm tra Rate Limit. |
+
+| `gist` | `rate` | | Kiểm tra hạn mức và số lượt request GitHub API còn lại. |
 | `tunnel` | *(không có)* | `[port]` | Mở Cloudflare Quick Tunnel trỏ tới localhost (mặc định port 3000) + QR code. |
+
 | `proxy` | `test` | `<ip>:<port>[:<user>:<pass>] [--protocol ...]` | Test proxy qua requests, cURL và lấy IP thật qua API ipify. |
 | `mcp` | `set` | `[mcp_folder_name] [dest_folder_path]` | Copy thư mục MCP từ kho chung sang thư mục dự án đích. |
 | `toast` | *(không có)* | `<title> [msg...] [--audio <path>]` | Bắn Windows Toast Notification kèm âm thanh MP3/WAV tùy chỉnh. |

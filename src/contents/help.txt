@@ -31,7 +31,9 @@ edit              :to edit helper targets.
 print             :to print something.
 git               :to run git command.
 gdrive            :to operate with Google Drive via rclone.
+gist              :to manage and audit GitHub Gists.
 init              :to run init.cmd script.
+
 py                :to run python helpers.
 tunnel            :to run cloudflare tunnel wrapper.
 proxy             :to test and check proxies.
@@ -114,6 +116,31 @@ compress          :to compress project into a zip file.
                   // Example: mod gdrive dl "https://example.com/file.zip" --dest "."
    reset          :reset rclone configurations.
    guide          :display Google Drive authentication guide.
+
+## gist:
+    create [files...] [--desc <text>] [--public]
+                   :create a new GitHub Gist from local files or interactively.
+                   // Example: mod gist create "note.md" "config.json" --desc "My gist"
+    list [--page N] [--limit N] [--all] [--public-only] [--secret-only]
+                   :list GitHub Gists of the current account in a formatted table.
+                   // Example: mod gist list --all
+    get <gist_id> [--raw <filename>] [--save <output_dir>]
+                   :view Gist metadata, print raw file content or save all files locally.
+                   // Example: mod gist get 6a1b2c3d --raw "note.md"
+    update <gist_id> [--add <name> <file>] [--delete <name>] [--desc <desc>]
+                   :update files or description in an existing Gist.
+                   // Example: mod gist update 6a1b2c3d --add "app.py" "src/app.py"
+    delete <gist_id> [-y]
+                   :permanently delete a Gist by ID with confirmation prompt.
+                   // Example: mod gist delete 6a1b2c3d -y
+    reset <gist_id> [--placeholder <name>] [-y]
+                   :reset a Gist by removing all existing files and keeping a minimal placeholder.
+                   // Example: mod gist reset 6a1b2c3d -y
+    audit          :audit storage usage, file types, large files (>8MB) and API rate limit.
+                   // Example: mod gist audit
+    rate           :check GitHub API rate limit status and reset time.
+                   // Example: mod gist rate
+
 
 ## init:
    (no action)     :run init.cmd script.

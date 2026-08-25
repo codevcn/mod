@@ -4,9 +4,10 @@ import argparse
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from configs.paths import CONTENTS_FOLDER
+from configs.paths import CONTENTS_FOLDER, SRC_FOLDER, PROJECT_ROOT
 
 import yaml
+
 
 
 def warn_user_error(warning_message: str):
@@ -61,6 +62,25 @@ def print_feature_description(cmd_type: str | None, action: str | None):
                             target_found = True
 
                     if target_found:
+                        if "raw_file" in a and a.get("raw_file"):
+                            raw_rel = a.get("raw_file")
+                            candidate_paths = [
+                                Path(SRC_FOLDER) / raw_rel,
+                                Path(PROJECT_ROOT) / raw_rel,
+                                Path(raw_rel),
+                            ]
+                            for cp in candidate_paths:
+                                if cp.is_file():
+                                    with open(cp, "r", encoding="utf-8", errors="replace") as f:
+                                        print(f"\n{f.read().strip()}\n")
+                                    sys.exit(0)
+                            warn_user_error(f"Không tìm thấy file tài liệu: {raw_rel}")
+
+                        if "raw_text" in a and a.get("raw_text"):
+                            print(f"\n{a.get('raw_text').strip()}\n")
+                            sys.exit(0)
+
+
                         # ANSI color codes
                         C = "\033[36m"  # Cyan
                         G = "\033[32m"  # Green
@@ -75,6 +95,7 @@ def print_feature_description(cmd_type: str | None, action: str | None):
                         print(f"{G}+) Chi tiết:{R}\t{D}{a.get('details')}{R}")
                         print(f"{G}+) Điều kiện:{R}\t{D}{a.get('conditions')}{R}\n")
                         sys.exit(0)
+
 
         cmd_str = f"mod {cmd_type or ''} {action or ''}".strip()
         warn_user_error(f"Không tìm thấy mô tả cho lệnh: `{cmd_str}`")

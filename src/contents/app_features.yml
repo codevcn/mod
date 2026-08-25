@@ -414,6 +414,75 @@ mod_tool:
           details: "Mặc định tìm file `compress-config.json` tại root folder của thư mục đích được chỉ định. Hỗ trợ truyền file cấu hình tùy ý qua cờ `--config-file` (hoặc `-c`). File cấu hình chứa 2 trường: `include-items` (danh sách tệp/thư mục chỉ định nén) và `exclude-items` (danh sách tệp/thư mục bỏ qua). File zip được tạo trực tiếp tại thư mục đích và tự dọn dẹp các file zip cũ."
           conditions: "Tham số <local_folder_path> phải là thư mục hợp lệ tồn tại trên máy tính."
 
+    - name: "gist"
+      description: "Quản lý CRUD & Kiểm toán dung lượng GitHub Gist"
+      actions:
+        - id: "ACTION 50b"
+          title: "Tài liệu hướng dẫn sử dụng GitHub Gist"
+          command: "mod gist"
+          raw_file: "features/gist/README.md"
+
+        - id: "ACTION 51"
+
+          title: "Tạo GitHub Gist mới"
+          command: "mod gist create [files...] [--desc <text>] [--public]"
+          summary: "Tạo Gist mới từ các file cục bộ hoặc nhập tương tác trực tiếp."
+          details: "Đọc nội dung các file truyền vào và gọi GitHub REST API v3 để tạo Gist. Hỗ trợ tạo Secret Gist (mặc định) hoặc Public Gist với cờ `--public`. Nếu không truyền file, script sẽ mở chế độ nhập tương tác trực tiếp."
+          conditions: "Yêu cầu GITHUB_GIST_TOKEN trong .env có quyền write Gists."
+
+
+        - id: "ACTION 52"
+          title: "Liệt kê danh sách GitHub Gists"
+          command: "mod gist list [--page N] [--limit N] [--all] [--public-only] [--secret-only]"
+          summary: "Liệt kê các Gist của tài khoản dưới dạng bảng trực quan."
+          details: "Tải danh sách Gist theo trang (mặc định trang 1, tối đa 30 item) hoặc toàn bộ với cờ `--all`. Hiển thị Gist ID, quyền truy cập, số lượng file, tổng dung lượng và danh sách tên file đính kèm."
+          conditions: "Yêu cầu GITHUB_GIST_TOKEN trong .env có quyền read Gists."
+
+        - id: "ACTION 53"
+          title: "Xem thông tin hoặc tải file từ Gist"
+          command: "mod gist get <gist_id> [--raw <filename>] [--save <output_dir>]"
+          summary: "Xem metadata của Gist, in trực tiếp raw content của một file hoặc lưu toàn bộ file về máy."
+          details: "Lấy chi tiết Gist qua ID. Dùng cờ `--raw <filename>` để in nội dung raw ra terminal. Dùng cờ `--save <output_dir>` để tải và lưu toàn bộ các file trong Gist vào thư mục cục bộ chỉ định."
+          conditions: "Tham số <gist_id> phải là ID hợp lệ của Gist."
+
+        - id: "ACTION 54"
+          title: "Cập nhật Gist (sửa, thêm, xóa file, đổi mô tả)"
+          command: "mod gist update <gist_id> [--add <name> <filepath>] [--delete <name>] [--desc <desc>]"
+          summary: "Cập nhật nội dung hoặc metadata của một Gist đã tồn tại."
+          details: "Sử dụng GitHub PATCH API để thêm/sửa file (`--add`), xóa file (`--delete`) hoặc đổi mô tả (`--desc`). Có thể thực hiện đồng thời nhiều thao tác trong cùng 1 lệnh."
+          conditions: "Yêu cầu <gist_id> hợp lệ và token có quyền write trên Gist đó."
+
+        - id: "ACTION 55"
+          title: "Xóa GitHub Gist vĩnh viễn"
+          command: "mod gist delete <gist_id> [-y]"
+          summary: "Xóa vĩnh viễn một Gist khỏi tài khoản GitHub."
+          details: "Thực hiện lệnh DELETE Gist trên GitHub API. Luôn có bước xác nhận an toàn `[y/N]` trước khi xóa, trừ khi truyền cờ `-y` hoặc `--yes`."
+          conditions: "Yêu cầu <gist_id> hợp lệ và token có quyền delete."
+
+        - id: "ACTION 55b"
+          title: "Reset GitHub Gist (Xóa toàn bộ file đang có)"
+          command: "mod gist reset <gist_id> [--placeholder <name>] [--file <path>] [--desc <desc>] [-y]"
+          summary: "Xóa toàn bộ các file hiện có trong Gist và tạo 1 file placeholder tối thiểu."
+          details: "Xóa sạch tất cả các file đang có trong Gist chỉ định và thay thế bằng 1 file placeholder (mặc định README.md hoặc truyền qua cờ `--placeholder` / `--file`). Luôn có bước xác nhận an toàn `[y/N]` trước khi reset, trừ khi truyền cờ `-y`."
+          conditions: "Yêu cầu <gist_id> hợp lệ và token có quyền write trên Gist đó."
+
+
+        - id: "ACTION 56"
+          title: "Kiểm toán dung lượng lưu trữ & Quét file lớn GitHub Gist"
+          command: "mod gist audit"
+          summary: "Quét toàn bộ Gist để tính tổng dung lượng, phân loại đuôi file, cảnh báo file >= 8MB và kiểm tra Rate Limit."
+          details: "Tự động phân trang quét 100% Gist của tài khoản. Tính tổng dung lượng (Byte/KB/MB), phân bố theo định dạng (.json, .md, .txt, .py...), lập bảng Top 10 file lớn nhất, đưa ra cảnh báo nguy cấp nếu có file tiệm cận giới hạn 10 MB của GitHub Gist và hiển thị hạn mức API Rate Limit còn lại."
+          conditions: "Yêu cầu GITHUB_GIST_TOKEN hợp lệ trong file .env."
+
+        - id: "ACTION 57"
+          title: "Kiểm tra hạn mức GitHub API Rate Limit"
+          command: "mod gist rate"
+          summary: "Kiểm tra số lượt request GitHub API còn lại và thời gian reset."
+          details: "Gọi endpoint `https://api.github.com/rate_limit` để lấy tổng hạn mức, số lượt đã dùng, số lượt còn lại và thời điểm hạn mức được làm mới (UTC)."
+          conditions: "Yêu cầu GITHUB_GIST_TOKEN trong .env."
+
+
+
 
 
 config:

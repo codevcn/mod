@@ -16,9 +16,10 @@ class Colors:
     GRAY = "\033[90m"
 
 VALID_TYPES = [
-    "open", "code", "run", "print", "git", "gdrive",
+    "open", "code", "run", "print", "git", "gdrive", "gist",
     "init", "py", "edit", "file", "folder", "tunnel", "proxy", "mcp", "skill", "toast", "compress"
 ]
+
 
 class ModCLIError(Exception):
     """Base exception cho Mod CLI."""

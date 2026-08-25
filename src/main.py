@@ -39,9 +39,21 @@ MOD_TYPE_MCP = "mcp"
 MOD_TYPE_SKILL = "skill"
 MOD_TYPE_TOAST = "toast"
 MOD_TYPE_COMPRESS = "compress"
+MOD_TYPE_GIST = "gist"
 
 
 # --- Actions ---
+# gist
+MOD_GIST_CREATE = "create"
+MOD_GIST_LIST = "list"
+MOD_GIST_GET = "get"
+MOD_GIST_UPDATE = "update"
+MOD_GIST_DELETE = "delete"
+MOD_GIST_RESET = "reset"
+MOD_GIST_AUDIT = "audit"
+MOD_GIST_RATE = "rate"
+
+
 # open
 MOD_OPEN_ENV = "env"
 MOD_OPEN_PROMPTS_FOLDER = "proms"
@@ -566,6 +578,22 @@ def cmd_compress(remaining_args):
     sys.exit(result.returncode)
 
 
+def cmd_gist(action, remaining_args):
+    cmd_args = [
+        "python",
+        get_feature_path("gist", "gist_cli.py"),
+    ]
+    if action is not None:
+        cmd_args.append(action)
+    cmd_args.extend(remaining_args)
+
+    result = subprocess.run(
+        cmd_args,
+        check=False,
+    )
+    sys.exit(result.returncode)
+
+
 def dispatch_command(
     feature_args: list[str],
     des_flag: bool = False,
@@ -583,11 +611,29 @@ def dispatch_command(
     default_ide_prefix: str = "anti" if antigravity_flag else "code"
 
     # --- Dispatch ---
-    if type_included == MOD_TYPE_COMPRESS:
+    if type_included == MOD_TYPE_GIST:
+        valid_actions = [
+            MOD_GIST_AUDIT,
+            MOD_GIST_CREATE,
+            MOD_GIST_DELETE,
+            MOD_GIST_GET,
+            MOD_GIST_LIST,
+            MOD_GIST_RATE,
+            MOD_GIST_RESET,
+            MOD_GIST_UPDATE,
+        ]
+
+        if action_included is None:
+            raise MissingActionError(type_included, valid_actions)
+        elif action_included not in valid_actions:
+            raise InvalidActionError(type_included, action_included, valid_actions)
+        cmd_gist(action_included, remaining_args)
+    elif type_included == MOD_TYPE_COMPRESS:
         valid_actions = [MOD_COMPRESS_FOLDER]
         if action_included is not None and action_included != MOD_COMPRESS_FOLDER:
             raise InvalidActionError(type_included, action_included, valid_actions)
         cmd_compress(feature_args[1:])
+
     elif type_included == MOD_TYPE_EDIT:
         valid_actions = [MOD_EDIT_PROMPTS, MOD_EDIT_TO_COMMAND, MOD_EDIT_USEFUL_COMMANDS]
         if action_included == MOD_EDIT_PROMPTS:

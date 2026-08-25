@@ -32,7 +32,10 @@ TYPE_ACTION_MAP = {
     "file": ["create", "delete", "keep", "rename"],
     "folder": ["create", "dld-path", "tree"],
     "gdrive": ["del-fd", "dl", "guide", "link", "list", "remote", "reset", "sync", "url"],
+    "gist": ["audit", "create", "delete", "get", "list", "rate", "reset", "update"],
+
     "git": ["commit", "remote"],
+
     "init": [],
     "mcp": ["set"],
     "open": ["env", "proms", "ws"],
@@ -54,7 +57,9 @@ TYPE_DESCRIPTIONS = {
     "run": "Thực thi các script tiện ích (unikey, gen-qr, keep-awake...)",
     "git": "Tự động hóa các thao tác Git (commit & push, remote)",
     "gdrive": "Quản lý và đồng bộ Google Drive qua rclone",
+    "gist": "Quản lý CRUD và kiểm toán dung lượng GitHub Gist",
     "edit": "Mở và chỉnh sửa nhanh cấu hình hoặc profile PowerShell",
+
     "print": "In thông tin cấu hình hệ thống, cURL, status, lệnh hữu ích",
     "tunnel": "Mở Cloudflare Quick Tunnel cho cổng cục bộ",
     "proxy": "Kiểm tra kết nối và tính hợp lệ của proxy",

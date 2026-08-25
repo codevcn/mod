@@ -122,3 +122,6 @@ git reset --soft HEAD~1
 
 # Tổ hợp phím bật Live Caption trên Windows 11
 [window] + [control] + [l]
+
+# Lệnh lưu $PROFILE
+. $PROFILE
