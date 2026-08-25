@@ -408,11 +408,12 @@ mod_tool:
           conditions: "Không có điều kiện bắt buộc."
 
         - id: "ACTION 50"
-          title: "Nén thư mục tùy chỉnh theo cấu hình JSON"
-          command: "mod compress folder <local_folder_path> [--config-file <config_path>]"
-          summary: "Nén thư mục cục bộ theo quy tắc include-items và exclude-items từ file cấu hình JSON."
-          details: "Mặc định tìm file `compress-config.json` tại root folder của thư mục đích được chỉ định. Hỗ trợ truyền file cấu hình tùy ý qua cờ `--config-file` (hoặc `-c`). File cấu hình chứa 2 trường: `include-items` (danh sách tệp/thư mục chỉ định nén) và `exclude-items` (danh sách tệp/thư mục bỏ qua). File zip được tạo trực tiếp tại thư mục đích và tự dọn dẹp các file zip cũ."
+          title: "Nén thư mục tùy chỉnh theo .compressignore hoặc JSON config"
+          command: "mod compress folder <local_folder_path> [--config-file <config_path>] [--ignore-file <ignore_path>]"
+          summary: "Nén thư mục cục bộ tự động đọc .compressignore hoặc theo cấu hình JSON include/exclude items."
+          details: "Mặc định tự động kiểm tra và đọc file `.compressignore` hoặc `compress-config.json` ngay tại thư mục đích. Hỗ trợ truyền file ignore tùy ý qua cờ `--ignore-file` (hoặc `-i`) và file JSON qua cờ `--config-file` (hoặc `-c`). Tự động dọn dẹp các file zip cũ mang tiền tố tương ứng trước khi nén."
           conditions: "Tham số <local_folder_path> phải là thư mục hợp lệ tồn tại trên máy tính."
+
 
     - name: "gist"
       description: "Quản lý CRUD & Kiểm toán dung lượng GitHub Gist"

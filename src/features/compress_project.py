@@ -268,9 +268,13 @@ def compress_project(output_path: str | None = None):
         sys.exit(1)
 
 
-def compress_folder(target_folder_path: str, custom_config_path: str | None = None):
+def compress_folder(
+    target_folder_path: str,
+    custom_config_path: str | None = None,
+    custom_ignore_path: str | None = None,
+):
     """
-    Nén một thư mục cục bộ tùy chỉnh dựa trên file JSON config (include-items & exclude-items).
+    Nén một thư mục cục bộ tùy chỉnh dựa trên file .compressignore hoặc JSON config (include-items & exclude-items).
     """
     target_folder = os.path.abspath(target_folder_path)
     if not os.path.exists(target_folder):
@@ -281,27 +285,52 @@ def compress_folder(target_folder_path: str, custom_config_path: str | None = No
         sys.exit(1)
 
     folder_name = os.path.basename(target_folder)
-    
-    # 1. Tìm file config JSON
-    config_file = None
-    if custom_config_path:
-        resolved_custom = os.path.abspath(custom_config_path)
-        if os.path.exists(resolved_custom):
-            config_file = resolved_custom
+
+    # 1. Xác định file ignore (.compressignore hoặc custom ignore file)
+    ignore_file = None
+    ignore_patterns: list[str] = []
+
+    if custom_ignore_path:
+        resolved_custom_ignore = os.path.abspath(custom_ignore_path)
+        if os.path.exists(resolved_custom_ignore):
+            ignore_file = resolved_custom_ignore
+            ignore_patterns = load_ignore_patterns(ignore_file)
         else:
-            print(f"❌ Lỗi: Không tìm thấy file cấu hình được chỉ định: `{resolved_custom}`")
+            print(f"❌ Lỗi: Không tìm thấy file ignore được chỉ định: `{resolved_custom_ignore}`")
             sys.exit(1)
     else:
-        # Mặc định tìm compress-config.json ngay tại root folder của thư mục được chỉ định
+        # Tự động tìm .compressignore ngay tại thư mục đích
+        target_internal_ignore = os.path.join(target_folder, ".compressignore")
+        if os.path.exists(target_internal_ignore):
+            ignore_file = target_internal_ignore
+            ignore_patterns = load_ignore_patterns(ignore_file)
+
+    # 2. Xác định file JSON config (compress-config.json hoặc custom config file)
+    config_file = None
+    include_items: list[str] = []
+    exclude_items: list[str] = []
+
+    if custom_config_path:
+        resolved_custom_config = os.path.abspath(custom_config_path)
+        if os.path.exists(resolved_custom_config):
+            if resolved_custom_config.lower().endswith(".json"):
+                config_file = resolved_custom_config
+                include_items, exclude_items = load_json_config(config_file)
+            else:
+                if not ignore_file:
+                    ignore_file = resolved_custom_config
+                    ignore_patterns = load_ignore_patterns(ignore_file)
+        else:
+            print(f"❌ Lỗi: Không tìm thấy file cấu hình được chỉ định: `{resolved_custom_config}`")
+            sys.exit(1)
+    else:
+        # Tự động tìm compress-config.json ngay tại thư mục đích
         target_internal_config = os.path.join(target_folder, "compress-config.json")
         if os.path.exists(target_internal_config):
             config_file = target_internal_config
+            include_items, exclude_items = load_json_config(config_file)
 
-    include_items, exclude_items = ([], [])
-    if config_file:
-        include_items, exclude_items = load_json_config(config_file)
-
-    # 2. Tạo tên file zip đích: <folder_name>-{dd}-{mm}-{yyyy}-{hh}-{mm}-{ss}.zip
+    # 3. Tạo tên file zip đích: <folder_name>-{dd}-{mm}-{yyyy}-{hh}-{mm}-{ss}.zip
     timestamp_str = datetime.now().strftime("%d-%m-%Y-%H-%M-%S")
     zip_filename = f"{folder_name}-{timestamp_str}.zip"
     dest_zip = os.path.join(target_folder, zip_filename)
@@ -309,16 +338,20 @@ def compress_folder(target_folder_path: str, custom_config_path: str | None = No
     print(f"\n======================================================================")
     print(f"📦 BẮT ĐẦU NÉN THƯ MỤC: {folder_name}")
     print(f"📍 Thư mục nguồn : {target_folder}")
-    if config_file:
-        print(f"📄 File cấu hình : {config_file}")
-        if include_items:
-            print(f"   └── Include ({len(include_items)}): {', '.join(include_items)}")
-        if exclude_items:
-            print(f"   └── Exclude ({len(exclude_items)}): {', '.join(exclude_items)}")
+
+    if ignore_file or config_file:
+        if ignore_file:
+            print(f"📄 File Ignore   : {ignore_file} ({len(ignore_patterns)} rules)")
+        if config_file:
+            print(f"📄 File JSON     : {config_file}")
+            if include_items:
+                print(f"   └── Include ({len(include_items)}): {', '.join(include_items)}")
+            if exclude_items:
+                print(f"   └── Exclude ({len(exclude_items)}): {', '.join(exclude_items)}")
     else:
         print(f"📄 File cấu hình : Không có (nén toàn bộ nội dung thư mục)")
 
-    # 3. Dọn dẹp các file zip cũ của folder này
+    # 4. Dọn dẹp các file zip cũ của folder này
     cleanup_old_zips(target_folder, folder_name, dest_zip)
     print(f"──────────────────────────────────────────────────────────────────────")
 
@@ -327,13 +360,18 @@ def compress_folder(target_folder_path: str, custom_config_path: str | None = No
         with zipfile.ZipFile(dest_zip, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as zipf:
             for root, dirs, files in os.walk(target_folder):
                 rel_root = os.path.relpath(root, target_folder).replace("\\", "/")
-                
+
                 # Lọc bỏ các thư mục không cần duyệt
                 dirs_to_keep = []
                 for d in dirs:
                     rel_dir_path = f"{rel_root}/{d}" if rel_root != "." else d
-                    if should_traverse_dir(rel_dir_path, include_items, exclude_items):
-                        dirs_to_keep.append(d)
+                    # Kiểm tra ignore patterns
+                    if ignore_patterns and is_ignored_by_patterns(rel_dir_path, is_dir=True, patterns=ignore_patterns):
+                        continue
+                    # Kiểm tra JSON config rules
+                    if not should_traverse_dir(rel_dir_path, include_items, exclude_items):
+                        continue
+                    dirs_to_keep.append(d)
                 dirs[:] = dirs_to_keep
 
                 # Xử lý các files
@@ -345,14 +383,16 @@ def compress_folder(target_folder_path: str, custom_config_path: str | None = No
                     if os.path.abspath(full_file_path) == os.path.abspath(dest_zip):
                         continue
 
-                    # Không nén file config json nếu người dùng không muốn
-                    if config_file and os.path.abspath(full_file_path) == os.path.abspath(config_file) and not include_items:
-                        # Tùy chọn bỏ qua config file nếu mặc định
-                        pass
+                    # Bỏ qua theo ignore patterns
+                    if ignore_patterns and is_ignored_by_patterns(rel_file_path, is_dir=False, patterns=ignore_patterns):
+                        continue
 
-                    if should_include_file(rel_file_path, include_items, exclude_items):
-                        zipf.write(full_file_path, arcname=rel_file_path)
-                        file_count += 1
+                    # Bỏ qua theo JSON rules
+                    if not should_include_file(rel_file_path, include_items, exclude_items):
+                        continue
+
+                    zipf.write(full_file_path, arcname=rel_file_path)
+                    file_count += 1
 
         file_size = os.path.getsize(dest_zip)
         formatted_size = format_size(file_size)
@@ -372,7 +412,7 @@ def compress_folder(target_folder_path: str, custom_config_path: str | None = No
 
 def main():
     args = sys.argv[1:]
-    
+
     if not args:
         compress_project(None)
         return
@@ -380,16 +420,17 @@ def main():
     first_arg = args[0].lower()
 
     if first_arg == "folder":
-        # Cú pháp: mod compress folder <local_folder_path> [--config-file <path>]
+        # Cú pháp: mod compress folder <local_folder_path> [--config-file <path>] [--ignore-file <path>]
         folder_args = args[1:]
         if not folder_args:
             print("❌ Lỗi: Thiếu đường dẫn thư mục cần nén.")
-            print("👉 Cú pháp: mod compress folder <local folder path> [--config-file <config_path>]")
+            print("👉 Cú pháp: mod compress folder <local folder path> [--config-file <config_path>] [--ignore-file <ignore_path>]")
             sys.exit(1)
 
         custom_config = None
+        custom_ignore = None
         target_path = None
-        
+
         i = 0
         while i < len(folder_args):
             arg = folder_args[i]
@@ -401,6 +442,14 @@ def main():
                 else:
                     print("❌ Lỗi: Thiếu đường dẫn file cấu hình sau cờ `--config-file`.")
                     sys.exit(1)
+            elif arg in ("--ignore-file", "-i"):
+                if i + 1 < len(folder_args):
+                    custom_ignore = folder_args[i + 1]
+                    i += 2
+                    continue
+                else:
+                    print("❌ Lỗi: Thiếu đường dẫn file ignore sau cờ `--ignore-file`.")
+                    sys.exit(1)
             else:
                 if target_path is None:
                     target_path = arg
@@ -410,7 +459,7 @@ def main():
             print("❌ Lỗi: Thiếu đường dẫn thư mục cần nén.")
             sys.exit(1)
 
-        compress_folder(target_path, custom_config)
+        compress_folder(target_path, custom_config, custom_ignore)
     else:
         # Cú pháp: mod compress [output_path]
         compress_project(args[0])
@@ -418,3 +467,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

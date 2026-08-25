@@ -174,11 +174,11 @@ compress          :to compress project into a zip file.
    --syntax       :print 1-line command syntax of mod toast (easy to copy).
 
 ## compress:
-   (no action)    :compress project into a zip file named 'mod-{dd}-{mm}-{yyyy}-{hh}-{mm}-{ss}.zip' using .compressignore.
-                  // Example: mod compress
-   folder <path> [--config-file <path>]
-                  :compress specified local folder using JSON rules (include-items, exclude-items).
-                  // Example: mod compress folder "D:/my-project" --config-file "compress-config.json"
+    (no action)    :compress project into a zip file named 'mod-{dd}-{mm}-{yyyy}-{hh}-{mm}-{ss}.zip' using .compressignore.
+                   // Example: mod compress
+    folder <path> [--config-file <path>] [--ignore-file <path>]
+                   :compress specified local folder using .compressignore or JSON rules (include-items, exclude-items).
+                   // Example: mod compress folder "D:/my-project" --ignore-file ".compressignore"
 
 # Example:
 The command `mod open ws` will open the working workspaces in system folder.
