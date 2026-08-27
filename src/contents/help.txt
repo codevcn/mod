@@ -92,6 +92,9 @@ compress          :to compress project into a zip file.
                   :create one or multiple folders using a pattern.
                   // Example: mod folder create "D:/D-Documents/tool" "folder" 1 5
    dld-path [name]:set download path in Chrome.
+   merge <from_folder> <to_folder> [-y] [--dry-run]
+                  :check internal tree intersection & merge folder content from source to dest.
+                  // Example: mod folder merge "D:/source_project" "D:/dest_project"
    tree           :print folder tree structure.
 ## print:
    os             :print OS info.
@@ -179,6 +182,10 @@ compress          :to compress project into a zip file.
     folder <path> [--config-file <path>] [--ignore-file <path>]
                    :compress specified local folder using .compressignore or JSON rules (include-items, exclude-items).
                    // Example: mod compress folder "D:/my-project" --ignore-file ".compressignore"
+    init-ignore <path> ["rules..."]
+                   :create a starter .compressignore file at specified path or folder ('.' for current directory).
+                   // Example: mod compress init-ignore . "*.log, temp/, .env"
+
 
 # Example:
 The command `mod open ws` will open the working workspaces in system folder.

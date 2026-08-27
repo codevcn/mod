@@ -16,4 +16,4 @@ taskkill /F /IM Microsoft.CmdPal.UI.exe /T
 taskkill /F /IM Microsoft.CmdPal.Ext.PowerToys.exe /T
 
 :: Chạy chương trình Unikey (UniKeyNT.exe)
-start "" "C:\Users\dell\Downloads\UniKeyNT.exe"
+start "" "C:\Users\dell\Desktop\UniKeyNT.exe"

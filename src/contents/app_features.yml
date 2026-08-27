@@ -228,6 +228,12 @@ mod_tool:
           summary: "In ra cấu trúc dạng cây của thư mục hiện tại."
           details: "Gọi `print_folder_tree.py` để in ra terminal."
           conditions: "Không có điều kiện đặc biệt."
+        - id: "ACTION 58"
+          title: "Merge Thư Mục Có Kiểm Tra Độ Tương Đồng Cây Thư Mục"
+          command: "mod folder merge <from_folder_path> <to_folder_path> [-y] [--dry-run]"
+          summary: "Kiểm tra độ tương đồng cây thư mục bên trong giữa 2 folder và merge nội dung nguồn vào đích."
+          details: "Quét đệ quy cấu trúc cây thư mục con và file của cả 2 phía. Nếu cấu trúc có điểm giao nhau, thực hiện copy/ghi đè file từ <from> sang <to>. Nếu không có điểm giao nào, từ chối merge để đảm bảo an toàn."
+          conditions: "Cả 2 thư mục nguồn và đích phải tồn tại và có cây thư mục giao nhau."
 
     - name: "print"
       description: "In thông tin"
@@ -413,6 +419,14 @@ mod_tool:
           summary: "Nén thư mục cục bộ tự động đọc .compressignore hoặc theo cấu hình JSON include/exclude items."
           details: "Mặc định tự động kiểm tra và đọc file `.compressignore` hoặc `compress-config.json` ngay tại thư mục đích. Hỗ trợ truyền file ignore tùy ý qua cờ `--ignore-file` (hoặc `-i`) và file JSON qua cờ `--config-file` (hoặc `-c`). Tự động dọn dẹp các file zip cũ mang tiền tố tương ứng trước khi nén."
           conditions: "Tham số <local_folder_path> phải là thư mục hợp lệ tồn tại trên máy tính."
+
+        - id: "ACTION 50c"
+          title: "Khởi tạo file cấu hình .compressignore"
+          command: 'mod compress init-ignore <"path/to/file"> ["file paths separated by comma"]'
+          summary: "Tạo file .compressignore mẫu tại đường dẫn chỉ định với các rule tùy chỉnh."
+          details: "Khởi tạo file `.compressignore` tại thư mục hoặc đường dẫn chỉ định (nếu nhập `.` sẽ lấy thư mục hiện hành). Người dùng có thể truyền chuỗi các rule phân cách bởi dấu phẩy để thêm vào các rule khởi tạo ban đầu bên cạnh bộ rule tiêu chuẩn."
+          conditions: "Tham số <path/to/file> là bắt buộc."
+
 
 
     - name: "gist"

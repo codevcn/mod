@@ -80,6 +80,7 @@ MOD_FILE_KEEP = "keep"
 # folder
 MOD_FOLDER_CREATE = "create"
 MOD_FOLDER_DLD_PATH = "dld-path"
+MOD_FOLDER_MERGE = "merge"
 MOD_FOLDER_TREE = "tree"
 # edit
 MOD_EDIT_PROMPTS = "proms"
@@ -104,6 +105,8 @@ MOD_MCP_SET = "set"
 MOD_SKILL_SET = "set"
 # compress
 MOD_COMPRESS_FOLDER = "folder"
+MOD_COMPRESS_INIT_IGNORE = "init-ignore"
+
 
 
 # --- Warnings (deprecated, replaced by utils.errors) ---
@@ -345,6 +348,16 @@ def create_folders_in_path(remaining_args: list[str]):
     cmd_args.extend(remaining_args)
     subprocess.run(cmd_args, shell=True)
     sys.exit(0)
+
+
+def merge_folders(remaining_args: list[str]):
+    cmd_args = [
+        "py",
+        get_feature_path("merge_folders.py"),
+    ]
+    cmd_args.extend(remaining_args)
+    result = subprocess.run(cmd_args, shell=True)
+    sys.exit(result.returncode)
 
 
 def edit_prompts():
@@ -629,10 +642,11 @@ def dispatch_command(
             raise InvalidActionError(type_included, action_included, valid_actions)
         cmd_gist(action_included, remaining_args)
     elif type_included == MOD_TYPE_COMPRESS:
-        valid_actions = [MOD_COMPRESS_FOLDER]
-        if action_included is not None and action_included != MOD_COMPRESS_FOLDER:
+        valid_actions = [MOD_COMPRESS_FOLDER, MOD_COMPRESS_INIT_IGNORE]
+        if action_included is not None and action_included not in valid_actions:
             raise InvalidActionError(type_included, action_included, valid_actions)
         cmd_compress(feature_args[1:])
+
 
     elif type_included == MOD_TYPE_EDIT:
         valid_actions = [MOD_EDIT_PROMPTS, MOD_EDIT_TO_COMMAND, MOD_EDIT_USEFUL_COMMANDS]
@@ -745,11 +759,18 @@ def dispatch_command(
         else:
             raise InvalidActionError(type_included, action_included, valid_actions)
     elif type_included == MOD_TYPE_FOLDER:
-        valid_actions = [MOD_FOLDER_CREATE, MOD_FOLDER_DLD_PATH, MOD_FOLDER_TREE]
+        valid_actions = [
+            MOD_FOLDER_CREATE,
+            MOD_FOLDER_DLD_PATH,
+            MOD_FOLDER_MERGE,
+            MOD_FOLDER_TREE,
+        ]
         if action_included == MOD_FOLDER_CREATE:
             create_folders_in_path(remaining_args)
         elif action_included == MOD_FOLDER_DLD_PATH:
             set_download_path_in_chrome(remaining_args)
+        elif action_included == MOD_FOLDER_MERGE:
+            merge_folders(remaining_args)
         elif action_included == MOD_FOLDER_TREE:
             print_folder_tree(remaining_args)
         elif action_included is None:

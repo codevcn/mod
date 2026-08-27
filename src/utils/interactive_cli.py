@@ -27,10 +27,11 @@ class Colors:
 # Danh mục Type và danh sách Action tương ứng (được sắp xếp A-Z)
 TYPE_ACTION_MAP = {
     "code": ["ext", "js", "nestjs", "py", "test", "ts", "ts-template", "ws"],
-    "compress": ["folder"],
+    "compress": ["folder", "init-ignore"],
     "edit": ["cmds", "proms", "to"],
+
     "file": ["create", "delete", "keep", "rename"],
-    "folder": ["create", "dld-path", "tree"],
+    "folder": ["create", "dld-path", "merge", "tree"],
     "gdrive": ["del-fd", "dl", "guide", "link", "list", "remote", "reset", "sync", "url"],
     "gist": ["audit", "create", "delete", "get", "list", "rate", "reset", "update"],
 
@@ -53,7 +54,7 @@ TYPE_DESCRIPTIONS = {
     "code": "Mở các dự án, template, workspace trong IDE",
     "compress": "Nén toàn bộ dự án hoặc nén thư mục theo cấu hình JSON",
     "file": "Thao tác xử lý file hàng loạt (create, rename, delete, keep)",
-    "folder": "Thao tác xử lý folder (create, dld-path, tree)",
+    "folder": "Thao tác xử lý folder (create, dld-path, merge, tree)",
     "run": "Thực thi các script tiện ích (unikey, gen-qr, keep-awake...)",
     "git": "Tự động hóa các thao tác Git (commit & push, remote)",
     "gdrive": "Quản lý và đồng bộ Google Drive qua rclone",

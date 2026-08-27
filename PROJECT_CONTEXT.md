@@ -71,7 +71,9 @@ d:\D-Documents\TOOLs\mod\
 │   └── media/audio/
 │       └── burnttoast-notification-sound.mp3 # File âm thanh thông báo mặc định cho Toast Notifier
 ├── doc/
-│   └── add-sound-notifier.md          # Tài liệu hướng dẫn cấu hình âm thanh BurntToast
+│   ├── add-sound-notifier.md          # Tài liệu hướng dẫn cấu hình âm thanh BurntToast
+│   └── autocomplete.md                # Tài liệu mô tả chi tiết tính năng Auto-complete & REPL
+
 └── src/
     ├── main.py                         # Central Dispatcher (Định tuyến lệnh trung tâm)
     ├── cmd/
@@ -125,6 +127,7 @@ d:\D-Documents\TOOLs\mod\
         ├── keep_screen.py              # Giữ màn hình Windows luôn bật qua SetThreadExecutionState Win32 API
         ├── keep_server_awake.py        # Ping HTTP GET định kỳ để giữ sống server miễn phí (Render/Kaggle)
         ├── mcp_set.py                  # Copy thư mục MCP từ kho LOCAL_ABSOLUTE_FOLDER_PATH vào project đích
+        ├── merge_folders.py            # Merge thư mục có kiểm tra độ tương đồng/giao nhau của cây thư mục
         ├── open_main_ws.py             # Mở workspace lập trình trong Windows Terminal + VSCode/Anti + Browser
         ├── print_cURL.py               # In snippet cURL
         ├── print_folder_tree.py        # In cây thư mục có tính năng auto-collapse khi vượt quá số lượng max
@@ -165,6 +168,7 @@ Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--des]`
 | `file` | `keep` | `<folder_path> <ext>` | Chỉ giữ lại file có extension chỉ định, xóa tất cả các file khác. |
 | `folder` | `create` | `<folder_path> [pattern] [start_idx] [count]` | Tạo hàng loạt folder con tự tăng index. |
 | `folder` | `dld-path` | `[folder_name]` | Đặt lại đường dẫn download cho toàn bộ Chrome profiles. |
+| `folder` | `merge` | `<from_folder> <to_folder> [-y] [--dry-run]` | Kiểm tra giao nhau của cây thư mục nguồn/đích và merge nội dung (ghi đè/tạo mới). |
 | `folder` | `tree` | `[folder_path] [--max N]` | In cây thư mục có tự động thu gọn thư mục quá lớn (> max). |
 | `run` | `unikey` | | Khởi động UniKey. |
 | `run` | `gen-qr` | | Nhập text tương tác và tạo ảnh mã QR lưu vào thư mục AppData. |
@@ -205,6 +209,8 @@ Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--des]`
 | `skill` | `set` | `[skill_name] [dest_path]` | Sao chép thư mục Skill AI từ kho `SKILLS_FOLDER_PATH` vào thư mục đích. |
 | `compress` | *(không có)* | `[output_path]` | Nén toàn bộ dự án thành file `mod-{dd}-{mm}-{yyyy}-{hh}-{mm}-{ss}.zip` tại thư mục gốc dự án (hoặc output_path), áp dụng bộ lọc `.compressignore`. |
 | `compress` | `folder` | `<path> [--config-file C] [--ignore-file I]` | Nén thư mục cục bộ tự động đọc `.compressignore` hoặc theo JSON config. |
+| `compress` | `init-ignore` | `<path> ["rules..."]` | Khởi tạo file `.compressignore` mẫu tại đường dẫn chỉ định với các rule tùy chỉnh. |
+
 
 | `edit` | `proms` | | Mở thư mục prompts của extension trong Notepad. |
 | `edit` | `to` | | Mở PowerShell Profile trong Notepad. |

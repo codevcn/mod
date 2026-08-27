@@ -410,6 +410,97 @@ def compress_folder(
         sys.exit(1)
 
 
+def init_compressignore(target_path_arg: str, custom_rules_str: str | None = None):
+    """
+    Khởi tạo file .compressignore tại đường dẫn chỉ định với các rule tùy chỉnh hoặc mẫu mặc định.
+    """
+    if not target_path_arg or not target_path_arg.strip():
+        print("❌ Lỗi: Thiếu đường dẫn thư mục hoặc file để tạo .compressignore.")
+        print('👉 Cú pháp: mod compress init-ignore <"path/to/file"> ["file paths separated by comma"]')
+        sys.exit(1)
+
+    raw_path = target_path_arg.strip()
+    if raw_path in (".", "./", ".\\"):
+        target_dir = os.getcwd()
+        dest_file = os.path.join(target_dir, ".compressignore")
+    else:
+        abs_path = os.path.abspath(raw_path)
+        if os.path.isdir(abs_path) or not abs_path.endswith(".compressignore"):
+            if os.path.exists(abs_path) and os.path.isdir(abs_path):
+                dest_file = os.path.join(abs_path, ".compressignore")
+            elif not os.path.splitext(abs_path)[1]:
+                dest_file = os.path.join(abs_path, ".compressignore")
+            else:
+                dest_file = abs_path
+        else:
+            dest_file = abs_path
+
+    dest_folder = os.path.dirname(dest_file)
+    if dest_folder and not os.path.exists(dest_folder):
+        os.makedirs(dest_folder, exist_ok=True)
+
+    # Phân tích custom rules nếu có
+    custom_rules: list[str] = []
+    if custom_rules_str:
+        raw_items = custom_rules_str.split(",")
+        for item in raw_items:
+            clean_item = item.strip().replace("\\", "/")
+            if clean_item and clean_item not in custom_rules:
+                custom_rules.append(clean_item)
+
+    # Chuẩn bị nội dung file
+    lines = [
+        "# ==========================================",
+        "# .compressignore - Bỏ qua các tệp/thư mục khi nén",
+        "# ==========================================",
+        "",
+    ]
+
+    if custom_rules:
+        lines.append("# Custom Initial Rules")
+        for rule in custom_rules:
+            lines.append(rule)
+        lines.append("")
+
+    # Baseline default rules
+    baseline_sections = [
+        ("# Version control", [".git/", ".gitignore"]),
+        ("# Python Cache & Bytecode", ["__pycache__/", "*.py[cod]", "*$py.class", "*.pytest_cache/"]),
+        ("# Virtual Environments & Builds", [".venv/", "venv/", "env/", "build/", "dist/"]),
+        ("# Dependencies", ["node_modules/", "package-lock.json"]),
+        ("# Environment & Sensitive Files", [".env", ".env.*"]),
+        ("# Archives (tránh nén lồng file nén)", ["*.zip", "*.tar.gz", "*.rar", "*.7z"]),
+        ("# IDE & Editor files", [".vscode/", ".idea/"]),
+        ("# Temp & Logs", ["*.tmp", "*.log"]),
+    ]
+
+    for section_title, rules in baseline_sections:
+        filtered_rules = [r for r in rules if r not in custom_rules]
+        if filtered_rules:
+            lines.append(section_title)
+            for r in filtered_rules:
+                lines.append(r)
+            lines.append("")
+
+    content = "\n".join(lines).strip() + "\n"
+
+    try:
+        with open(dest_file, "w", encoding="utf-8") as f:
+            f.write(content)
+
+        print(f"\n======================================================================")
+        print(f"✅ ĐÃ KHỞI TẠO FILE .compressignore THÀNH CÔNG!")
+        print(f"📍 Đường dẫn file : {dest_file}")
+        if custom_rules:
+            print(f"📝 Custom rules   : {len(custom_rules)} ({', '.join(custom_rules)})")
+        else:
+            print(f"📝 Template       : Mẫu cấu hình tiêu chuẩn đầy đủ")
+        print(f"======================================================================\n")
+    except Exception as e:
+        print(f"❌ Lỗi khi ghi file .compressignore: {e}")
+        sys.exit(1)
+
+
 def main():
     args = sys.argv[1:]
 
@@ -460,6 +551,17 @@ def main():
             sys.exit(1)
 
         compress_folder(target_path, custom_config, custom_ignore)
+    elif first_arg in ("init-ignore", "init_ignore"):
+        # Cú pháp: mod compress init-ignore <"path/to/file"> ["rules separated by comma"]
+        ignore_args = args[1:]
+        if not ignore_args:
+            print("❌ Lỗi: Thiếu đường dẫn thư mục hoặc file để tạo .compressignore.")
+            print('👉 Cú pháp: mod compress init-ignore <"path/to/file"> ["file paths separated by comma"]')
+            sys.exit(1)
+
+        target_path = ignore_args[0]
+        custom_rules = ignore_args[1] if len(ignore_args) > 1 else None
+        init_compressignore(target_path, custom_rules)
     else:
         # Cú pháp: mod compress [output_path]
         compress_project(args[0])
@@ -467,4 +569,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
