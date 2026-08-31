@@ -41,6 +41,8 @@ mcp               :to run MCP related tools.
 skill             :to run SKILL related tools.
 toast             :to send Windows desktop toast notification.
 compress          :to compress project into a zip file.
+notify            :to send multi-channel notifications (ntfy, telegram, toast).
+
 
 # Available actions:
 ## open:
@@ -136,9 +138,10 @@ compress          :to compress project into a zip file.
     delete <gist_id> [-y]
                    :permanently delete a Gist by ID with confirmation prompt.
                    // Example: mod gist delete 6a1b2c3d -y
-    reset <gist_id> [--placeholder <name>] [-y]
-                   :reset a Gist by removing all existing files and keeping a minimal placeholder.
-                   // Example: mod gist reset 6a1b2c3d -y
+    reset [gist_id] [-y]
+                   :reset all Gists in account (if no gist_id) or reset specified Gist to a placeholder file.
+                   // Example: mod gist reset -y
+                   // Example: mod gist reset 6a1b2c3d
     audit          :audit storage usage, file types, large files (>8MB) and API rate limit.
                    // Example: mod gist audit
     rate           :check GitHub API rate limit status and reset time.
@@ -186,13 +189,27 @@ compress          :to compress project into a zip file.
                    :create a starter .compressignore file at specified path or folder ('.' for current directory).
                    // Example: mod compress init-ignore . "*.log, temp/, .env"
 
+## notify:
+     send "<msg>" [--title <t>] [--channel <c>] [--priority <p>] [--tags <t>] [--url <u>] [--topic <topic>]
+                    :send notification to specified channel (default channel: 'ntfy' on mobile app, default topic: 'any-mod-automation-N3RT8P2L').
+                    // Example: mod notify send "Build successful!" --title "CI/CD" --channel ntfy --tags tada
+                    // Example: mod notify send "Task completed" --channel telegram
+                    // Example: mod notify send "Alert message" --channel toast
+     test [--channel <c>] [--topic <topic>]
+                    :send a test ping notification to verify connection and configuration.
+                    // Example: mod notify test --channel ntfy
+     channels       :list supported notification channels and their configuration statuses.
+                    // Example: mod notify channels
+     config         :display environment configuration guide for notification channels (.env).
+                    // Example: mod notify config
+
 
 # Example:
 The command `mod open ws` will open the working workspaces in system folder.
-The command `mod compress` will compress current project to 'mod-{timestamp}.zip' in root folder.
-The command `mod file rename "D:/path" "tiktok"` will rename files with prefix "tiktok".
+The command `mod compress` will compress current project to "mod-{timestamp}.zip" in root folder.
+The command `mod compress folder --des` will explain how to use the command "mod compress folder".
 The command `mod git commit -m "update"` will execute git add, commit and push.
-The command `mod file delete "D:/path" "txt,jpg"` will delete files with specified extensions.
+The command `mod file delete "D:/path" "txt,jpg"` will delete files with specified extensions "txt" and "jpg".
 The command `mod gdrive list "mac_sync" -d` will list all folders recursively.
 The command `mod gdrive dl "https://example.com/file.zip"` will download file to current directory.
 ===========================================

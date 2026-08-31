@@ -87,6 +87,7 @@ d:\D-Documents\TOOLs\mod\
     │   └── notifications/              # Module gửi thông báo đa nền tảng
     │       ├── __init__.py             # Factory function `get_notifier(platform)`
     │       ├── base.py                 # Abstract Base Class: `BaseNotifier`
+    │       ├── ntfy_notifier.py        # Gửi thông báo tới app ntfy (Android/iOS/Web) qua REST API
     │       ├── toast_notifier.py       # Gửi Windows Toast qua BurntToast & phát âm thanh qua winmm API
     │       └── telegram_notifier.py    # Gửi tin nhắn qua Telegram Bot API (đọc token từ .env)
     ├── contents/                       # Dữ liệu tĩnh và tài liệu định dạng
@@ -103,7 +104,11 @@ d:\D-Documents\TOOLs\mod\
         │   ├── _print_feature_description.py # Parse app_features.yml khi có cờ --des
         │   ├── _print_root_folder.py   # In danh sách file/folder cấp 1 của một đường dẫn
         │   └── _statuses.py            # In nội dung statuses.txt
+        ├── notify/                     # Module gửi thông báo đa kênh (ntfy, telegram, toast...)
+        │   ├── __init__.py
+        │   └── notify_cli.py           # CLI wrapper xử lý mod notify send/test/channels/config
         ├── cloudflare/
+
         │   └── cloudflared_wrapper.py  # Mở quick tunnel Cloudflare, hiển thị public URL & mã QR ASCII
         ├── gist/                       # Module quản lý CRUD & kiểm toán dung lượng GitHub Gist
         │   ├── __init__.py             # Export GistManager, GistStorageAuditor
@@ -190,7 +195,8 @@ Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--des]`
 | `gist` | `get` | `<gist_id> [--raw <file>] [--save <dir>]` | Xem metadata Gist, in raw file hoặc lưu toàn bộ file về máy. |
 | `gist` | `update` | `<gist_id> [--add <name> <path>] [--delete <name>] [--desc <desc>]` | Cập nhật file và mô tả trong Gist đã có. |
 | `gist` | `delete` | `<gist_id> [-y]` | Xóa vĩnh viễn Gist (có bước hỏi xác nhận an toàn). |
-| `gist` | `reset` | `<gist_id> [--placeholder <name>] [--file <path>] [-y]` | Reset Gist: Xóa toàn bộ file hiện có và tạo placeholder tối thiểu. |
+| `gist` | `reset` | `[gist_id] [--placeholder <name>] [--file <path>] [-y]` | Reset Gist: Xóa sạch toàn bộ Gist của tài khoản (nếu không truyền gist_id) hoặc reset 1 Gist cụ thể. |
+
 | `gist` | `audit` | | Quét toàn bộ Gist, tính tổng dung lượng, phân loại đuôi file, cảnh báo file $\ge 8\text{MB}$ và kiểm tra Rate Limit. |
 
 | `gist` | `rate` | | Kiểm tra hạn mức và số lượt request GitHub API còn lại. |
@@ -210,6 +216,11 @@ Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--des]`
 | `compress` | *(không có)* | `[output_path]` | Nén toàn bộ dự án thành file `mod-{dd}-{mm}-{yyyy}-{hh}-{mm}-{ss}.zip` tại thư mục gốc dự án (hoặc output_path), áp dụng bộ lọc `.compressignore`. |
 | `compress` | `folder` | `<path> [--config-file C] [--ignore-file I]` | Nén thư mục cục bộ tự động đọc `.compressignore` hoặc theo JSON config. |
 | `compress` | `init-ignore` | `<path> ["rules..."]` | Khởi tạo file `.compressignore` mẫu tại đường dẫn chỉ định với các rule tùy chỉnh. |
+| `notify` | `send` | `"<msg>" [--title T] [--channel C] [--topic TP] [--priority P] [--tags TG] [--url U]` | Gửi thông báo đa kênh (mặc định ntfy app, topic: `any-mod-automation-N3RT8P2L`). |
+| `notify` | `test` | `[--channel C] [--topic TP]` | Gửi thông báo test ping để xác nhận kết nối kênh. |
+| `notify` | `channels` | | Liệt kê các kênh thông báo hỗ trợ và trạng thái cấu hình. |
+| `notify` | `config` | | Xem hướng dẫn cấu hình thiết bị / app ntfy và file `.env`. |
+
 
 
 | `edit` | `proms` | | Mở thư mục prompts của extension trong Notepad. |

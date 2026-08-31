@@ -19,9 +19,14 @@ mod_tool:
       description: "Liệt kê file thay vì folder (gdrive list) hoặc mở File Explorer (open). Dispatcher detect flag này cho type open."
     - flag: "--protocol"
       description: "Chỉ định protocol test proxy (http, socks5, v.v.). Mặc định là socks5. Dùng trong mod proxy test."
+    - flag: "--channel"
+      description: "Chỉ định kênh gửi thông báo (ntfy, telegram, toast...). Mặc định là ntfy. Dùng trong mod notify."
+    - flag: "--topic"
+      description: "Chỉ định topic cho kênh ntfy (mặc định: any-mod-automation-N3RT8P2L). Dùng trong mod notify."
 
   types:
     - name: "open"
+
       description: "Mở trong System Explorer"
       actions:
         - id: "ACTION 01"
@@ -475,11 +480,12 @@ mod_tool:
           conditions: "Yêu cầu <gist_id> hợp lệ và token có quyền delete."
 
         - id: "ACTION 55b"
-          title: "Reset GitHub Gist (Xóa toàn bộ file đang có)"
-          command: "mod gist reset <gist_id> [--placeholder <name>] [--file <path>] [--desc <desc>] [-y]"
-          summary: "Xóa toàn bộ các file hiện có trong Gist và tạo 1 file placeholder tối thiểu."
-          details: "Xóa sạch tất cả các file đang có trong Gist chỉ định và thay thế bằng 1 file placeholder (mặc định README.md hoặc truyền qua cờ `--placeholder` / `--file`). Luôn có bước xác nhận an toàn `[y/N]` trước khi reset, trừ khi truyền cờ `-y`."
-          conditions: "Yêu cầu <gist_id> hợp lệ và token có quyền write trên Gist đó."
+          title: "Reset GitHub Gist (Xóa toàn bộ Gist của tài khoản hoặc reset 1 Gist)"
+          command: "mod gist reset | mod gist reset [gist_id] [--placeholder <name>] [--file <path>] [--desc <desc>] [-y]"
+          summary: "Reset xóa sạch toàn bộ Gist trong tài khoản (nếu không truyền gist_id) hoặc reset 1 Gist chỉ định về file placeholder."
+          details: "Nếu không truyền <gist_id>, lệnh sẽ liệt kê và xóa toàn bộ các Gist hiện có trong tài khoản GitHub. Nếu truyền <gist_id>, lệnh sẽ xóa toàn bộ file trong Gist đó và thay bằng 1 file placeholder (mặc định README.md hoặc qua cờ `--placeholder` / `--file`). Luôn có bước xác nhận an toàn `[y/N]`, trừ khi truyền cờ `-y`."
+          conditions: "Yêu cầu GITHUB_GIST_TOKEN có quyền gists trong .env."
+
 
 
         - id: "ACTION 56"
@@ -496,11 +502,40 @@ mod_tool:
           details: "Gọi endpoint `https://api.github.com/rate_limit` để lấy tổng hạn mức, số lượt đã dùng, số lượt còn lại và thời điểm hạn mức được làm mới (UTC)."
           conditions: "Yêu cầu GITHUB_GIST_TOKEN trong .env."
 
+    - name: "notify"
+      description: "Gửi thông báo qua đa kênh (ntfy, Telegram, Toast...)"
+      actions:
+        - id: "ACTION 58"
+          title: "Gửi thông báo đa kênh"
+          command: "mod notify send <message> | mod notify send"
+          summary: "Gửi thông báo tới kênh chỉ định (mặc định ntfy app trên điện thoại)."
+          details: "Gửi thông báo với nội dung <message>. Hỗ trợ cờ `--title <t>` (tiêu đề), `--channel <c>` (chọn kênh: ntfy, telegram, toast), `--topic <topic>` (topic ntfy, mặc định 'any-mod-automation-N3RT8P2L'), `--priority <p>` (min, low, default, high, urgent), `--tags <t>` (tags/emoji), `--url <u>` (liên kết click)."
+          conditions: "Kênh ntfy không yêu cầu cấu hình thêm (trừ khi dùng private topic có token). Kênh telegram yêu cầu TELEGRAM_BOT_TOKEN và TELEGRAM_CHAT_ID trong .env."
 
+        - id: "ACTION 59"
+          title: "Gửi thông báo kiểm tra (Ping Test)"
+          command: "mod notify test"
+          summary: "Gửi thông báo mẫu để kiểm tra kết nối và cấu hình của kênh thông báo."
+          details: "Gửi một tin nhắn test có icon chuông tới kênh chỉ định (mặc định ntfy). Hỗ trợ cờ `--channel <c>` và `--topic <topic>`."
+          conditions: "Không có điều kiện đặc biệt."
 
+        - id: "ACTION 60"
+          title: "Liệt kê các kênh thông báo hỗ trợ"
+          command: "mod notify | mod notify channels"
+          summary: "Liệt kê danh sách các kênh thông báo hiện có kèm trạng thái cấu hình."
 
+          details: "In bảng trạng thái của ntfy, telegram, toast, hướng dẫn cờ `--channel` và chi tiết cấu hình."
+          conditions: "Không có điều kiện đặc biệt."
+
+        - id: "ACTION 61"
+          title: "Xem hướng dẫn cấu hình kênh thông báo"
+          command: "mod notify config"
+          summary: "In hướng dẫn thiết lập app ntfy trên điện thoại và biến môi trường .env cho Telegram."
+          details: "Hướng dẫn cách subscribe topic trên app ntfy (iOS/Android) và cách tạo bot Telegram qua BotFather."
+          conditions: "Không có điều kiện đặc biệt."
 
 config:
+
   ROOT_FOLDER_PATH: "Đường dẫn gốc của mod project."
   FEATURES_FOLDER_PATH: "Đường dẫn đến thư mục `features`."
   CONTENTS_FOLDER_PATH: "Đường dẫn đến thư mục `contents`."

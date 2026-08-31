@@ -36,7 +36,8 @@ GITHUB_REQUEST_TIMEOUT=15
 | `get` | `mod gist get <gist_id> [--raw <file>] [--save <dir>]` | Xem metadata, in raw file hoặc tải toàn bộ file về máy |
 | `update` | `mod gist update <gist_id> [--add <name> <path>] [--delete <name>] [--desc <desc>]` | Cập nhật file và mô tả trong Gist |
 | `delete` | `mod gist delete <gist_id> [-y]` | Xóa vĩnh viễn Gist (có xác nhận an toàn) |
-| `reset` | `mod gist reset <gist_id> [--placeholder <name>] [--file <path>] [-y]` | Xóa toàn bộ file đang có và tạo placeholder tối thiểu |
+| `reset` | `mod gist reset [gist_id] [-y]` | Reset toàn bộ Gist của tài khoản (hoặc reset 1 Gist chỉ định) |
+
 
 
 ---
@@ -171,13 +172,23 @@ mod gist delete <gist_id> -y
 
 ---
 
-### 3.8. Reset Gist - Xóa toàn bộ file đang có (`mod gist reset`)
-Xóa sạch tất cả các file hiện có trong Gist và tạo lại một file placeholder tối thiểu (vì GitHub Gist bắt buộc luôn phải chứa ít nhất 1 file):
+### 3.8. Reset Gist (`mod gist reset`)
+
+**Cách 1: Reset toàn bộ tài khoản (Xóa sạch tất cả các Gist):**
 ```powershell
-# Reset Gist về 1 file README.md mặc định (có xác nhận y/N)
+# Reset/xóa toàn bộ Gist của tài khoản (có danh sách và bước hỏi xác nhận y/N)
+mod gist reset
+
+# Reset/xóa toàn bộ Gist ngay lập tức không cần xác nhận
+mod gist reset -y
+```
+
+**Cách 2: Reset một Gist cụ thể về file placeholder:**
+```powershell
+# Reset 1 Gist về file README.md mặc định (có xác nhận y/N)
 mod gist reset <gist_id>
 
-# Reset ngay lập tức không cần xác nhận
+# Reset 1 Gist ngay lập tức không cần xác nhận
 mod gist reset <gist_id> -y
 
 # Đặt tên file placeholder tùy chỉnh
@@ -186,6 +197,7 @@ mod gist reset <gist_id> --placeholder ".gitkeep"
 # Reset và nạp nội dung từ 1 file cục bộ
 mod gist reset <gist_id> --file "d:/template.md" --desc "Gist đã được làm mới"
 ```
+
 
 ---
 

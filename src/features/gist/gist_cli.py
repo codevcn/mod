@@ -435,18 +435,18 @@ def handle_rate(manager: GistManager, args: List[str]):
 
 
 def handle_reset(manager: GistManager, args: List[str]):
-    """Xử lý lệnh: mod gist reset <gist_id> [--placeholder <name>] [--file <path>] [--desc <desc>] [-y]"""
-    if not args:
-        print_error("Thiếu tham số <gist_id>. Cú pháp: mod gist reset <gist_id> [--placeholder <name>] [--file <path>] [-y]")
-        sys.exit(1)
-
-    gist_id = args[0]
+    """
+    Xử lý lệnh: mod gist reset [gist_id] [--placeholder <name>] [--file <path>] [--desc <desc>] [-y]
+    - Nếu KHÔNG truyền gist_id: Reset toàn bộ tài khoản bằng cách xóa tất cả các Gist hiện có.
+    - Nếu CÓ truyền gist_id: Reset Gist chỉ định (xóa toàn bộ file cũ và giữ 1 file placeholder).
+    """
+    gist_id = None
     placeholder_name = "README.md"
     placeholder_content = None
     desc = None
     skip_confirm = False
 
-    i = 1
+    i = 0
     while i < len(args):
         arg = args[i]
         if arg in ("--placeholder", "-p") and i + 1 < len(args):
@@ -467,10 +467,56 @@ def handle_reset(manager: GistManager, args: List[str]):
         elif arg in ("-y", "--yes"):
             skip_confirm = True
             i += 1
+        elif not arg.startswith("-") and gist_id is None:
+            gist_id = arg
+            i += 1
         else:
             i += 1
 
-    # Lấy thông tin Gist để hiển thị xác nhận
+    # TRƯỜNG HỢP 1: Không truyền gist_id -> Reset toàn bộ Gists trong tài khoản
+    if not gist_id:
+        print_info("Đang kiểm tra danh sách Gist trong tài khoản...")
+        gists = manager.get_all_gists()
+        if not gists:
+            print_info("Tài khoản hiện không có Gist nào để reset.")
+            return
+
+        total_count = len(gists)
+        if not skip_confirm:
+            print_warning(
+                f"CẢNH BÁO: Bạn đang chuẩn bị RESET (XÓA TOÀN BỘ) {total_count} Gist trong tài khoản GitHub!\n"
+                f"  Thao tác này sẽ xóa vĩnh viễn tất cả các Gist khỏi tài khoản."
+            )
+            print(f"\nDanh sách {total_count} Gist sẽ bị xóa:")
+            for g in gists[:10]:
+                gid = g.get("id", "")
+                gdesc = g.get("description") or "(Không mô tả)"
+                fcount = len(g.get("files", {}))
+                print(f"  • ID: \033[93m{gid}\033[0m ({fcount} files) - {gdesc}")
+            if total_count > 10:
+                print(f"  ... và {total_count - 10} Gist khác.")
+            print()
+
+            confirm = input("\033[93mXác nhận XÓA TOÀN BỘ tất cả Gist? (y/N): \033[0m").strip().lower()
+            if confirm not in ("y", "yes"):
+                print_info("Đã hủy thao tác reset.")
+                return
+
+        print_info(f"Đang tiến hành xóa toàn bộ {total_count} Gist...")
+        success_count = 0
+        for g in gists:
+            gid = g.get("id", "")
+            try:
+                if manager.delete_gist(gid):
+                    success_count += 1
+                    print(f"  ✔ Đã xóa Gist: {gid}")
+            except Exception as e:
+                print_error(f"Lỗi khi xóa Gist {gid}: {e}")
+
+        print_success(f"Đã reset thành công! Đã xóa {success_count}/{total_count} Gist khỏi tài khoản GitHub.")
+        return
+
+    # TRƯỜNG HỢP 2: Có truyền gist_id cụ thể -> Reset Gist đó về 1 file placeholder
     print_info(f"Đang kiểm tra Gist '{gist_id}'...")
     gist = manager.get_gist(gist_id)
     files = gist.get("files", {})
@@ -482,7 +528,7 @@ def handle_reset(manager: GistManager, args: List[str]):
             f"  • Thao tác này sẽ XÓA VĨNH VIỄN {file_count} file hiện có: {', '.join(files.keys())}\n"
             f"  • Và khởi tạo lại với 1 file duy nhất: '{placeholder_name}'"
         )
-        confirm = input("\033[93mXác nhận thực hiện reset? (y/N): \033[0m").strip().lower()
+        confirm = input("\033[93mXác nhận thực hiện reset Gist này? (y/N): \033[0m").strip().lower()
         if confirm not in ("y", "yes"):
             print_info("Đã hủy thao tác reset.")
             return
@@ -504,6 +550,7 @@ def handle_reset(manager: GistManager, args: List[str]):
     print(f"  • Web URL   : \033[96m{result.get('html_url', '')}\033[0m")
     if raw_url:
         print(f"  • Raw URL   : \033[96m{raw_url}\033[0m")
+
 
 
 def main():

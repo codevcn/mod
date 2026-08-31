@@ -17,25 +17,29 @@ class TelegramNotifier(BaseNotifier):
         if not self.bot_token or not self.chat_id:
             print("Cảnh báo: TELEGRAM_BOT_TOKEN hoặc TELEGRAM_CHAT_ID chưa được cấu hình trong file .env")
 
-    def send_message(self, message: str) -> bool:
+    def send_message(self, message: str, title: str = None, **kwargs) -> bool:
         if not self.bot_token or not self.chat_id:
+            print("❌ Cảnh báo: TELEGRAM_BOT_TOKEN hoặc TELEGRAM_CHAT_ID chưa được cấu hình trong file .env")
             return False
+
+        full_text = f"<b>{title}</b>\n\n{message}" if title else message
 
         url = f"https://api.telegram.org/bot{self.bot_token}/sendMessage"
         payload = {
             "chat_id": self.chat_id,
-            "text": message,
+            "text": full_text,
             "parse_mode": "HTML"
         }
         
         try:
             response = requests.post(url, json=payload, timeout=10)
             if response.status_code == 200:
-                print("Đã gửi thông báo qua Telegram thành công!")
+                print("✅ Đã gửi thông báo qua Telegram thành công!")
                 return True
             else:
-                print(f"Lỗi khi gửi Telegram (HTTP {response.status_code}): {response.text}")
+                print(f"❌ Lỗi khi gửi Telegram (HTTP {response.status_code}): {response.text}")
                 return False
         except Exception as e:
-            print(f"Lỗi kết nối khi gửi Telegram: {e}")
+            print(f"❌ Lỗi kết nối khi gửi Telegram: {e}")
             return False
+

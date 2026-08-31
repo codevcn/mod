@@ -40,9 +40,16 @@ MOD_TYPE_SKILL = "skill"
 MOD_TYPE_TOAST = "toast"
 MOD_TYPE_COMPRESS = "compress"
 MOD_TYPE_GIST = "gist"
+MOD_TYPE_NOTIFY = "notify"
 
 
 # --- Actions ---
+# notify
+MOD_NOTIFY_SEND = "send"
+MOD_NOTIFY_TEST = "test"
+MOD_NOTIFY_CHANNELS = "channels"
+MOD_NOTIFY_CONFIG = "config"
+
 # gist
 MOD_GIST_CREATE = "create"
 MOD_GIST_LIST = "list"
@@ -607,7 +614,25 @@ def cmd_gist(action, remaining_args):
     sys.exit(result.returncode)
 
 
+def cmd_notify(action, remaining_args):
+    cmd_args = [
+        "python",
+        get_feature_path("notify", "notify_cli.py"),
+    ]
+    if action is not None:
+        cmd_args.append(action)
+    cmd_args.extend(remaining_args)
+
+    result = subprocess.run(
+        cmd_args,
+        check=False,
+    )
+    sys.exit(result.returncode)
+
+
+
 def dispatch_command(
+
     feature_args: list[str],
     des_flag: bool = False,
     antigravity_flag: bool = False,
@@ -697,7 +722,10 @@ def dispatch_command(
         cmd_skill(action_included, remaining_args)
     elif type_included == MOD_TYPE_TOAST:
         cmd_toast(action_included, remaining_args)
+    elif type_included == MOD_TYPE_NOTIFY:
+        cmd_notify(action_included, remaining_args)
     elif type_included == MOD_TYPE_CODE:
+
         valid_actions = [
             MOD_CODE_VSCODE_WORKSPACE, MOD_CODE_TEST, MOD_CODE_TYPESCRIPT_TEMPLATE,
             MOD_CODE_JS, MOD_CODE_TS, MOD_CODE_NESTJS, MOD_CODE_PY, MOD_CODE_EXTENSIONS

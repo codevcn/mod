@@ -39,6 +39,7 @@ TYPE_ACTION_MAP = {
 
     "init": [],
     "mcp": ["set"],
+    "notify": ["channels", "config", "send", "test"],
     "open": ["env", "proms", "ws"],
     "print": ["cmds", "curl", "dir", "os", "stts", "ws"],
     "proxy": ["test"],
@@ -60,7 +61,7 @@ TYPE_DESCRIPTIONS = {
     "gdrive": "Quản lý và đồng bộ Google Drive qua rclone",
     "gist": "Quản lý CRUD và kiểm toán dung lượng GitHub Gist",
     "edit": "Mở và chỉnh sửa nhanh cấu hình hoặc profile PowerShell",
-
+    "notify": "Gửi thông báo qua các kênh ntfy (mặc định), Telegram, Toast...",
     "print": "In thông tin cấu hình hệ thống, cURL, status, lệnh hữu ích",
     "tunnel": "Mở Cloudflare Quick Tunnel cho cổng cục bộ",
     "proxy": "Kiểm tra kết nối và tính hợp lệ của proxy",
@@ -70,6 +71,7 @@ TYPE_DESCRIPTIONS = {
     "py": "Thiết lập môi trường ảo Python (venv) cho dự án",
     "init": "Dọn dẹp các tiến trình Windows chạy ngầm và khởi động Unikey",
 }
+
 
 SORTED_TYPES = sorted(TYPE_ACTION_MAP.keys())
 

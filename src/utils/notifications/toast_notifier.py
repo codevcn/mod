@@ -120,5 +120,8 @@ class ToastNotifier(BaseNotifier):
     def __init__(self, default_title: str = "Mod CLI Notification"):
         self.default_title = default_title
 
-    def send_message(self, message: str) -> bool:
-        return send_toast(self.default_title, message)
+    def send_message(self, message: str, title: str = None, **kwargs) -> bool:
+        used_title = title or self.default_title
+        audio_path = kwargs.get("audio_path", TOAST_SOUND_AUDIO_FILE_PATH)
+        return send_toast(used_title, message, audio_path=audio_path)
+
