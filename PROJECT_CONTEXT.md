@@ -26,7 +26,7 @@ mod.cmd  (Wrapper cực mỏng: @py "%~dp0src\main.py" %*)
     ▼
 src/main.py (Central Dispatcher)
     ├── Manual parsing sys.argv (Không dùng argparse ở dispatcher)
-    ├── Tách Dispatcher Flags (--info, -a / --antigravity-IDE)
+    ├── Tách Dispatcher Flags (--version / -v, --info / --des, -a / --antigravity-IDE)
     ├── Xác định type & action
     ├── Gom toàn bộ tham số còn lại (remaining_args)
     └── Gọi Handler tương ứng
@@ -81,7 +81,8 @@ d:\D-Documents\TOOLs\mod\
     │   └── init.cmd                    # Batch script dọn dẹp task thừa trên Windows & bật Unikey
     ├── configs/
     │   ├── __init__.py
-    │   └── paths.py                    # Cấu hình đường dẫn nội bộ (dynamic) & bên ngoài (appdata, template...)
+    │   ├── paths.py                    # Cấu hình đường dẫn nội bộ (dynamic) & bên ngoài (appdata, template...)
+    │   └── version.py                  # Quản lý phiên bản chuẩn hóa (v0.1.0) & metadata của Mod CLI
     ├── utils/
     │   ├── errors.py                   # Hệ thống Exception & xử lý lỗi tập trung ANSI color
     │   ├── interactive_cli.py          # Giao diện tổng quan Types và xử lý Tab Autocomplete cho Type/Action
@@ -154,13 +155,15 @@ d:\D-Documents\TOOLs\mod\
 Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--info]`
 
 ### 4.1. Dispatcher Flags
-- `--info`: In mô tả chi tiết của lệnh lấy từ `src/contents/app_features.yml`.
+- `-v` hoặc `--version`: In thông tin phiên bản chính thức (v0.1.0) và mô tả ngắn bằng tiếng Anh.
+- `--info` (hoặc `--des`): In mô tả chi tiết của lệnh lấy từ `src/contents/app_features.yml`.
 - `-a` hoặc `--antigravity-IDE`: Dùng IDE command `anti` thay vì `code` (VSCode).
 
 ### 4.2. Danh Sách Lệnh Chi Tiết Theo `type`
 
 | Type | Action | Tham số / Flag đi kèm | Mô tả chức năng |
 | :--- | :--- | :--- | :--- |
+| *(root)* | `version` / `-v` / `--version` | | In thông tin phiên bản (v0.1.0) và mô tả công cụ bằng tiếng Anh. |
 | `open` | *(không có)* | `[-f]` | Mở thư mục gốc project trong IDE. Thêm `-f` để mở trong Windows Explorer. |
 | `open` | `ws` | | Mở thư mục chứa các workspace (`D:/D-Documents/VSCode-Workspaces`). |
 | `open` | `env` | | Mở bảng quản lý biến môi trường Windows (`rundll32 sysdm.cpl`). |

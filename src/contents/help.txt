@@ -12,8 +12,9 @@ Mọi args sau <action> được forward nguyên vẹn cho feature script tự x
 
 # Dispatcher flags:
 -h, --help        :print this help.
+-v, --version     :print version info (v0.1.0) and short description in English.
 -a                :using Antigravity IDE instead of VSCode.
---info            :print description of typing commands.
+--info, --des     :print description of typing commands.
 
 # Feature-level flags (truyền sau action, do feature tự xử lý):
 -m, --message     :input message for external script (git commit).

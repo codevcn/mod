@@ -82,7 +82,8 @@ Dispatcher chỉ xử lý 2 flag riêng. Mọi args sau `action` được forwar
 
 | Flag                      | Mô tả                                                         |
 | ------------------------- | ------------------------------------------------------------- |
-| `--info`                  | In mô tả chi tiết command từ `src/contents/app_features.yml`. |
+| `-v`, `--version`         | In thông tin phiên bản (v0.1.0) và mô tả ngắn bằng tiếng Anh. |
+| `--info`, `--des`         | In mô tả chi tiết command từ `src/contents/app_features.yml`. |
 | `-a`, `--antigravity-IDE` | Dùng IDE command `anti` thay cho `code`.                      |
 
 ### Feature-level Flags (truyền sau action, do feature tự xử lý)

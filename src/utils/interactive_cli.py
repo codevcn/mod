@@ -15,6 +15,7 @@ if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 from configs.paths import PROJECT_ROOT, MOD_HISTORY_FILE_PATH
+from configs.version import get_version_info
 
 class Colors:
     RESET = "\033[0m"
@@ -382,7 +383,8 @@ def autocomplete_input(prompt: str, history: list[str]) -> Optional[str]:
 
 def run_interactive_session(
     dispatch_callback: Callable[[list[str], bool, bool], None],
-    print_help_callback: Callable[[], None]
+    print_help_callback: Callable[[], None],
+    print_version_callback: Optional[Callable[[], None]] = None
 ):
     """
     Vòng lặp tương tác chính khi user chạy lệnh `mod` không có tham số.
@@ -410,6 +412,17 @@ def run_interactive_session(
         if user_input.lower() in ("exit", "q", "quit"):
             print(f"{Colors.GRAY}Đã thoát phiên tương tác.{Colors.RESET}")
             return
+
+        if user_input.lower() in ("-v", "--version", "version"):
+            if print_version_callback:
+                try:
+                    print_version_callback()
+                except SystemExit:
+                    pass
+            else:
+                print(get_version_info())
+            print()
+            continue
 
         if user_input.lower() in ("h", "help", "--help", "-h"):
             try:

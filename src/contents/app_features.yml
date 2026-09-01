@@ -1,7 +1,9 @@
 mod_tool:
   # Dispatcher chỉ xử lý 2 flag, mọi args sau action được forward cho feature.
   dispatcher_flags:
-    - flag: "--info"
+    - flag: "-v / --version"
+      description: "In thông tin phiên bản (v0.1.0) và mô tả công cụ bằng tiếng Anh."
+    - flag: "--info / --des"
       description: "In mô tả chi tiết command từ app_features.yml."
     - flag: "-a / --antigravity-IDE"
       description: "Dùng Antigravity IDE thay vì VSCode."
@@ -285,6 +287,12 @@ mod_tool:
           summary: "In hướng dẫn sử dụng mod tool."
           details: "Đọc và in file `contents/help.txt`."
           conditions: "File `contents/help.txt` phải tồn tại."
+        - id: "ACTION 29b"
+          title: "In thông tin phiên bản (Version)"
+          command: "mod -v | mod --version | mod version"
+          summary: "In ra thông tin phiên bản chính thức (v0.1.0) và mô tả ngắn cho Mod CLI bằng tiếng Anh."
+          details: "Đọc cấu hình từ `src/configs/version.py` và in ra chuỗi định dạng version."
+          conditions: "Không có điều kiện đặc biệt."
 
     - name: "gdrive"
       description: "Thao tác với Google Drive qua rclone"

@@ -3,6 +3,7 @@ import subprocess
 import sys
 from pathlib import Path
 from configs.paths import PROJECT_ROOT, FEATURES_FOLDER, TEMPLATE_REPLACER_FOLDER
+from configs.version import get_version_info
 from utils.errors import (
     handle_cli_error,
     InvalidTypeError,
@@ -233,6 +234,11 @@ def print_statuses_info():
 
 def print_help():
     print_content("help.txt")
+
+
+def print_version():
+    print(get_version_info())
+    sys.exit(0)
 
 
 def print_cURL():
@@ -893,12 +899,16 @@ if __name__ == "__main__":
             else:
                 feature_args.append(arg)
 
+        # --- Version: mod -v | mod --version | mod version ---
+        if any(arg in ("-v", "--version") for arg in raw_args) or (feature_args and feature_args[0] == "version"):
+            print_version()
+
         # --- Khi user gõ `mod` không có tham số: chạy phiên tương tác ---
         if not feature_args:
             if info_flag:
                 print_feature_description(None, None)
             else:
-                run_interactive_session(dispatch_command, print_help)
+                run_interactive_session(dispatch_command, print_help, print_version)
             sys.exit(0)
 
         type_included = feature_args[0]
