@@ -5,15 +5,15 @@
 # Help for mod command:
 
 # Usage:
-mod <type> <action> [args...] [-a] [--des]
+mod <type> <action> [args...] [-a] [--info]
 
-Dispatcher chỉ xử lý 2 flag: --des và -a.
+Dispatcher chỉ xử lý 2 flag: --info và -a.
 Mọi args sau <action> được forward nguyên vẹn cho feature script tự xử lý.
 
 # Dispatcher flags:
 -h, --help        :print this help.
 -a                :using Antigravity IDE instead of VSCode.
---des             :print description of typing commands.
+--info            :print description of typing commands.
 
 # Feature-level flags (truyền sau action, do feature tự xử lý):
 -m, --message     :input message for external script (git commit).
@@ -207,7 +207,7 @@ notify            :to send multi-channel notifications (ntfy, telegram, toast).
 # Example:
 The command `mod open ws` will open the working workspaces in system folder.
 The command `mod compress` will compress current project to "mod-{timestamp}.zip" in root folder.
-The command `mod compress folder --des` will explain how to use the command "mod compress folder".
+The command `mod compress folder --info` will explain how to use the command "mod compress folder".
 The command `mod git commit -m "update"` will execute git add, commit and push.
 The command `mod file delete "D:/path" "txt,jpg"` will delete files with specified extensions "txt" and "jpg".
 The command `mod gdrive list "mac_sync" -d` will list all folders recursively.

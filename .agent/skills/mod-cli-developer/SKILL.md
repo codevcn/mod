@@ -14,7 +14,7 @@ Tài liệu này là **Quy chuẩn tác nghiệp chuẩn (SOP)** dành cho AI Ag
 ## 1. Kiến Trúc & Các Nguyên Tắc Bất Di Bất Dịch
 
 ```text
-User: mod <type> <action> [args...] [-a] [--des]
+User: mod <type> <action> [args...] [-a] [--info]
   │
   ├── mod.cmd (Wrapper mỏng) ──► src/main.py (Central Dispatcher)
   │                                    │
@@ -30,7 +30,7 @@ User: mod <type> <action> [args...] [-a] [--des]
 
 ### 3 Nguyên Tắc Cốt Lõi:
 1. **Phân định cờ (Flag Separation):** 
-   - Central Dispatcher (`src/main.py`) **CHỈ xử lý 2 cờ toàn cục**: `--des` (in mô tả YAML) và `-a` / `--antigravity-IDE` (chọn IDE).
+   - Central Dispatcher (`src/main.py`) **CHỈ xử lý 2 cờ toàn cục**: `--info` (in mô tả YAML) và `-a` / `--antigravity-IDE` (chọn IDE).
    - Mọi cờ tính năng khác (`-m`, `-p`, `-d`, `-f`, `--audio`, `--protocol`...) **BẮT BUỘC** do script trong `src/features/` tự parse từ `remaining_args`.
 2. **Không hardcode đường dẫn:** Mọi đường dẫn thư mục/tập tin phải lấy từ [`src/configs/paths.py`](file:///d:/D-Documents/TOOLs/mod/src/configs/paths.py).
 3. **Mã hóa UTF-8 Console:** Luôn đặt `PYTHONIOENCODING=utf-8` và `sys.stdout.reconfigure(encoding='utf-8')` ở đầu các script để tránh lỗi vỡ font tiếng Việt trên Windows.
@@ -61,11 +61,11 @@ Khi nhận yêu cầu thêm lệnh mới (ví dụ: `mod <type> <action>`):
 
 ### Bước 4: Đồng bộ tài liệu 3 lớp
 - [`src/contents/help.txt`](file:///d:/D-Documents/TOOLs/mod/src/contents/help.txt): Bổ sung mục type, action và ví dụ chạy lệnh.
-- [`src/contents/app_features.yml`](file:///d:/D-Documents/TOOLs/mod/src/contents/app_features.yml): Bổ sung action ID, title, command, summary, details, conditions để phục vụ cờ `--des`.
+- [`src/contents/app_features.yml`](file:///d:/D-Documents/TOOLs/mod/src/contents/app_features.yml): Bổ sung action ID, title, command, summary, details, conditions để phục vụ cờ `--info`.
 - [`PROJECT_CONTEXT.md`](file:///d:/D-Documents/TOOLs/mod/PROJECT_CONTEXT.md): Cập nhật cây thư mục và Bảng tra cứu lệnh tại Mục 4.2.
 
 ### Bước 5: Kiểm thử bắt buộc (Verification)
-- `python src/main.py <type> <action> --des` $\rightarrow$ Phải in ra đúng mô tả YAML.
+- `python src/main.py <type> <action> --info` $\rightarrow$ Phải in ra đúng mô tả YAML.
 - Test Tab Autocomplete qua Python runtime.
 - Test thực thi lệnh trực tiếp.
 
@@ -82,7 +82,7 @@ Khi chỉnh sửa một tính năng đã tồn tại:
    - Cập nhật nội dung giải thích và ví dụ trong `src/contents/help.txt`.
    - Cập nhật `command`, `summary`, `details` trong `src/contents/app_features.yml`.
    - Cập nhật lại dòng mô tả trong `PROJECT_CONTEXT.md`.
-3. **Kiểm thử lại:** Chạy lệnh `--des` và lệnh thực thi để đảm bảo không gãy tương thích.
+3. **Kiểm thử lại:** Chạy lệnh `--info` và lệnh thực thi để đảm bảo không gãy tương thích.
 
 ---
 
@@ -115,5 +115,5 @@ Khi xóa bỏ hoàn toàn một lệnh hoặc một nhóm lệnh:
 | `src/utils/errors.py` | Central Exceptions | Thêm/xóa nhóm Type |
 | `src/utils/interactive_cli.py` | UI & Tab Autocomplete | Thêm/sửa/xóa Type hoặc Action |
 | `src/contents/help.txt` | Text Help | Thêm/sửa/xóa Type hoặc Action |
-| `src/contents/app_features.yml` | Catalog cho cờ `--des` | Thêm/sửa/xóa Type hoặc Action |
+| `src/contents/app_features.yml` | Catalog cho cờ `--info` | Thêm/sửa/xóa Type hoặc Action |
 | `PROJECT_CONTEXT.md` | Tài liệu ngữ cảnh cho AI | Luôn luôn cập nhật đồng bộ sau mọi thay đổi |

@@ -16,10 +16,10 @@
   - [ ] Cập nhật `TYPE_ACTION_MAP` (sắp xếp A-Z) và `TYPE_DESCRIPTIONS` trong `src/utils/interactive_cli.py`.
 - [ ] **Đồng bộ tài liệu 3 lớp**:
   - [ ] `src/contents/help.txt`.
-  - [ ] `src/contents/app_features.yml` (chuẩn bị cho cờ `--des`).
+  - [ ] `src/contents/app_features.yml` (chuẩn bị cho cờ `--info`).
   - [ ] `PROJECT_CONTEXT.md`.
 - [ ] **Kiểm thử nghiệm thu**:
-  - [ ] `python src/main.py <type> <action> --des`
+  - [ ] `python src/main.py <type> <action> --info`
   - [ ] Test Tab Autocomplete
   - [ ] Chạy lệnh trực tiếp
 
@@ -31,7 +31,7 @@
 - [ ] Cập nhật mô tả trong `src/contents/help.txt`.
 - [ ] Cập nhật trường `command`, `summary`, `details` trong `src/contents/app_features.yml`.
 - [ ] Cập nhật bảng tra cứu lệnh trong `PROJECT_CONTEXT.md`.
-- [ ] Chạy lệnh kiểm thử `--des` và lệnh thực thi.
+- [ ] Chạy lệnh kiểm thử `--info` và lệnh thực thi.
 
 ---
 

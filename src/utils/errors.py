@@ -56,7 +56,7 @@ class InvalidActionError(ModCLIError):
         super().__init__(
             title=f"Sai action '{action_name}' trong nhóm '{type_name}'",
             reason=f"Action '{action_name}' không hợp lệ hoặc chưa được hỗ trợ trong nhóm lệnh `{type_name}`.",
-            suggestion=f"{actions_hint}Gõ `mod {type_name} <action> --des` hoặc `mod --help` để xem chi tiết."
+            suggestion=f"{actions_hint}Gõ `mod {type_name} <action> --info` hoặc `mod --help` để xem chi tiết."
         )
 
 class MissingActionError(ModCLIError):

@@ -18,7 +18,7 @@
 Dự án áp dụng mô hình **Dispatcher - Feature Script Pattern**:
 
 ```text
-User Input: mod <type> <action> [args...] [-a] [--des]
+User Input: mod <type> <action> [args...] [-a] [--info]
     │
     ▼
 mod.cmd  (Wrapper cực mỏng: @py "%~dp0src\main.py" %*)
@@ -26,7 +26,7 @@ mod.cmd  (Wrapper cực mỏng: @py "%~dp0src\main.py" %*)
     ▼
 src/main.py (Central Dispatcher)
     ├── Manual parsing sys.argv (Không dùng argparse ở dispatcher)
-    ├── Tách Dispatcher Flags (--des, -a / --antigravity-IDE)
+    ├── Tách Dispatcher Flags (--info, -a / --antigravity-IDE)
     ├── Xác định type & action
     ├── Gom toàn bộ tham số còn lại (remaining_args)
     └── Gọi Handler tương ứng
@@ -72,7 +72,8 @@ d:\D-Documents\TOOLs\mod\
 │       └── burnttoast-notification-sound.mp3 # File âm thanh thông báo mặc định cho Toast Notifier
 ├── doc/
 │   ├── add-sound-notifier.md          # Tài liệu hướng dẫn cấu hình âm thanh BurntToast
-│   └── autocomplete.md                # Tài liệu mô tả chi tiết tính năng Auto-complete & REPL
+│   ├── autocomplete.md                # Tài liệu mô tả chi tiết tính năng Auto-complete & REPL
+│   └── info-flag-guide.md             # Hướng dẫn toàn diện kiến trúc và triển khai cờ --info
 
 └── src/
     ├── main.py                         # Central Dispatcher (Định tuyến lệnh trung tâm)
@@ -91,7 +92,7 @@ d:\D-Documents\TOOLs\mod\
     │       ├── toast_notifier.py       # Gửi Windows Toast qua BurntToast & phát âm thanh qua winmm API
     │       └── telegram_notifier.py    # Gửi tin nhắn qua Telegram Bot API (đọc token từ .env)
     ├── contents/                       # Dữ liệu tĩnh và tài liệu định dạng
-    │   ├── app_features.yml            # Catalog chi tiết cho lệnh `mod <type> <action> --des`
+    │   ├── app_features.yml            # Catalog chi tiết cho lệnh `mod <type> <action> --info`
     │   ├── help.txt                    # Nội dung help khi chạy `mod` hoặc `mod -h`
     │   ├── list_useful_commands.txt    # Danh sách các câu lệnh hệ điều hành / server hay dùng
     │   ├── statuses.txt                # Bảng giải thích các mã trạng thái mod-status
@@ -101,7 +102,7 @@ d:\D-Documents\TOOLs\mod\
         ├── system/                     # Script nội bộ phục vụ CLI framework
         │   ├── _git.py                 # Tự động add, commit và push lên remote repo
         │   ├── _print_content.py       # Đọc và in file trong src/contents/
-        │   ├── _print_feature_description.py # Parse app_features.yml khi có cờ --des
+        │   ├── _print_feature_description.py # Parse app_features.yml khi có cờ --info
         │   ├── _print_root_folder.py   # In danh sách file/folder cấp 1 của một đường dẫn
         │   └── _statuses.py            # In nội dung statuses.txt
         ├── notify/                     # Module gửi thông báo đa kênh (ntfy, telegram, toast...)
@@ -112,7 +113,7 @@ d:\D-Documents\TOOLs\mod\
         │   └── cloudflared_wrapper.py  # Mở quick tunnel Cloudflare, hiển thị public URL & mã QR ASCII
         ├── gist/                       # Module quản lý CRUD & kiểm toán dung lượng GitHub Gist
         │   ├── __init__.py             # Export GistManager, GistStorageAuditor
-        │   ├── README.md               # Tài liệu hướng dẫn sử dụng chi tiết (in qua mod gist --des)
+        │   ├── README.md               # Tài liệu hướng dẫn sử dụng chi tiết (in qua mod gist --info)
         │   ├── gist_manager.py         # Thực thi CRUD Gist qua GitHub REST API v3
         │   ├── gist_auditor.py         # Kiểm toán dung lượng, phát hiện file lớn & rate limit
         │   └── gist_cli.py             # CLI wrapper cho toàn bộ thao tác mod gist
@@ -150,10 +151,10 @@ d:\D-Documents\TOOLs\mod\
 
 ## 4. Bảng Tra Cứu Toàn Bộ Lệnh (CLI Reference Table)
 
-Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--des]`
+Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--info]`
 
 ### 4.1. Dispatcher Flags
-- `--des`: In mô tả chi tiết của lệnh lấy từ `src/contents/app_features.yml`.
+- `--info`: In mô tả chi tiết của lệnh lấy từ `src/contents/app_features.yml`.
 - `-a` hoặc `--antigravity-IDE`: Dùng IDE command `anti` thay vì `code` (VSCode).
 
 ### 4.2. Danh Sách Lệnh Chi Tiết Theo `type`
@@ -303,7 +304,7 @@ Khi cần bổ sung một lệnh mới vào `mod CLI`, làm theo đúng 5 bướ
 4. **Cập nhật tài liệu tóm tắt trong `src/contents/help.txt`:**
    - Thêm action vào nhóm tương ứng kèm ví dụ lệnh.
 5. **Cập nhật catalog chi tiết trong `src/contents/app_features.yml`:**
-   - Thêm block `id`, `title`, `command`, `summary`, `details`, `conditions` để hỗ trợ cờ `--des`.
+   - Thêm block `id`, `title`, `command`, `summary`, `details`, `conditions` để hỗ trợ cờ `--info`.
 
 ---
 

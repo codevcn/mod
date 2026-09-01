@@ -34,7 +34,7 @@ CLI entry point
 src/main.py
   |
   +-- manual parse sys.argv
-  +-- tách dispatcher flags (--des, -a)
+  +-- tách dispatcher flags (--info, -a)
   +-- xác định type / action
   +-- gom remaining args
   +-- dispatch by type/action
@@ -100,7 +100,7 @@ Không nên đặt logic nghiệp vụ trong wrapper.
 
 Dispatcher chỉ xử lý 2 flag riêng:
 
-- `--des`: in mô tả tính năng từ `app_features.yml`.
+- `--info`: in mô tả tính năng từ `app_features.yml`.
 - `-a` / `--antigravity-IDE`: chọn IDE prefix.
 
 Mọi args sau `action` được gom vào `remaining_args` và forward nguyên vẹn cho feature script.
@@ -108,7 +108,7 @@ Mọi args sau `action` được gom vào `remaining_args` và forward nguyên v
 Mẫu command grammar:
 
 ```text
-<tool> <type> <action> [args...] [--des] [-a]
+<tool> <type> <action> [args...] [--info] [-a]
 ```
 
 Ví dụ generic:
@@ -117,7 +117,7 @@ Ví dụ generic:
 tool print help
 tool run rename-files "path/to/folder" "prefix"
 tool git commit -m "update feature"
-tool feature action --des
+tool feature action --info
 tool -a code ws ptb -p
 ```
 
@@ -213,7 +213,7 @@ Mẫu dispatcher flags:
 
 ```python
 # Dispatcher flags (xử lý bởi main.py)
-APP_FLAG_DESCRIPTION = "--des"
+APP_FLAG_DESCRIPTION = "--info"
 APP_FLAG_ANTIGRAVITY = "-a"
 ```
 
@@ -395,13 +395,13 @@ Cấu trúc đề xuất:
 # Help for <tool-name>
 
 # Usage:
-<tool> <type> <action> [args...] [-a] [--des]
+<tool> <type> <action> [args...] [-a] [--info]
 
-Dispatcher chỉ xử lý 2 flag: --des và -a.
+Dispatcher chỉ xử lý 2 flag: --info và -a.
 Mọi args sau <action> được forward cho feature script.
 
 # Dispatcher flags:
---des
+--info
 -a
 
 # Feature-level flags (truyền sau action):
@@ -427,7 +427,7 @@ git
 # Examples:
 <tool> run rename-files "path/to/folder" "prefix"
 <tool> git commit -m "update"
-<tool> feature action --des
+<tool> feature action --info
 ```
 
 Quy ước cập nhật:
@@ -442,7 +442,7 @@ Quy ước cập nhật:
 
 ## 8. Dùng `app_features.yml` để mô tả toàn bộ tính năng
 
-`src/contents/app_features.yml` là catalog có cấu trúc cho toàn bộ tính năng. File này phục vụ lệnh kiểu `--des`, giúp in mô tả chi tiết cho một command cụ thể.
+`src/contents/app_features.yml` là catalog có cấu trúc cho toàn bộ tính năng. File này phục vụ lệnh kiểu `--info`, giúp in mô tả chi tiết cho một command cụ thể.
 
 Mục tiêu của `app_features.yml`:
 
@@ -499,7 +499,7 @@ Quy ước nội dung:
 | File               | Dành cho                             | Mức chi tiết | Cách dùng                               |
 | ------------------ | ------------------------------------ | ------------ | --------------------------------------- |
 | `help.txt`         | Người dùng cần nhớ lệnh nhanh        | Ngắn         | In khi gọi help hoặc không truyền lệnh. |
-| `app_features.yml` | Người dùng cần hiểu kỹ một tính năng | Chi tiết     | Parse và in khi dùng `--des`.           |
+| `app_features.yml` | Người dùng cần hiểu kỹ một tính năng | Chi tiết     | Parse và in khi dùng `--info`.          |
 
 Khi thêm tính năng mới, cập nhật theo thứ tự:
 
@@ -508,7 +508,7 @@ Khi thêm tính năng mới, cập nhật theo thứ tự:
 3. Thêm script con nếu cần.
 4. Thêm mô tả ngắn vào `help.txt`.
 5. Thêm mô tả đầy đủ vào `app_features.yml`.
-6. Chạy command `--des` để kiểm tra mô tả được parse đúng.
+6. Chạy command `--info` để kiểm tra mô tả được parse đúng.
 
 ---
 
@@ -552,7 +552,7 @@ elif action_included == APP_RUN_COMPRESS_FILES:
 
 ```bash
 tool run compress-files "path/to/folder"
-tool run compress-files --des
+tool run compress-files --info
 ```
 
 ---

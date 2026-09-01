@@ -270,13 +270,13 @@ def run_interactive_session(dispatch_callback: Callable[[list[str], bool, bool],
             continue
 
         # Tách dispatcher flags
-        des_flag = False
+        info_flag = False
         antigravity_flag = False
         feature_args = []
 
         for arg in args:
-            if arg == "--des":
-                des_flag = True
+            if arg == "--info":
+                info_flag = True
             elif arg in ("-a", "--antigravity-IDE"):
                 antigravity_flag = True
             else:
@@ -284,7 +284,7 @@ def run_interactive_session(dispatch_callback: Callable[[list[str], bool, bool],
 
         print()
         try:
-            dispatch_callback(feature_args, des_flag, antigravity_flag)
+            dispatch_callback(feature_args, info_flag, antigravity_flag)
         except SystemExit:
             # Khi subprocess hoặc lệnh con gọi sys.exit(0), quay lại prompt tiếp tục session
             pass

@@ -23,7 +23,7 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 from configs.paths import PROJECT_ROOT
-from utils.errors import ModCLIError, handle_cli_error
+from utils.errors import ModCLIError, handle_cli_error, MissingActionError, InvalidActionError
 from utils.notifications import (
     get_notifier,
     get_channel_statuses,
@@ -263,9 +263,10 @@ def handle_test(args: list[str]):
 def main():
     try:
         args = sys.argv[1:]
+        valid_actions = ["channels", "config", "send", "test"]
+
         if not args:
-            handle_channels()
-            sys.exit(0)
+            raise MissingActionError("notify", valid_actions)
 
         action = args[0].lower()
         remaining = args[1:]
@@ -284,16 +285,7 @@ def main():
         elif action in ("test", "ping"):
             handle_test(remaining)
         else:
-            # Nếu user gõ trực tiếp `mod notify "nội dung"` mà không gõ action `send`, tự hiểu là send
-            if not action.startswith("-"):
-                handle_send(args)
-            else:
-                valid_actions = ["send", "test", "channels", "config"]
-                raise ModCLIError(
-                    title=f"Action không hợp lệ: '{action}'",
-                    reason=f"Action '{action}' không nằm trong danh sách action của `mod notify`.",
-                    suggestion=f"Các action hợp lệ: {', '.join(f'`{a}`' for a in valid_actions)}.\n💡 Gõ `mod notify --des` để xem chi tiết."
-                )
+            raise InvalidActionError("notify", action, valid_actions)
 
     except Exception as e:
         handle_cli_error(e)

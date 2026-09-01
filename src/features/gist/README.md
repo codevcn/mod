@@ -201,20 +201,20 @@ mod gist reset <gist_id> --file "d:/template.md" --desc "Gist đã được làm
 
 ---
 
-### 3.9. Xem mô tả chi tiết của từng lệnh (`--des`)
-Bạn có thể thêm cờ `--des` vào sau bất kỳ lệnh nào để xem tóm tắt, giải thích tham số và điều kiện thực thi:
+### 3.9. Xem mô tả chi tiết của từng lệnh (`--info`)
+Bạn có thể thêm cờ `--info` vào sau bất kỳ lệnh nào để xem tóm tắt, giải thích tham số và điều kiện thực thi:
 ```powershell
 # Xem toàn bộ tài liệu hướng dẫn này
-mod gist --des
+mod gist --info
 
 # Xem chi tiết lệnh audit
-mod gist audit --des
+mod gist audit --info
 
 # Xem chi tiết lệnh reset
-mod gist reset --des
+mod gist reset --info
 
 # Xem chi tiết lệnh create
-mod gist create --des
+mod gist create --info
 ```
 
 

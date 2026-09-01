@@ -124,7 +124,7 @@ graph TD
 2. **`TYPE_DESCRIPTIONS` (dict)**: Tóm tắt 1 dòng mục đích sử dụng cho từng `Type`.
 3. **`get_tab_completion()`**: Hàm thuần logic tính toán chuỗi gợi ý tiếp theo dựa trên buffer hiện tại, trạng thái tab trước đó (`last_was_tab`) và chỉ số xoay vòng (`cycle_idx`).
 4. **`autocomplete_input()`**: Hàm bắt sự kiện bàn phím mức thấp trên Windows (`msvcrt`), điều khiển buffer và cập nhật giao diện console.
-5. **`run_interactive_session()`**: REPL controller quản lý vòng đời phiên làm việc, phân tách lệnh bằng `shlex`, bắt cờ `--des`, `-a` và bắt lỗi không làm sập session.
+5. **`run_interactive_session()`**: REPL controller quản lý vòng đời phiên làm việc, phân tách lệnh bằng `shlex`, bắt cờ `--info`, `-a` và bắt lỗi không làm sập session.
 
 ---
 
@@ -196,7 +196,7 @@ Khi đang ở trong phiên làm việc tương tác `mod > `, bạn có thể s�
 | `h` hoặc `help` | Hiển thị toàn bộ tài liệu trợ giúp chi tiết (`help.txt`). |
 | `type`, `types`, `list`, `ls` | In lại bảng tổng quan danh mục Type và Action. |
 | `q`, `quit`, `exit` | Thoát khỏi phiên làm việc tương tác. |
-| `<cmd> --des` | Xem mô tả chi tiết, cú pháp và điều kiện thực thi của lệnh đó. |
+| `<cmd> --info` | Xem mô tả chi tiết, cú pháp và điều kiện thực thi của lệnh đó. |
 | Gõ `mod <cmd>` | Hệ thống tự động nhận diện và loại bỏ từ khóa `mod` thừa nếu bạn lỡ tay gõ đầy đủ. |
 
 ---

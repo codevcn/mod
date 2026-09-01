@@ -14,7 +14,7 @@ Mod CLI là công cụ dòng lệnh viết bằng Python để gom các tác v�
 - Sinh QR image từ input text.
 - In thông tin hệ thống, status, cURL snippet, command snippet và đường dẫn source.
 - Đồng bộ, liệt kê, xóa folder, lấy URL và reset cấu hình Google Drive qua `rclone`.
-- Tra cứu mô tả tính năng bằng `--des`, dữ liệu lấy từ `src/contents/app_features.yml`.
+- Tra cứu mô tả tính năng bằng `--info`, dữ liệu lấy từ `src/contents/app_features.yml`.
 
 ---
 
@@ -73,7 +73,7 @@ MOD_APPDATA_FOLDER_PATH=<absolute-path-to-folder-for-generated-assets>
 ## Cú Pháp
 
 ```bash
-mod <type> <action> [args...] [-a] [--des]
+mod <type> <action> [args...] [-a] [--info]
 ```
 
 Dispatcher chỉ xử lý 2 flag riêng. Mọi args sau `action` được forward nguyên vẹn cho feature script tự xử lý.
@@ -82,7 +82,7 @@ Dispatcher chỉ xử lý 2 flag riêng. Mọi args sau `action` được forwar
 
 | Flag                      | Mô tả                                                         |
 | ------------------------- | ------------------------------------------------------------- |
-| `--des`                   | In mô tả chi tiết command từ `src/contents/app_features.yml`. |
+| `--info`                  | In mô tả chi tiết command từ `src/contents/app_features.yml`. |
 | `-a`, `--antigravity-IDE` | Dùng IDE command `anti` thay cho `code`.                      |
 
 ### Feature-level Flags (truyền sau action, do feature tự xử lý)
@@ -228,7 +228,7 @@ mod py env
 Project dùng hai file trong `src/contents` để mô tả CLI:
 
 - `help.txt`: tài liệu ngắn, in khi chạy `mod` không tham số.
-- `app_features.yml`: catalog chi tiết để `mod <type> <action> --des` in mô tả từng command.
+- `app_features.yml`: catalog chi tiết để `mod <type> <action> --info` in mô tả từng command.
 
 Khi thêm hoặc xóa một command, cần cập nhật cả dispatcher trong `src/main.py`, `help.txt`, và `app_features.yml` để tránh tài liệu lệch với code.
 
@@ -238,7 +238,7 @@ Khi thêm hoặc xóa một command, cần cập nhật cả dispatcher trong `s
 
 ```bash
 # Xem mô tả chi tiết của lệnh đổi tên file
-mod run rn-files --des
+mod run rn-files --info
 
 # Xóa tất cả file .tmp và .log trong một folder
 mod run del-files "D:/D-Downloads/Trash" "tmp,log"

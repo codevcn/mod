@@ -632,17 +632,16 @@ def cmd_notify(action, remaining_args):
 
 
 def dispatch_command(
-
     feature_args: list[str],
-    des_flag: bool = False,
+    info_flag: bool = False,
     antigravity_flag: bool = False,
 ):
     type_included = feature_args[0] if len(feature_args) > 0 else None
     action_included = feature_args[1] if len(feature_args) > 1 else None
     remaining_args = feature_args[2:]
 
-    # --- Feature description: mod <type> <action> --des ---
-    if des_flag:
+    # --- Feature description: mod <type> <action> --info ---
+    if info_flag:
         print_feature_description(type_included, action_included)
 
     # --- IDE prefix ---
@@ -723,6 +722,16 @@ def dispatch_command(
     elif type_included == MOD_TYPE_TOAST:
         cmd_toast(action_included, remaining_args)
     elif type_included == MOD_TYPE_NOTIFY:
+        valid_actions = [
+            MOD_NOTIFY_CHANNELS,
+            MOD_NOTIFY_CONFIG,
+            MOD_NOTIFY_SEND,
+            MOD_NOTIFY_TEST,
+        ]
+        if action_included is None:
+            raise MissingActionError(type_included, valid_actions)
+        elif action_included not in valid_actions:
+            raise InvalidActionError(type_included, action_included, valid_actions)
         cmd_notify(action_included, remaining_args)
     elif type_included == MOD_TYPE_CODE:
 
@@ -868,14 +877,14 @@ if __name__ == "__main__":
     try:
         raw_args = sys.argv[1:]
 
-        # --- Tách dispatcher flags (chỉ giữ --des và -a) ---
-        des_flag = False
+        # --- Tách dispatcher flags (chỉ giữ --info và -a) ---
+        info_flag = False
         antigravity_flag = False
         feature_args = []
 
         for arg in raw_args:
-            if arg == "--des":
-                des_flag = True
+            if arg == "--info":
+                info_flag = True
             elif arg in ("-a", "--antigravity-IDE"):
                 antigravity_flag = True
             else:
@@ -883,7 +892,7 @@ if __name__ == "__main__":
 
         # --- Khi user gõ `mod` không có tham số: chạy phiên tương tác ---
         if not feature_args:
-            if des_flag:
+            if info_flag:
                 print_feature_description(None, None)
             else:
                 run_interactive_session(dispatch_command, print_help)
@@ -895,7 +904,7 @@ if __name__ == "__main__":
             print_help()
 
         # --- Thực thi lệnh trực tiếp ---
-        dispatch_command(feature_args, des_flag, antigravity_flag)
+        dispatch_command(feature_args, info_flag, antigravity_flag)
 
     except KeyboardInterrupt:
         print("\n\n>>> Tiến trình đã bị hủy bởi người dùng (KeyboardInterrupt).")

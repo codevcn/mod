@@ -1,7 +1,7 @@
 mod_tool:
   # Dispatcher chỉ xử lý 2 flag, mọi args sau action được forward cho feature.
   dispatcher_flags:
-    - flag: "--des"
+    - flag: "--info"
       description: "In mô tả chi tiết command từ app_features.yml."
     - flag: "-a / --antigravity-IDE"
       description: "Dùng Antigravity IDE thay vì VSCode."
@@ -521,7 +521,7 @@ mod_tool:
 
         - id: "ACTION 60"
           title: "Liệt kê các kênh thông báo hỗ trợ"
-          command: "mod notify | mod notify channels"
+          command: "mod notify channels"
           summary: "Liệt kê danh sách các kênh thông báo hiện có kèm trạng thái cấu hình."
 
           details: "In bảng trạng thái của ntfy, telegram, toast, hướng dẫn cờ `--channel` và chi tiết cấu hình."
