@@ -21,6 +21,7 @@ CONTENTS_FOLDER = f"{PROJECT_ROOT}/src/contents"
 TOAST_SOUND_AUDIO_FILE_PATH = (
     f"{PROJECT_ROOT}/data/media/audio/burnttoast-notification-sound.mp3"
 )
+MOD_HISTORY_FILE_PATH = f"{PROJECT_ROOT}/data/credentials/.mod_history"
 
 # === Đường dẫn ngoài project (SỬA KHI CHUYỂN MÁY) ===
 APPDATA_FOLDER = "D:/D-AppData/me-mod"

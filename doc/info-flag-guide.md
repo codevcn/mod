@@ -1,322 +1,404 @@
-﻿# 📘 Hướng Dẫn Triển Khai Logic Cờ `--info` Trong Mod CLI
+﻿# 📖 Tài Liệu Chi Tiết Tính Năng `--info` Trong Mod CLI (`mod`)
 
-Tài liệu này cung cấp toàn bộ kiến trúc, luồng dữ liệu, quy chuẩn cấu trúc và hướng dẫn từng bước để triển khai, bảo trì và tích hợp cơ chế tra cứu tính năng qua cờ **`--info`** trong hệ thống **Mod CLI (`mod`)**.
+Tài liệu này mô tả toàn diện kiến trúc kỹ thuật, luồng xử lý dữ liệu, thuật toán so khớp lệnh và cơ chế hiển thị định dạng đầu ra của tính năng **Self-Documenting CLI (`--info`)** trong hệ thống **Mod CLI (`mod`)**.
 
 ---
 
 ## 📑 Mục Lục
-1. [Tổng Quan & Mục Đích](#1-tổng-quan--mục-đích)
-2. [Sơ Đồ Kiến Trúc & Luồng Dữ Liệu](#2-sơ-đồ-kiến-trúc--luồng-dữ-liệu)
-3. [Cấu Trúc Catalog Dữ Liệu (`app_features.yml`)](#3-cấu-trúc-catalog-dữ-liệu-app_featuresyml)
-4. [Logic Bóc Tách Cờ Tại Central Dispatcher](#4-logic-bóc-tách-cờ-tại-central-dispatcher)
-5. [Logic Xử Lý & Hiển Thị (`_print_feature_description.py`)](#5-logic-xử-lý--hiển-thị-_print_feature_descriptionpy)
-6. [Cơ Chế Nạp Tài Liệu Nâng Cao (`raw_file` & `raw_text`)](#6-cơ-chế-nạp-tài-liệu-nâng-cao-raw_file--raw_text)
-7. [Hướng Dẫn Từng Bước Khi Thêm/Sửa Lệnh Mới](#7-hướng-dẫn-từng-bước-khi-thêmsửa-lệnh-mới)
-8. [Bộ Test Case Nghiệm Thu (Verification)](#8-bộ-test-case-nghiệm-thu-verification)
+1. [Tổng Quan & Triết Lý Thiết Kế](#1-tổng-quan--triết-lý-thiết-kế)
+2. [Cấu Trúc Catalog Dữ Liệu (`app_features.yml`)](#2-cấu-trúc-catalog-dữ-liệu-app_featuresyml)
+3. [Cơ Chế Bóc Tách Cờ Sớm Tại Central Dispatcher (`src/main.py`)](#3-cơ-chế-bóc-tách-cờ-sớm-tại-central-dispatcher-srcmainpy)
+4. [Cách In Ra Mô Tả Theo 3 Cấp Độ (3-Level Output)](#4-cách-in-ra-mô-tả-theo-3-cấp-độ-3-level-output)
+   - [4.1. Cấp 1: Tra cứu Toàn Cục (`mod --info`)](#41-cấp-1-tra-cứu-toàn-cục-mod---info)
+   - [4.2. Cấp 2: Tra cứu Cấp Nhóm Lệnh (`mod <type> --info`)](#42-cấp-2-tra-cứu-cấp-nhóm-lệnh-mod-type---info)
+   - [4.3. Cấp 3: Tra cứu Cấp Hành Động Cụ Thể (`mod <type> <action> --info`)](#43-cấp-3-tra-cứu-cấp-hành-động-cụ-thể-mod-type-action---info)
+5. [Động Cơ Hiển Thị & Bảng Màu ANSI (`_print_feature_description.py`)](#5-động-cơ-hiển-thị--bảng-màu-ansi-_print_feature_descriptionpy)
+   - [5.1. Định dạng bảng ANSI chuẩn](#51-định-dạng-bảng-ansi-chuẩn)
+   - [5.2. Hỗ trợ tài liệu Markdown mở rộng (`raw_file` / `raw_text`)](#52-hỗ-trợ-tài-liệu-markdown-mở-rộng-raw_file--raw_text)
+   - [5.3. Xử lý cảnh báo an toàn (`Exit Code 0`)](#53-xử-lý-cảnh-báo-an-toàn-exit-code-0)
+6. [Thuật Toán So Khớp Lệnh (`is_command_match`)](#6-thuật-toán-so-khớp-lệnh-is_command_match)
+7. [Bảng Lệnh Mẫu Tra Cứu Thực Tế](#7-bảng-lệnh-mẫu-tra-cứu-thực-tế)
+8. [Quy Chuẩn Đồng Bộ Khi Thêm Tính Năng Mới (Developer SOP)](#8-quy-chuẩn-đồng-bộ-khi-thêm-tính-năng-mới-developer-sop)
 
 ---
 
-## 1. Tổng Quan & Mục Đích
+## 1. Tổng Quan & Triết Lý Thiết Kế
 
-Cờ **`--info`** là một trong hai **Dispatcher Flags** toàn cục cốt lõi của Mod CLI (cùng với cờ `-a` / `--antigravity-IDE`).
+Trong các công cụ CLI tự động hóa đa năng, người dùng thường gặp khó khăn khi phải ghi nhớ nhiều cờ tùy chọn, định dạng tham số hoặc biến môi trường `.env`.
 
-### Mục đích cốt lõi:
-- **Tra cứu không thực thi:** Cho phép người dùng hoặc AI Agent xem cú pháp, tóm tắt nghiệp vụ, giải thích chi tiết và điều kiện tiên quyết của bất kỳ câu lệnh nào mà **không kích hoạt logic thực thi nghiệp vụ**.
-- **Tra cứu linh hoạt 3 cấp độ:**
-  1. **Cấp hệ thống (Toàn bộ tool):** `mod --info`
-  2. **Cấp nhóm lệnh (Type level):** `mod <type> --info` (ví dụ: `mod gist --info`, `mod open --info`)
-  3. **Cấp hành động cụ thể (Action level):** `mod <type> <action> --info` (ví dụ: `mod gdrive sync --info`, `mod file delete --info`)
-- **Vị trí tự do:** Người dùng có thể đặt cờ `--info` ở bất kỳ vị trí nào trong câu lệnh (cuối dòng, giữa các tham số), Dispatcher sẽ tự động tách lọc.
+Tính năng **`--info`** được xây dựng theo triết lý **Self-Documenting CLI (Tự làm tài liệu)**:
+* **Tra cứu nội dòng tức thì:** Cho phép xem hướng dẫn chi tiết của từng lệnh ngay trong terminal mà không cần mở trình duyệt hay đọc mã nguồn.
+* **Chặn thực thi an toàn (Non-execution Guarantee):** Khi cờ `--info` xuất hiện, hệ thống **tuyệt đối không chạy logic nghiệp vụ** (không đồng bộ Google Drive, không tạo/xóa Gist, không gửi thông báo push).
+* **Vị trí tự do (Position-Agnostic):** Cờ `--info` có thể đặt ở bất kỳ đâu trong câu lệnh (đầu, giữa các tham số, hoặc cuối cùng).
+* **Tương thích ngược 100%:** Hỗ trợ alias `--des` ngầm cho các kịch bản hoặc thói quen cũ.
 
----
-
-## 2. Sơ Đồ Kiến Trúc & Luồng Dữ Liệu
-
-```text
-User Input: mod <type> <action> [args...] [--info]
-   │
-   ▼
-mod.cmd (@py src\main.py %*)
-   │
-   ▼
-src/main.py (Central Dispatcher)
-   ├── 1. Duyệt sys.argv[1:]: Nếu thấy '--info' -> bật info_flag = True, loại bỏ khỏi feature_args
-   ├── 2. Tách: type_included = feature_args[0], action_included = feature_args[1]
-   │
-   ├── [Nếu info_flag == True]
-   │       └── Gọi: print_feature_description(type_included, action_included)
-   │               └── Subprocess gọi: src/features/system/_print_feature_description.py
-   │                       │
-   │                       ├── Đọc catalog: src/contents/app_features.yml
-   │                       ├── So khớp block Type và Action
-   │                       ├── [Nếu có raw_file / raw_text] ──► Đọc & in trực tiếp nội dung Markdown
-   │                       └── [Mặc định] ──► In bảng màu ANSI (Title, Lệnh, Tóm tắt, Chi tiết, Điều kiện)
-   │                       └── sys.exit(0)
-   │
-   └── [Nếu info_flag == False] ──► Dispatch bình thường tới Feature Script
+```mermaid
+flowchart LR
+    UserInput["mod <type> <action> [params] --info"] --> Dispatcher["Central Dispatcher (src/main.py)"]
+    Dispatcher -->|Phát hiện --info / --des| Extractor["Bóc tách cmd_type & cmd_action"]
+    Extractor --> Engine["Feature Description Engine (_print_feature_description.py)"]
+    Engine --> Catalog[("src/contents/app_features.yml")]
+    Catalog --> Formatter["Định Dạng ANSI Table / Raw Markdown"]
+    Formatter --> Terminal["In ra Terminal & Exit(0)"]
 ```
 
 ---
 
-## 3. Cấu Trúc Catalog Dữ Liệu (`app_features.yml`)
+## 2. Cấu Trúc Catalog Dữ Liệu (`app_features.yml`)
 
-File `src/contents/app_features.yml` là **Single Source of Truth** cung cấp dữ liệu mô tả cho cờ `--info`.
+Dữ liệu mô tả tính năng được quản lý tập trung tại file YAML duy nhất:
+📍 **[`src/contents/app_features.yml`](file:///d:/D-Documents/TOOLs/mod/src/contents/app_features.yml)**
 
-### 3.1. Schema Chuẩn Cho Mỗi Action (Standard Format)
-
+### Cấu trúc Schema chuẩn:
 ```yaml
 mod_tool:
+  # 1. Danh sách các cờ điều phối toàn cục (Dispatcher Flags)
   dispatcher_flags:
     - flag: "--info"
       description: "In mô tả chi tiết command từ app_features.yml."
     - flag: "-a / --antigravity-IDE"
       description: "Dùng Antigravity IDE thay vì VSCode."
 
+  # 2. Danh mục 19 nhóm lệnh (Types) và các hành động (Actions)
   types:
-    - name: "<tên_type>"
-      description: "<Mô tả ngắn về nhóm lệnh>"
+    - name: "notify"
+      description: "Gửi thông báo qua đa kênh (ntfy, Telegram, Toast...)"
       actions:
-        - id: "ACTION <XX>"
-          title: "<Tên tính năng ngắn gọn, rõ ràng>"
-          command: "mod <type> <action> [args...]"
-          summary: "<Tóm tắt 1-2 câu về tác vụ chính>"
-          details: "<Giải thích sâu về các cờ con, cách thức xử lý bên dưới>"
-          conditions: "<Các điều kiện tiên quyết: PATH, API token, OS, file .env...>"
+        - id: "ACTION 58"
+          title: "Gửi thông báo đa kênh"
+          command: "mod notify send <message> | mod notify send"
+          summary: "Gửi thông báo tới kênh chỉ định (mặc định ntfy app trên điện thoại)."
+          details: "Gửi thông báo với nội dung <message>. Hỗ trợ cờ `--title <t>` (tiêu đề), `--channel <c>` (chọn kênh: ntfy, telegram, toast), `--topic <topic>` (topic ntfy, mặc định 'any-mod-automation-N3RT8P2L'), `--priority <p>` (min, low, default, high, urgent), `--tags <t>` (tags/emoji), `--url <u>` (liên kết click)."
+          conditions: "Kênh ntfy không yêu cầu cấu hình thêm. Kênh telegram yêu cầu TELEGRAM_BOT_TOKEN và TELEGRAM_CHAT_ID trong .env."
 ```
 
-### 3.2. Quy Tắc Khai Báo Trường `command`
-- Nếu lệnh có nhiều alias/cú pháp tương đương, dùng dấu gạch đứng `|`:
-  ```yaml
-  command: "mod gdrive url <remote_path> | mod gdrive link <remote_path>"
-  ```
-- Dùng dấu `<...>` cho tham số bắt buộc và `[...]` cho tham số tùy chọn:
-  ```yaml
-  command: "mod file rename <folder_path> [prefix]"
-  ```
+### Các trường dữ liệu trong từng Action:
+| Trường | Bắt buộc | Ý nghĩa |
+| :--- | :---: | :--- |
+| `id` | Có | Mã định danh chuẩn hóa (ví dụ: `ACTION 01`, `ACTION 50b`...). |
+| `title` | Có | Tiêu đề tính năng ngắn gọn. |
+| `command` | Có | Cú pháp câu lệnh mẫu (dùng `\|` để ngăn cách các alias). |
+| `summary` | Có | Tóm tắt 1-2 câu về công dụng của lệnh. |
+| `details` | Có | Giải thích sâu về cơ chế kỹ thuật và tham số. |
+| `parameters` | Tùy chọn | Mô tả từng tham số vị trí (`<bắt_buộc>`, `[tùy_chọn]`). |
+| `flags` | Tùy chọn | Mô tả các cờ tùy chọn bổ sung (ví dụ: `--channel`, `--topic`...). |
+| `conditions` | Tùy chọn | Điều kiện tiên quyết (yêu cầu file, token, PATH...). |
+| `raw_file` | Tùy chọn | Đường dẫn file Markdown mở rộng để in trực tiếp (nếu có). |
+| `raw_text` | Tùy chọn | Khối văn bản thô đa dòng thay thế cho bảng ANSI. |
 
 ---
 
-## 4. Logic Bóc Tách Cờ Tại Central Dispatcher
+## 3. Cơ Chế Bóc Tách Cờ Sớm Tại Central Dispatcher (`src/main.py`)
 
-### 4.1. Trong `src/main.py` (CLI Entrypoint)
+Trong [`src/main.py`](file:///d:/D-Documents/TOOLs/mod/src/main.py), hàm `main()` tiến hành bóc tách cờ `--info` và `--des` ngay khi vừa nhận `sys.argv[1:]`:
 
 ```python
-# 1. Bóc tách flag trước khi xác định type và action
-raw_args = sys.argv[1:]
-info_flag = False
-antigravity_flag = False
-feature_args = []
+def main():
+    raw_args = sys.argv[1:]
 
-for arg in raw_args:
-    if arg == "--info":
-        info_flag = True
-    elif arg in ("-a", "--antigravity-IDE"):
-        antigravity_flag = True
-    else:
-        feature_args.append(arg)
+    # 1. Bóc tách Dispatcher Flags toàn cục trước
+    info_flag = False
+    antigravity_flag = False
+    feature_args = []
 
-# 2. Xử lý khi không truyền type (gõ `mod --info` hoặc `mod`)
-if not feature_args:
-    if info_flag:
-        print_feature_description(None, None)
-    else:
-        run_interactive_session(dispatch_command, print_help)
-    sys.exit(0)
+    for arg in raw_args:
+        if arg in ("--info", "--des"):
+            info_flag = True
+        elif arg in ("-a", "--antigravity-IDE"):
+            antigravity_flag = True
+        else:
+            feature_args.append(arg)
 
-# 3. Chuyển tiếp vào dispatch_command
-dispatch_command(feature_args, info_flag, antigravity_flag)
+    # 2. Xử lý khi không có tham số
+    if not feature_args:
+        if info_flag:
+            print_feature_description(None, None)
+        else:
+            run_interactive_session(dispatch_command, print_help)
+        sys.exit(0)
+
+    # 3. Điều phối qua dispatch_command
+    dispatch_command(feature_args, info_flag, antigravity_flag)
 ```
 
-### 4.2. Trong `dispatch_command()`
-
+Trong `dispatch_command()`:
 ```python
 def dispatch_command(
     feature_args: list[str],
     info_flag: bool = False,
     antigravity_flag: bool = False,
 ):
-    type_included = feature_args[0] if len(feature_args) > 0 else None
-    action_included = feature_args[1] if len(feature_args) > 1 else None
-    remaining_args = feature_args[2:]
-
-    # Bắt cờ --info: In mô tả và dừng ngay lập tức
+    # Trích xuất pos_args bất kể vị trí của flags
     if info_flag:
-        print_feature_description(type_included, action_included)
+        pos_args = [a for a in feature_args if not a.startswith("-")]
+        cmd_type = pos_args[0] if len(pos_args) > 0 else None
+        cmd_action = pos_args[1] if len(pos_args) > 1 else None
+        print_feature_description(cmd_type, cmd_action)
         sys.exit(0)
-
-    # Nếu không có --info, tiếp tục routing nghiệp vụ...
-```
-
-### 4.3. Trong `src/utils/interactive_cli.py` (Interactive Session / REPL)
-
-Trong vòng lặp REPL, các lệnh nhập vào cũng được bóc tách cờ `--info` tương tự:
-```python
-# Tách dispatcher flags
-info_flag = False
-antigravity_flag = False
-feature_args = []
-
-for arg in args:
-    if arg == "--info":
-        info_flag = True
-    elif arg in ("-a", "--antigravity-IDE"):
-        antigravity_flag = True
-    else:
-        feature_args.append(arg)
-
-dispatch_callback(feature_args, info_flag, antigravity_flag)
 ```
 
 ---
 
-## 5. Logic Xử Lý & Hiển Thị (`_print_feature_description.py`)
+## 4. Cách In Ra Mô Tả Theo 3 Cấp Độ (3-Level Output)
 
-File `src/features/system/_print_feature_description.py` chịu trách nhiệm đọc và render dữ liệu từ YAML.
+Động cơ [`_print_feature_description.py`](file:///d:/D-Documents/TOOLs/mod/src/features/system/_print_feature_description.py) hỗ trợ tra cứu thông minh theo 3 cấp độ:
 
-### Thuật Toán Khớp Lệnh (Matching Algorithm):
-```python
-for t in types:
-    if cmd_type and t.get("name") != cmd_type:
-        continue
-
-    for a in t.get("actions", []):
-        cmd_raw = a.get("command", "")
-        cmds = [c.strip() for c in cmd_raw.split("|")]
-
-        for cmd in cmds:
-            cmd_parts = cmd.split()
-            if cmd_parts and cmd_parts[0] == "mod":
-                cmd_parts = cmd_parts[1:]
-
-            yaml_type = cmd_parts[0] if len(cmd_parts) > 0 else None
-            yaml_action = (
-                cmd_parts[1]
-                if len(cmd_parts) > 1
-                and not cmd_parts[1].startswith("<")
-                and not cmd_parts[1].startswith("[")
-                and not cmd_parts[1].startswith("-")
-                else None
-            )
-
-            target_found = False
-            # 1. Tra cứu toàn cục: `mod --info`
-            if cmd_type is None and action is None:
-                if yaml_type is None or yaml_type.startswith("-"):
-                    target_found = True
-            # 2. Tra cứu cấp type: `mod <type> --info`
-            elif cmd_type is not None and action is None:
-                if yaml_type == cmd_type and yaml_action is None:
-                    target_found = True
-            # 3. Tra cứu cấp action: `mod <type> <action> --info`
-            elif cmd_type is not None and action is not None:
-                if yaml_type == cmd_type and yaml_action == action:
-                    target_found = True
-```
-
-### Định Dạng Hiển Thị Chuẩn (ANSI Colors Output):
-Khi tìm thấy action, hệ thống format output với mã màu ANSI trực quan:
-```python
-C = "\033[36m"  # Cyan
-G = "\033[32m"  # Green
-Y = "\033[33m"  # Yellow
-W = "\033[97m"  # White bright
-D = "\033[2m"   # Dim
-R = "\033[0m"   # Reset
-
-print(f"\n{C}--- Tính năng: {a.get('title')} ---{R}")
-print(f"{G}+) Lệnh:{R}\t{Y}{a.get('command')}{R}")
-print(f"{G}+) Tóm tắt:{R}\t{W}{a.get('summary')}{R}")
-print(f"{G}+) Chi tiết:{R}\t{D}{a.get('details')}{R}")
-print(f"{G}+) Điều kiện:{R}\t{D}{a.get('conditions')}{R}\n")
+```mermaid
+graph TD
+    Query{"Tham số truyền vào?"}
+    Query -->|Không có type & action| L1["CẤP 1 (Tool Level)\nmod --info\nIn Header, Dispatcher flags, 19 Types"]
+    Query -->|Có type, không có action| L2["CẤP 2 (Type Level)\nmod <type> --info\nIn danh sách actions của nhóm"]
+    Query -->|Có cả type và action| L3["CẤP 3 (Action Level)\nmod <type> <action> --info\nIn bảng ANSI chi tiết của action"]
 ```
 
 ---
 
-## 6. Cơ Chế Nạp Tài Liệu Nâng Cao (`raw_file` & `raw_text`)
+### 4.1. Cấp 1: Tra cứu Toàn Cục (`mod --info`)
+* **Lệnh kích hoạt:** `mod --info` (hoặc `mod --des`)
+* **Nội dung hiển thị:**
+  1. Header biểu ngữ Mod CLI.
+  2. Cú pháp chung và hướng dẫn vào chế độ tương tác.
+  3. Bảng danh sách các cờ điều phối toàn cục (`dispatcher_flags`).
+  4. Danh sách toàn bộ 19 nhóm lệnh (`Types`) kèm tóm tắt mục đích.
+  5. Dòng gợi ý cú pháp tra cứu cấp sâu hơn.
 
-Đối với các module lớn, phức tạp có tài liệu hướng dẫn riêng (như GitHub Gist Manager), YAML cho phép khai báo trường **`raw_file`** hoặc **`raw_text`** để in trực tiếp file Markdown/Text thay vì format bảng ANSI ngắn gọn.
+#### Mẫu đầu ra trên Terminal:
+```text
+====================================================================
+🚀 Mod CLI (mod) — Bộ Công Cụ Tự Động Hóa & Tiện Ích Đa Năng
+====================================================================
++) Cú pháp chung: mod <type> <action> [tham_số...] [flags]
++) Chế độ tương tác: Chạy 'mod' không tham số để vào REPL + Tab Autocomplete.
 
-### Ví Dụ Khai Báo Trong `app_features.yml`:
-```yaml
-    - name: "gist"
-      description: "Quản lý CRUD & Kiểm toán dung lượng GitHub Gist"
-      actions:
-        - id: "ACTION 50b"
-          title: "Tài liệu hướng dẫn sử dụng GitHub Gist"
-          command: "mod gist"
-          raw_file: "features/gist/README.md"
-```
+Các cờ điều phối toàn cục (Dispatcher Flags):
+  --info                 : In mô tả chi tiết command từ app_features.yml.
+  -a / --antigravity-IDE : Dùng Antigravity IDE thay vì VSCode.
 
-### Logic Xử Lý Bên Dưới:
-```python
-if "raw_file" in a and a.get("raw_file"):
-    raw_rel = a.get("raw_file")
-    candidate_paths = [
-        Path(SRC_FOLDER) / raw_rel,
-        Path(PROJECT_ROOT) / raw_rel,
-        Path(raw_rel),
-    ]
-    for cp in candidate_paths:
-        if cp.is_file():
-            with open(cp, "r", encoding="utf-8", errors="replace") as f:
-                print(f"\n{f.read().strip()}\n")
-            sys.exit(0)
-    warn_user_error(f"Không tìm thấy file tài liệu: {raw_rel}")
-```
+Danh sách nhóm lệnh (Types):
+  open       : Mở trong System Explorer
+  code       : Mở trong IDE
+  compress   : Nén dự án hoặc thư mục tùy chỉnh
+  edit       : Chỉnh sửa
+  file       : Thao tác với file
+  folder     : Thao tác với folder
+  gdrive     : Thao tác với Google Drive qua rclone
+  gist       : Quản lý CRUD & Kiểm toán dung lượng GitHub Gist
+  git        : Thao tác Git
+  init       : Khởi tạo máy tính
+  mcp        : Quản lý MCP
+  notify     : Gửi thông báo qua đa kênh (ntfy, Telegram, Toast...)
+  print      : In thông tin
+  proxy      : Kiểm tra Proxy
+  py         : Python helpers
+  run        : Thực thi script
+  skill      : Quản lý AI Skills
+  toast      : Thông báo Desktop Windows
+  tunnel     : Cloudflare Tunnel Wrapper
 
----
-
-## 7. Hướng Dẫn Từng Bước Khi Thêm/Sửa Lệnh Mới
-
-Khi phát triển một tính năng mới (ví dụ: `mod backup create <target>`), làm theo 4 bước sau để đảm bảo cờ `--info` hoạt động chuẩn xác:
-
-### Bước 1: Khai báo Catalog trong `src/contents/app_features.yml`
-Tìm block `types` tương ứng (hoặc tạo type mới) và thêm action:
-```yaml
-    - name: "backup"
-      description: "Quản lý sao lưu dữ liệu tự động"
-      actions:
-        - id: "ACTION 62"
-          title: "Tạo bản sao lưu mới"
-          command: "mod backup create <target_folder> [--dest <path>]"
-          summary: "Tạo file nén backup từ thư mục chỉ định."
-          details: "Tự động đánh timestamp vào tên file và lưu vào thư mục đích."
-          conditions: "Yêu cầu quyền đọc thư mục nguồn."
-```
-
-### Bước 2: Khai báo Route trong `src/main.py`
-```python
-MOD_TYPE_BACKUP = "backup"
-MOD_BACKUP_CREATE = "create"
-
-# Trong dispatch_command():
-elif type_included == MOD_TYPE_BACKUP:
-    valid_actions = [MOD_BACKUP_CREATE]
-    if action_included is None:
-        raise MissingActionError(type_included, valid_actions)
-    elif action_included not in valid_actions:
-        raise InvalidActionError(type_included, action_included, valid_actions)
-    cmd_backup(action_included, remaining_args)
-```
-
-### Bước 3: Đồng bộ `src/contents/help.txt` và `PROJECT_CONTEXT.md`
-Thêm dòng tóm tắt vào `help.txt` và bảng tra cứu lệnh trong `PROJECT_CONTEXT.md`.
-
-### Bước 4: Kiểm thử cờ `--info`
-Chạy lệnh kiểm tra:
-```bash
-python src/main.py backup create --info
+💡 Tra cứu chi tiết: Gõ mod <type> --info hoặc mod <type> <action> --info
+====================================================================
 ```
 
 ---
 
-## 8. Bộ Test Case Nghiệm Thu (Verification)
+### 4.2. Cấp 2: Tra cứu Cấp Nhóm Lệnh (`mod <type> --info`)
+* **Lệnh kích hoạt:** `mod notify --info`, `mod gdrive --info`, `mod file --info`...
+* **Nội dung hiển thị:**
+  - Header tiêu đề nhóm lệnh kèm mô tả nhóm.
+  - Liệt kê toàn bộ các action thuộc nhóm: Tên tính năng kèm badge `[ACTION ID]`, Lệnh thực thi mẫu, Tóm tắt công dụng.
+  - Gợi ý câu lệnh tra cứu chi tiết từng action (`mod <type> <action> --info`).
+  - *(Đặc biệt: Nếu nhóm lệnh có `raw_file` như `mod gist --info` thì sẽ in toàn bộ file Markdown hướng dẫn).*
 
-| STT | Câu lệnh kiểm thử | Kết quả mong đợi |
-| :---: | :--- | :--- |
-| **1** | `mod --info` | In thông tin tính năng trợ giúp chung (`mod | mod -h`). |
-| **2** | `mod <type> <action> --info` | In đúng block Title, Lệnh, Tóm tắt, Chi tiết, Điều kiện của action đó. |
-| **3** | `mod <type> --info` (Type có `raw_file`) | Đọc và in toàn bộ nội dung file Markdown chỉ định (vd: `mod gist --info`). |
-| **4** | `mod <type> <action> arg1 arg2 --info` | Cờ `--info` đặt ở cuối vẫn được lọc ra và in mô tả thành công. |
-| **5** | `mod invalid_type invalid_act --info` | In thông báo `>>> Warn: Không tìm thấy mô tả cho lệnh...` với exit code 0. |
-| **6** | Chạy trong chế độ tương tác `mod >` | Nhập `<cmd> --info` hiển thị mô tả mà không thoát khỏi session REPL. |
+#### Mẫu đầu ra trên Terminal (Ví dụ `mod notify --info`):
+```text
+=== NHÓM LỆNH: NOTIFY (Gửi thông báo qua đa kênh (ntfy, Telegram, Toast...)) ===
+──────────────────────────────────────────────────────────────────────
+  • Gửi thông báo đa kênh [ACTION 58]
+    Lệnh:    mod notify send <message> | mod notify send
+    Tóm tắt: Gửi thông báo tới kênh chỉ định (mặc định ntfy app trên điện thoại).
+
+  • Gửi thông báo kiểm tra (Ping Test) [ACTION 59]
+    Lệnh:    mod notify test
+    Tóm tắt: Gửi thông báo mẫu để kiểm tra kết nối và cấu hình của kênh thông báo.
+
+  • Liệt kê các kênh thông báo hỗ trợ [ACTION 60]
+    Lệnh:    mod notify channels
+    Tóm tắt: Liệt kê danh sách các kênh thông báo hiện có kèm trạng thái cấu hình.
+
+  • Xem hướng dẫn cấu hình kênh thông báo [ACTION 61]
+    Lệnh:    mod notify config
+    Tóm tắt: In hướng dẫn thiết lập app ntfy trên điện thoại và biến môi trường .env cho Telegram.
+
+💡 Xem chi tiết từng lệnh: Gõ mod notify <action> --info
+──────────────────────────────────────────────────────────────────────
+```
+
+---
+
+### 4.3. Cấp 3: Tra cứu Cấp Hành Động Cụ Thể (`mod <type> <action> --info`)
+* **Lệnh kích hoạt:** `mod notify send --info`, `mod gdrive sync --info`, `mod gist rate --info`...
+* **Nội dung hiển thị:**
+  - Tiêu đề tính năng kèm mã `[ACTION ID]`.
+  - Cú pháp lệnh chính xác (`+) Lệnh:`).
+  - Tóm tắt công dụng (`+) Tóm tắt:`).
+  - Cơ chế kỹ thuật chi tiết (`+) Chi tiết:`).
+  - Giải thích từng tham số bắt buộc / tùy chọn (`+) Tham số:`).
+  - Danh sách cờ bổ sung (`+) Flags:`).
+  - Yêu cầu môi trường & điều kiện tiên quyết (`+) Điều kiện:`).
+
+#### Mẫu đầu ra trên Terminal (Ví dụ `mod notify send --info`):
+```text
+--- Tính năng: Gửi thông báo đa kênh [ACTION 58] ---
++) Lệnh:	mod notify send <message> | mod notify send
++) Tóm tắt:	Gửi thông báo tới kênh chỉ định (mặc định ntfy app trên điện thoại).
++) Chi tiết:	Gửi thông báo với nội dung <message>. Hỗ trợ cờ `--title <t>` (tiêu đề), `--channel <c>` (chọn kênh: ntfy, telegram, toast), `--topic <topic>` (topic ntfy, mặc định 'any-mod-automation-N3RT8P2L'), `--priority <p>` (min, low, default, high, urgent), `--tags <t>` (tags/emoji), `--url <u>` (liên kết click).
++) Điều kiện:	Kênh ntfy không yêu cầu cấu hình thêm (trừ khi dùng private topic có token). Kênh telegram yêu cầu TELEGRAM_BOT_TOKEN và TELEGRAM_CHAT_ID trong .env.
+```
+
+---
+
+## 5. Động Cơ Hiển Thị & Bảng Màu ANSI (`_print_feature_description.py`)
+
+### 5.1. Định dạng bảng ANSI chuẩn
+Hàm `render_action_block(action: dict)` sử dụng bảng mã màu ANSI để định dạng thông tin trực quan:
+
+| Mục hiển thị | Mã ANSI / Màu sắc | Ý nghĩa |
+| :--- | :--- | :--- |
+| **Tiêu đề tính năng** | `\033[96;1m` (Cyan Bold) | Nổi bật tiêu đề và ID tính năng. |
+| **Nhãn `+) Lệnh / Tóm tắt / Chi tiết...`** | `\033[92;1m` (Green Bold) | Phân tách rõ ràng các đầu mục. |
+| **Cú pháp lệnh** | `\033[93m` (Yellow) | Giúp người dùng dễ dàng copy/paste lệnh. |
+| **Nội dung tóm tắt & tham số** | `\033[97m` (White) | Rõ ràng, dễ đọc trên nền terminal tối. |
+| **Giải thích chi tiết & Điều kiện** | `\033[90m` (Dim / Gray) | Giảm độ chói cho các đoạn giải thích kỹ thuật dài. |
+
+```python
+def render_action_block(action: dict):
+    title = action.get("title", "Không có tiêu đề")
+    act_id = action.get("id", "")
+    id_badge = f" [{act_id}]" if act_id else ""
+
+    print()
+    print(f"{CYAN_BOLD}--- Tính năng: {title}{id_badge} ---{RESET}")
+    print(f"{GREEN_BOLD}+) Lệnh:{RESET}\t{YELLOW}{action.get('command', 'Không có')}{RESET}")
+    print(f"{GREEN_BOLD}+) Tóm tắt:{RESET}\t{WHITE}{action.get('summary', 'Không có')}{RESET}")
+    print(f"{GREEN_BOLD}+) Chi tiết:{RESET}\t{DIM}{action.get('details', 'Không có')}{RESET}")
+
+    if action.get("parameters"):
+        print(f"{GREEN_BOLD}+) Tham số:{RESET}\t{WHITE}{action.get('parameters')}{RESET}")
+    if action.get("flags"):
+        print(f"{GREEN_BOLD}+) Flags:{RESET}\t{WHITE}{action.get('flags')}{RESET}")
+    if action.get("conditions"):
+        print(f"{GREEN_BOLD}+) Điều kiện:{RESET}\t{DIM}{action.get('conditions')}{RESET}")
+    print()
+```
+
+---
+
+### 5.2. Hỗ trợ tài liệu Markdown mở rộng (`raw_file` / `raw_text`)
+Đối với các tính năng có tài liệu tích hợp chuyên sâu (ví dụ GitHub Gist Manager), schema YAML cho phép khai báo trường `raw_file`:
+
+```python
+    raw_file = action.get("raw_file")
+    if raw_file:
+        candidate_paths = [
+            Path(SRC_FOLDER) / raw_file,
+            Path(PROJECT_ROOT) / raw_file,
+            Path(raw_file),
+        ]
+        for cp in candidate_paths:
+            if cp and cp.is_file():
+                with open(cp, "r", encoding="utf-8", errors="replace") as f:
+                    print(f"\n{f.read().strip()}\n")
+                return True
+```
+Khi có `raw_file`, toàn bộ nội dung file Markdown sẽ được in trực tiếp ra terminal một cách nguyên vẹn.
+
+---
+
+### 5.3. Xử lý cảnh báo an toàn (`Exit Code 0`)
+Nếu người dùng gõ nhầm một type hoặc action không tồn tại, hệ thống in cảnh báo thân thiện và **thoát với mã `0`** (`sys.exit(0)`) thay vì raise exception:
+
+- Sai Action trong Type hợp lệ:
+  ```text
+  >>> Warn: Mặc dù loại lệnh 'notify' tồn tại nhưng không tìm thấy mô tả cho action 'unknown_act'.
+  ```
+- Sai Type hoàn toàn:
+  ```text
+  >>> Warn: Không tìm thấy nhóm lệnh 'unknown_type' trong tài liệu.
+  ```
+
+---
+
+## 6. Thuật Toán So Khớp Lệnh (`is_command_match`)
+
+Một lệnh trong catalog YAML có thể có nhiều cú pháp alias (ví dụ `mod notify send <msg> | mod notify send`). Hàm `is_command_match` xử lý so khớp thông minh như sau:
+
+```python
+def is_command_match(command_str: str, cmd_type: str, cmd_action: str | None) -> bool:
+    if not command_str:
+        return False
+
+    sub_cmds = [c.strip() for c in command_str.split("|")]
+
+    for sub_cmd in sub_cmds:
+        tokens = sub_cmd.split()
+        if tokens and tokens[0] == "mod":
+            tokens = tokens[1:]
+
+        yaml_type = tokens[0] if len(tokens) > 0 else None
+        yaml_action = (
+            tokens[1]
+            if len(tokens) > 1
+            and not tokens[1].startswith("<")
+            and not tokens[1].startswith("[")
+            and not tokens[1].startswith("-")
+            else None
+        )
+
+        if cmd_action:
+            if yaml_type == cmd_type and yaml_action == cmd_action:
+                return True
+            if f"mod {cmd_type} {cmd_action}" in sub_cmd:
+                return True
+        else:
+            if yaml_type == cmd_type and yaml_action is None:
+                return True
+
+    return False
+```
+
+---
+
+## 7. Bảng Lệnh Mẫu Tra Cứu Thực Tế
+
+| Cấp độ tra cứu | Lệnh mẫu | Kết quả hiển thị |
+| :--- | :--- | :--- |
+| **Cấp 1 (Global)** | `mod --info` | Thông tin công cụ, danh sách dispatcher flags, danh mục 19 types |
+| **Cấp 2 (Type Notify)** | `mod notify --info` | Tóm tắt các action: `send`, `test`, `channels`, `config` |
+| **Cấp 2 (Type GDrive)** | `mod gdrive --info` | Tóm tắt các action: `sync`, `dl`, `list`, `link`... |
+| **Cấp 2 (Type Gist)** | `mod gist --info` | In toàn bộ file Markdown `features/gist/README.md` (`raw_file`) |
+| **Cấp 3 (Notify Send)** | `mod notify send --info` | Chi tiết cờ `--title`, `--channel`, `--topic`, `--priority` |
+| **Cấp 3 (GDrive Sync)** | `mod gdrive sync --info` | Chi tiết đồng bộ rclone, tham số nguồn và đích |
+| **Vị trí tự do (Position)**| `mod notify --info send "test"` | Tự động bóc tách và in chi tiết `send` an toàn |
+| **Tương thích ngược** | `mod notify send --des` | Hoạt động hoàn toàn như `--info` |
+
+---
+
+## 8. Quy Chuẩn Đồng Bộ Khi Thêm Tính Năng Mới (Developer SOP)
+
+Theo đúng quy chuẩn tại skill [`mod-cli-developer`](file:///d:/D-Documents/TOOLs/mod/.agent/skills/mod-cli-developer/SKILL.md), mỗi khi phát triển một tính năng mới (`Action`), bạn **BẮT BUỘC** phải thực hiện 4 bước sau để bảo đảm tính năng `--info` hoạt động chính xác:
+
+1. **Bước 1 — Khai báo vào [`src/contents/app_features.yml`](file:///d:/D-Documents/TOOLs/mod/src/contents/app_features.yml):**
+   * Tìm đúng `type` tương ứng (hoặc thêm type mới).
+   * Tạo block action đầy đủ: `id`, `title`, `command`, `summary`, `details`, `parameters`, `flags`, `conditions`.
+2. **Bước 2 — Cập nhật [`src/contents/help.txt`](file:///d:/D-Documents/TOOLs/mod/src/contents/help.txt):**
+   * Thêm dòng hướng dẫn ngắn gọn cho action mới.
+3. **Bước 3 — Cập nhật [`src/utils/interactive_cli.py`](file:///d:/D-Documents/TOOLs/mod/src/utils/interactive_cli.py):**
+   * Khai báo action vào mảng của type trong `TYPE_ACTION_MAP` (luôn **sắp xếp theo thứ tự A-Z**).
+4. **Bước 4 — Kiểm thử tra cứu `--info`:**
+   ```powershell
+   # Kiểm tra tra cứu nhóm type
+   python src/main.py <type> --info
+
+   # Kiểm tra tra cứu action vừa thêm
+   python src/main.py <type> <new_action> --info
+   ```

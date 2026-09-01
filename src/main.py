@@ -642,7 +642,10 @@ def dispatch_command(
 
     # --- Feature description: mod <type> <action> --info ---
     if info_flag:
-        print_feature_description(type_included, action_included)
+        pos_args = [a for a in feature_args if not a.startswith("-")]
+        cmd_type = pos_args[0] if len(pos_args) > 0 else None
+        cmd_action = pos_args[1] if len(pos_args) > 1 else None
+        print_feature_description(cmd_type, cmd_action)
 
     # --- IDE prefix ---
     default_ide_prefix: str = "anti" if antigravity_flag else "code"
@@ -877,13 +880,13 @@ if __name__ == "__main__":
     try:
         raw_args = sys.argv[1:]
 
-        # --- Tách dispatcher flags (chỉ giữ --info và -a) ---
+        # --- Tách dispatcher flags (chỉ giữ --info / --des và -a) ---
         info_flag = False
         antigravity_flag = False
         feature_args = []
 
         for arg in raw_args:
-            if arg == "--info":
+            if arg in ("--info", "--des"):
                 info_flag = True
             elif arg in ("-a", "--antigravity-IDE"):
                 antigravity_flag = True

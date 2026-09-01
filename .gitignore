@@ -13,3 +13,6 @@ build/
 node_modules/
 .env
 *.zip
+data/credentials/
+*.mod_history
+.mod_history
