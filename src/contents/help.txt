@@ -206,6 +206,7 @@ notify            :to send multi-channel notifications (ntfy, telegram, toast).
 
 
 # Example:
+The command `mod --help` will print this content (help content).
 The command `mod open ws` will open the working workspaces in system folder.
 The command `mod compress` will compress current project to "mod-{timestamp}.zip" in root folder.
 The command `mod compress folder --info` will explain how to use the command "mod compress folder".
