@@ -109,6 +109,7 @@ MOD_PY_ENV = "env"
 MOD_PROXY_TEST = "test"
 # mcp
 MOD_MCP_SET = "set"
+MOD_MCP_OPEN_CONFIG = "open-config"
 # skill
 MOD_SKILL_SET = "set"
 # compress
@@ -543,13 +544,20 @@ def print_folder_tree(remaining_args):
 
 
 def cmd_mcp(action, remaining_args):
-    cmd_args = [
-        "python",
-        get_feature_path("mcp_set.py"),
-    ]
-    if action is not None:
-        cmd_args.append(action)
-    cmd_args.extend(remaining_args)
+    if action == MOD_MCP_OPEN_CONFIG:
+        cmd_args = [
+            "python",
+            get_feature_path("mcp_open_config.py"),
+        ]
+        cmd_args.extend(remaining_args)
+    else:
+        cmd_args = [
+            "python",
+            get_feature_path("mcp_set.py"),
+        ]
+        if action is not None:
+            cmd_args.append(action)
+        cmd_args.extend(remaining_args)
 
     result = subprocess.run(
         cmd_args,
@@ -715,10 +723,10 @@ def dispatch_command(
             raise InvalidActionError(type_included, action_included, valid_actions)
         cmd_proxy(action_included, remaining_args)
     elif type_included == MOD_TYPE_MCP:
-        valid_actions = [MOD_MCP_SET]
+        valid_actions = [MOD_MCP_OPEN_CONFIG, MOD_MCP_SET]
         if action_included is None:
             raise MissingActionError(type_included, valid_actions)
-        if action_included != MOD_MCP_SET:
+        if action_included not in valid_actions:
             raise InvalidActionError(type_included, action_included, valid_actions)
         cmd_mcp(action_included, remaining_args)
     elif type_included == MOD_TYPE_SKILL:

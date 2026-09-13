@@ -30,3 +30,8 @@ TEMPLATE_REPLACER_FOLDER = (
 )
 LOCAL_ABSOLUTE_FOLDER_PATH = "D:/D-Documents/MCP"
 SKILLS_FOLDER_PATH = "D:/D-Documents/SKILLs"
+
+# === Đường dẫn MCP Config của các AI Agent (Tự động theo User Home) ===
+ANTIGRAVITY_MCP_CONFIG_PATH = str(Path.home() / ".gemini" / "config" / "mcp_config.json")
+CODEX_MCP_CONFIG_PATH = str(Path.home() / ".codex" / "config.toml")
+CLAUDE_MCP_CONFIG_PATH = str(Path.home() / ".claude.json")

@@ -14,6 +14,8 @@ Mod CLI là công cụ dòng lệnh viết bằng Python để gom các tác v�
 - Sinh QR image từ input text.
 - In thông tin hệ thống, status, cURL snippet, command snippet và đường dẫn source.
 - Đồng bộ, liệt kê, xóa folder, lấy URL và reset cấu hình Google Drive qua `rclone`.
+- Sao chép nhanh Skill AI (`mod skill set`) và MCP Server (`mod mcp set`) với bộ lọc file marker thông minh (`SKILL.md`, `README.md`).
+- Chế độ tương tác REPL thông minh (`mod`) hỗ trợ Tab Autocomplete, duyệt lịch sử lệnh và điều hướng con trỏ nội dòng.
 - Tra cứu mô tả tính năng bằng `--info`, dữ liệu lấy từ `src/contents/app_features.yml`.
 
 ---
@@ -222,13 +224,31 @@ mod py env
 - `mod init`: chạy `src/cmd/init.cmd`.
 - `mod py env`: chạy helper setup Python virtual environment cho project hiện tại.
 
+### `mcp`
+
+```bash
+mod mcp set [mcp_folder_name] [dest_folder_path]
+mod mcp open-config <anti|codex|claude>
+```
+
+- `mod mcp set`: sao chép thư mục MCP từ kho lưu trữ vào project đích (chỉ quét các folder chứa trực tiếp file `README.md`, hỗ trợ gõ `q` để hủy).
+- `mod mcp open-config`: mở file cấu hình MCP của AI Agent (`anti`, `codex`, `claude`) bằng Notepad.
+
+### `skill`
+
+```bash
+mod skill set [skill_name] [dest_folder_path]
+```
+
+- `mod skill set`: sao chép thư mục Skill AI từ kho lưu trữ vào project đích (chỉ quét các folder chứa trực tiếp file `SKILL.md`, hỗ trợ gõ `q` để hủy).
+
 ---
 
 ## Tài Liệu Tính Năng
 
 Project dùng hai file trong `src/contents` để mô tả CLI:
 
-- `help.txt`: tài liệu ngắn, in khi chạy `mod` không tham số.
+- `help.txt`: tài liệu ngắn, in khi chạy `mod -h` hoặc `help` trong chế độ tương tác.
 - `app_features.yml`: catalog chi tiết để `mod <type> <action> --info` in mô tả từng command.
 
 Khi thêm hoặc xóa một command, cần cập nhật cả dispatcher trong `src/main.py`, `help.txt`, và `app_features.yml` để tránh tài liệu lệch với code.

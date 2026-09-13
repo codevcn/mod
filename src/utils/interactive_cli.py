@@ -39,7 +39,7 @@ TYPE_ACTION_MAP = {
     "gist": ["audit", "create", "delete", "get", "list", "rate", "reset", "update"],
     "git": ["commit", "remote"],
     "init": [],
-    "mcp": ["set"],
+    "mcp": ["open-config", "set"],
     "notify": ["channels", "config", "send", "test"],
     "open": ["env", "proms", "ws"],
     "print": ["cmds", "curl", "dir", "os", "stts", "ws"],
@@ -198,7 +198,7 @@ def get_tab_completion(
                 original_prefix = ""
                 candidates = sorted_types
                 cycle_idx = (sorted_types.index(cleaned_buf) + 1) % len(sorted_types)
-                return f"{candidates[cycle_idx]} ", original_prefix, cycle_idx, True
+                return f"{candidates[cycle_idx]}", original_prefix, cycle_idx, True
             else:
                 original_prefix = cleaned_buf
                 cycle_idx = 0
@@ -210,7 +210,7 @@ def get_tab_completion(
             return buffer, original_prefix, cycle_idx, False
 
         cycle_idx = cycle_idx % len(candidates)
-        return f"{candidates[cycle_idx]} ", original_prefix, cycle_idx, True
+        return f"{candidates[cycle_idx]}", original_prefix, cycle_idx, True
 
     # NGỮ CẢNH 2: Đã có Type -> Đang ở Token 1 (Điền/Xoay vòng Action)
     else:
@@ -228,7 +228,7 @@ def get_tab_completion(
                 original_prefix = ""
                 candidates = valid_actions
                 cycle_idx = (valid_actions.index(action_part) + 1) % len(valid_actions)
-                return f"{cmd_type} {candidates[cycle_idx]}{rest_of_args} ", original_prefix, cycle_idx, True
+                return f"{cmd_type} {candidates[cycle_idx]}{rest_of_args}", original_prefix, cycle_idx, True
             else:
                 original_prefix = action_part
                 cycle_idx = 0
@@ -241,7 +241,7 @@ def get_tab_completion(
 
         cycle_idx = cycle_idx % len(candidates)
         selected_action = candidates[cycle_idx]
-        return f"{cmd_type} {selected_action}{rest_of_args} ", original_prefix, cycle_idx, True
+        return f"{cmd_type} {selected_action}{rest_of_args}", original_prefix, cycle_idx, True
 
 def autocomplete_input(prompt: str, history: list[str]) -> Optional[str]:
     """

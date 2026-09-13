@@ -1,4 +1,4 @@
-﻿# ⌨️ Tài Liệu Toàn Diện Về Chế Độ Tương Tác & Tính Năng Auto-Complete (Mod CLI)
+# ⌨️ Tài Liệu Toàn Diện Về Chế Độ Tương Tác & Tính Năng Auto-Complete (Mod CLI)
 
 Tài liệu này cung cấp toàn bộ kiến trúc, thiết kế luồng dữ liệu, thuật toán nội bộ, cơ chế quản lý con trỏ, hệ thống lịch sử lệnh và quy chuẩn bảo trì cho **Chế Độ Tương Tác (Interactive Mode / REPL)** và **Tính Năng Auto-Complete** trong hệ thống **Mod CLI (`mod`)**.
 
@@ -91,36 +91,38 @@ mod >
 ### 2.1. Tự động hoàn thành & Xoay vòng Nhóm lệnh (Type Completion)
 - Khi ở đầu dòng lệnh, bạn nhập 1 hoặc vài ký tự tiền tố rồi nhấn phím **`[Tab]`**.
 - Nếu có nhiều `Type` cùng khớp với tiền tố, nhấn tiếp **`[Tab]`** sẽ **xoay vòng tuần hoàn (cycle)** qua lần lượt các type theo thứ tự A-Z.
-- Sau khi hoàn thành Type, hệ thống tự động thêm một dấu cách phía sau để bạn sẵn sàng gõ action.
+- Khi hoàn thành Type, con trỏ chuột dừng ngay sau ký tự cuối cùng của Type (không tự động thêm dấu cách thừa). Bạn có thể gõ dấu cách để nhập tiếp action hoặc nhấn Enter nếu lệnh không cần action.
 
 **Ví dụ:**
 ```text
-mod > g[Tab]         -->  mod > gdrive 
-mod > gdrive [Tab]   -->  mod > gist 
-mod > gist [Tab]     -->  mod > git 
-mod > git [Tab]      -->  mod > gdrive  (quay lại đầu danh sách khớp)
+mod > g[Tab]         -->  mod > gdrive
+mod > gdrive[Tab]    -->  mod > gist
+mod > gist[Tab]      -->  mod > git
+mod > git[Tab]       -->  mod > gdrive  (quay lại đầu danh sách khớp)
 
-mod > fi[Tab]        -->  mod > file 
-mod > fo[Tab]        -->  mod > folder 
-mod > no[Tab]        -->  mod > notify 
+mod > fi[Tab]        -->  mod > file
+mod > fo[Tab]        -->  mod > folder
+mod > no[Tab]        -->  mod > notify
+mod > to[Tab]        -->  mod > toast
 ```
 
 ### 2.2. Tự động hoàn thành & Xoay vòng Hành động (Action Completion)
 - Sau khi đã có `Type` và dấu cách, nhấn phím **`[Tab]`** để duyệt danh sách các `Action` của nhóm lệnh đó.
 - Nếu gõ trước tiền tố của action (vd `mod > gdrive l` + `[Tab]`), hệ thống chỉ xoay vòng giữa các action bắt đầu bằng chữ `l` (`link` $\rightarrow$ `list`).
+- Khi hoàn thành Action, con trỏ cũng dừng ngay sau ký tự cuối cùng của action (không thêm dấu cách thừa).
 
 **Ví dụ:**
 ```text
-mod > gdrive [Tab]          -->  mod > gdrive del-fd 
-mod > gdrive del-fd [Tab]   -->  mod > gdrive dl 
-mod > gdrive dl [Tab]       -->  mod > gdrive guide 
+mod > gdrive [Tab]          -->  mod > gdrive del-fd
+mod > gdrive del-fd[Tab]    -->  mod > gdrive dl
+mod > gdrive dl[Tab]        -->  mod > gdrive guide
 ...
-mod > gdrive url [Tab]      -->  mod > gdrive del-fd  (xoay vòng lại)
+mod > gdrive url[Tab]       -->  mod > gdrive del-fd  (xoay vòng lại)
 
 # Lọc theo tiền tố action:
-mod > gdrive l[Tab]         -->  mod > gdrive link 
-mod > gdrive link [Tab]     -->  mod > gdrive list 
-mod > gdrive list [Tab]     -->  mod > gdrive link 
+mod > gdrive l[Tab]         -->  mod > gdrive link
+mod > gdrive link[Tab]      -->  mod > gdrive list
+mod > gdrive list[Tab]      -->  mod > gdrive link
 ```
 
 ### 2.3. Bảo toàn tham số phụ khi đổi lệnh (Extra Arguments Preservation)
@@ -256,7 +258,7 @@ def get_tab_completion(
                 original_prefix = ""
                 candidates = sorted_types
                 cycle_idx = (sorted_types.index(cleaned_buf) + 1) % len(sorted_types)
-                return f"{candidates[cycle_idx]} ", original_prefix, cycle_idx, True
+                return f"{candidates[cycle_idx]}", original_prefix, cycle_idx, True
             else:
                 original_prefix = cleaned_buf
                 cycle_idx = 0
@@ -268,7 +270,7 @@ def get_tab_completion(
             return buffer, original_prefix, cycle_idx, False
 
         cycle_idx = cycle_idx % len(candidates)
-        return f"{candidates[cycle_idx]} ", original_prefix, cycle_idx, True
+        return f"{candidates[cycle_idx]}", original_prefix, cycle_idx, True
 
     # NGỮ CẢNH 2: Đã có Type -> Đang ở Token 1 (Điền/Xoay vòng Action)
     else:
@@ -286,7 +288,7 @@ def get_tab_completion(
                 original_prefix = ""
                 candidates = valid_actions
                 cycle_idx = (valid_actions.index(action_part) + 1) % len(valid_actions)
-                return f"{cmd_type} {candidates[cycle_idx]}{rest_of_args} ", original_prefix, cycle_idx, True
+                return f"{cmd_type} {candidates[cycle_idx]}{rest_of_args}", original_prefix, cycle_idx, True
             else:
                 original_prefix = action_part
                 cycle_idx = 0
@@ -299,7 +301,7 @@ def get_tab_completion(
 
         cycle_idx = cycle_idx % len(candidates)
         selected_action = candidates[cycle_idx]
-        return f"{cmd_type} {selected_action}{rest_of_args} ", original_prefix, cycle_idx, True
+        return f"{cmd_type} {selected_action}{rest_of_args}", original_prefix, cycle_idx, True
 ```
 
 * **Stateful Cycling:** Lưu vết `original_prefix` ban đầu khi người dùng gõ. Nhờ vậy, khi nhấn Tab liên tục (ví dụ gõ `g` rồi ấn Tab 3 lần), prefix tìm kiếm vẫn là `g` chứ không bị biến thành từ khóa hoàn chỉnh của lần nhấn trước.

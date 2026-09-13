@@ -3,36 +3,77 @@ import sys
 import shutil
 from pathlib import Path
 
+# Set UTF-8 encoding for console output on Windows
+os.environ.setdefault("PYTHONIOENCODING", "utf-8")
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 # Add project root to sys.path to import configs
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from configs.paths import SKILLS_FOLDER_PATH
 
-def list_folders_recursive(base_path: str) -> list[str]:
-    folders = []
+def has_direct_skill_file(folder_path: str) -> bool:
+    """Kiểm tra một thư mục có chứa file con trực tiếp là SKILL.md không."""
+    if not os.path.isdir(folder_path):
+        return False
+    try:
+        return any(
+            f.lower() == "skill.md" and os.path.isfile(os.path.join(folder_path, f))
+            for f in os.listdir(folder_path)
+        )
+    except Exception:
+        return False
+
+def list_skill_folders(base_path: str) -> list[str]:
+    """
+    Chỉ liệt kê các folder nào có file con trực tiếp là SKILL.md.
+    Các folder cha phân loại hoặc folder con bên trong skill sẽ không được liệt kê.
+    """
+    skill_folders = []
     ignore_dirs = {".git", "node_modules", ".venv", "venv", "__pycache__", ".vscode", "dist", "build"}
     base_path = os.path.abspath(base_path)
     for root, dirs, files in os.walk(base_path):
         dirs[:] = [d for d in dirs if d not in ignore_dirs]
-        for d in dirs:
-            full_d = os.path.join(root, d)
-            rel_path = os.path.relpath(full_d, base_path)
-            folders.append(rel_path.replace("\\", "/"))
-    return sorted(folders)
+        if root == base_path:
+            continue
+        # Chỉ nhận folder có file con trực tiếp là SKILL.md
+        if any(f.lower() == "skill.md" and os.path.isfile(os.path.join(root, f)) for f in files):
+            rel_path = os.path.relpath(root, base_path)
+            skill_folders.append(rel_path.replace("\\", "/"))
+            # Khi đã xác định là 1 skill, không duyệt sâu vào các thư mục con bên trong nó
+            dirs[:] = []
+    return sorted(skill_folders)
 
 def find_skill_folder(base_path: str, target_name: str) -> str | None:
-    # 1. Thử tìm trực tiếp nếu target_name là đường dẫn tương đối (vd: coding/split-code)
-    direct_path = os.path.join(base_path, target_name)
-    if os.path.exists(direct_path) and os.path.isdir(direct_path):
-        return direct_path
-        
-    # 2. Tìm theo tên folder ở bất kỳ độ sâu nào (bỏ qua các thư mục không cần thiết)
-    ignore_dirs = {".git", "node_modules", ".venv", "venv", "__pycache__", ".vscode", "dist", "build"}
+    """
+    Tìm đường dẫn tuyệt đối của thư mục skill hợp lệ (có file con trực tiếp là SKILL.md).
+    Hỗ trợ tìm theo:
+    1. Đường dẫn tương đối chính xác (vd: my-skill/chatgpt-web-interaction)
+    2. Tên thư mục skill (basename, vd: chatgpt-web-interaction)
+    """
+    target_clean = target_name.strip().replace("\\", "/").strip("/")
     base_path = os.path.abspath(base_path)
-    for root, dirs, files in os.walk(base_path):
-        dirs[:] = [d for d in dirs if d not in ignore_dirs]
-        if target_name in dirs:
-            return os.path.join(root, target_name)
-            
+
+    # 1. Thử tìm trực tiếp nếu target_name là đường dẫn tương đối
+    direct_path = os.path.normpath(os.path.join(base_path, target_clean))
+    if has_direct_skill_file(direct_path):
+        return direct_path
+
+    # 2. Quét toàn bộ danh sách skill hợp lệ trong base_path
+    skills = list_skill_folders(base_path)
+
+    # 2.1 Khớp tương đối (case-insensitive)
+    for s in skills:
+        if s.lower() == target_clean.lower():
+            return os.path.normpath(os.path.join(base_path, s))
+
+    # 2.2 Khớp theo tên folder cuối (basename) (case-insensitive)
+    for s in skills:
+        if os.path.basename(s).lower() == target_clean.lower():
+            return os.path.normpath(os.path.join(base_path, s))
+
     return None
 
 def main():
@@ -60,9 +101,9 @@ def main():
 
     if not skill_folder_name:
         print(">>> Đang quét thư mục SKILLs...")
-        folders = list_folders_recursive(SKILLS_FOLDER_PATH)
+        folders = list_skill_folders(SKILLS_FOLDER_PATH)
         if not folders:
-            print(f">>> Không tìm thấy thư mục SKILL nào trong {SKILLS_FOLDER_PATH}.")
+            print(f">>> Không tìm thấy thư mục SKILL nào có chứa file SKILL.md trong {SKILLS_FOLDER_PATH}.")
             sys.exit(0)
 
         print("\nDanh sách các thư mục SKILL có sẵn:")
@@ -70,15 +111,15 @@ def main():
             print(f"  - {f}")
         print()
         
-        skill_folder_name = input("Nhập tên Skill và nhấn enter để chọn: ").strip()
-        if not skill_folder_name:
+        skill_folder_name = input("Nhập tên Skill và nhấn enter để chọn (hoặc 'q' để hủy): ").strip()
+        if not skill_folder_name or skill_folder_name.lower() in ("q", "quit", "exit"):
             print(">>> Hủy thao tác.")
             sys.exit(0)
 
     # Resolve src path
     src_path = find_skill_folder(SKILLS_FOLDER_PATH, skill_folder_name)
     if not src_path:
-        print(f">>> Lỗi: Không tìm thấy Skill '{skill_folder_name}' trong {SKILLS_FOLDER_PATH}")
+        print(f">>> Lỗi: Không tìm thấy Skill '{skill_folder_name}' hợp lệ (chứa SKILL.md) trong {SKILLS_FOLDER_PATH}")
         sys.exit(1)
 
     # Resolve dest path

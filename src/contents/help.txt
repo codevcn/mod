@@ -166,12 +166,18 @@ notify            :to send multi-channel notifications (ntfy, telegram, toast).
 
 ## mcp:
    set [mcp_folder_name] [dest_folder_path]
-                  :copy a folder from LOCAL_ABSOLUTE_FOLDER_PATH to dest_folder_path.
+                  :copy a folder from LOCAL_ABSOLUTE_FOLDER_PATH to dest_folder_path (only folders with direct README.md; enter 'q' to cancel).
                   // Example: mod mcp set iconify .
+   open-config <agent_alias>
+                  :open MCP configuration file of specified AI agent in Notepad.
+                  // Supported agent aliases: anti (Antigravity), codex (OpenAI Codex), claude (Claude Code).
+                  // Example: mod mcp open-config anti
+                  // Example: mod mcp open-config codex
+                  // Example: mod mcp open-config claude
 
 ## skill:
    set [skill_name] [dest_folder_path]
-                  :copy a folder from SKILLS_FOLDER_PATH to dest_folder_path.
+                  :copy a folder from SKILLS_FOLDER_PATH to dest_folder_path (only folders with direct SKILL.md; enter 'q' to cancel).
                   // Example: mod skill set split-code .
 
 ## toast:

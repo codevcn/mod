@@ -133,6 +133,7 @@ d:\D-Documents\TOOLs\mod\
         ├── keep_files_with_ext.py      # Xóa toàn bộ file khác đuôi chỉ định (chỉ giữ 1 extension)
         ├── keep_screen.py              # Giữ màn hình Windows luôn bật qua SetThreadExecutionState Win32 API
         ├── keep_server_awake.py        # Ping HTTP GET định kỳ để giữ sống server miễn phí (Render/Kaggle)
+        ├── mcp_open_config.py          # Mở file cấu hình MCP của AI Agent (Antigravity, Codex, Claude) bằng Notepad
         ├── mcp_set.py                  # Copy thư mục MCP từ kho LOCAL_ABSOLUTE_FOLDER_PATH vào project đích
         ├── merge_folders.py            # Merge thư mục có kiểm tra độ tương đồng/giao nhau của cây thư mục
         ├── open_main_ws.py             # Mở workspace lập trình trong Windows Terminal + VSCode/Anti + Browser
@@ -207,7 +208,8 @@ Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--info]`
 | `tunnel` | *(không có)* | `[port]` | Mở Cloudflare Quick Tunnel trỏ tới localhost (mặc định port 3000) + QR code. |
 
 | `proxy` | `test` | `<ip>:<port>[:<user>:<pass>] [--protocol ...]` | Test proxy qua requests, cURL và lấy IP thật qua API ipify. |
-| `mcp` | `set` | `[mcp_folder_name] [dest_folder_path]` | Copy thư mục MCP từ kho chung sang thư mục dự án đích. |
+| `mcp` | `set` | `[mcp_folder_name] [dest_folder_path]` | Copy thư mục MCP từ kho chung sang thư mục dự án đích (chỉ nhận folder chứa trực tiếp `README.md`). |
+| `mcp` | `open-config` | `<agent alias>` | Mở file cấu hình MCP của AI Agent (`anti`, `codex`, `claude`) bằng Notepad. |
 | `toast` | *(không có)* | `<title> [msg...] [--audio <path>]` | Bắn Windows Toast Notification kèm âm thanh MP3/WAV tùy chỉnh. |
 | `toast` | `--syntax` | | In cú pháp 1 dòng của lệnh toast để tiện copy. |
 | `print` | `os` | | In cấu hình OS, CPU, RAM, Network adapter. |
@@ -216,7 +218,7 @@ Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--info]`
 | `print` | `curl` | | In snippet mẫu cURL CRUD. |
 | `print` | `dir` | | In đường dẫn thư mục `src` của mod. |
 | `print` | `cmds` | | In danh sách các lệnh hữu ích thường dùng. |
-| `skill` | `set` | `[skill_name] [dest_path]` | Sao chép thư mục Skill AI từ kho `SKILLS_FOLDER_PATH` vào thư mục đích. |
+| `skill` | `set` | `[skill_name] [dest_path]` | Sao chép thư mục Skill AI từ kho `SKILLS_FOLDER_PATH` vào thư mục đích (chỉ nhận folder chứa trực tiếp `SKILL.md`). |
 | `compress` | *(không có)* | `[output_path]` | Nén toàn bộ dự án thành file `mod-{dd}-{mm}-{yyyy}-{hh}-{mm}-{ss}.zip` tại thư mục gốc dự án (hoặc output_path), áp dụng bộ lọc `.compressignore`. |
 | `compress` | `folder` | `<path> [--config-file C] [--ignore-file I]` | Nén thư mục cục bộ tự động đọc `.compressignore` hoặc theo JSON config. |
 | `compress` | `init-ignore` | `<path> ["rules..."]` | Khởi tạo file `.compressignore` mẫu tại đường dẫn chỉ định với các rule tùy chỉnh. |
@@ -287,9 +289,13 @@ TELEGRAM_CHAT_ID=987654321
 - Khi người dùng chạy lệnh `mod` không có tham số:
   1. [`interactive_cli.py`](file:///d:/D-Documents/TOOLs/mod/src/utils/interactive_cli.py) sẽ in danh sách toàn bộ các nhóm lệnh (`type`) hiện có kèm theo danh sách action tương ứng và dòng gợi ý ở cuối.
   2. Mở dấu nhắc `mod > ` sử dụng `msvcrt.getwch()` trên Windows để bắt từng phím bấm mà không cần nhấn Enter.
-  3. **Tab Autocomplete cho Type:** Quét toàn bộ type khớp với tiền tố đang gõ theo thứ tự A-Z. Bấm Tab liên tiếp để xoay vòng các candidate.
-  4. **Tab Autocomplete cho Action:** Sau khi có type hợp lệ, gõ tiếp tiền tố action và bấm Tab để hoàn thành action của type đó (xoay vòng A-Z). Nếu type không có action, bỏ qua.
+  3. **Tab Autocomplete cho Type:** Quét toàn bộ type khớp với tiền tố đang gõ theo thứ tự A-Z. Bấm Tab liên tiếp để xoay vòng các candidate. Con trỏ dừng ngay sau ký tự cuối cùng của từ khóa hoàn thành (không tự động chèn dấu cách thừa).
+  4. **Tab Autocomplete cho Action:** Sau khi có type hợp lệ, gõ tiếp tiền tố action và bấm Tab để hoàn thành action của type đó (xoay vòng A-Z, con trỏ dừng ngay sau ký tự cuối cùng). Nếu type không có action, bỏ qua.
   5. Bấm `Enter` để thực thi trực tiếp lệnh vừa nhập mà không cần thoát CLI; gõ `h` hoặc `help` để xem help chi tiết; gõ `q` hoặc `exit` để thoát.
+
+### 6.6. Cơ chế Lọc Thư Mục Skill AI & MCP Server
+- **`mod skill set` ([`skill_set.py`](file:///d:/D-Documents/TOOLs/mod/src/features/skill_set.py)):** Quét đệ quy kho `SKILLS_FOLDER_PATH` nhưng **chỉ lọc các folder có chứa trực tiếp file `SKILL.md`**, tự động bỏ qua thư mục cha phân loại và các thư mục con nội bộ (`agents`, `assets`, `references`...). Hỗ trợ nhập `q` để hủy thao tác tại prompt. Chuẩn hóa UTF-8 console output.
+- **`mod mcp set` ([`mcp_set.py`](file:///d:/D-Documents/TOOLs/mod/src/features/mcp_set.py)):** Quét đệ quy kho `LOCAL_ABSOLUTE_FOLDER_PATH` nhưng **chỉ lọc các folder có chứa trực tiếp file `README.md`**, tự động bỏ qua thư mục cha phân loại và các thư mục con bên trong MCP (`src`, `assets`...). Hỗ trợ nhập `q` để hủy thao tác tại prompt. Chuẩn hóa UTF-8 console output.
 
 ---
 
