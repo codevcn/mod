@@ -516,6 +516,7 @@ def main():
         if not folder_args:
             print("❌ Lỗi: Thiếu đường dẫn thư mục cần nén.")
             print("👉 Cú pháp: mod compress folder <local folder path> [--config-file <config_path>] [--ignore-file <ignore_path>]")
+            print("👉 Xem thông tin về lệnh: mod compress folder --info")
             sys.exit(1)
 
         custom_config = None

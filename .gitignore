@@ -16,3 +16,4 @@ node_modules/
 data/credentials/
 *.mod_history
 .mod_history
+sensitive

@@ -1,4 +1,4 @@
-﻿# 📖 Tài Liệu Chi Tiết Tính Năng `--info` Trong Mod CLI (`mod`)
+# 📖 Tài Liệu Chi Tiết Tính Năng `--info` Trong Mod CLI (`mod`)
 
 Tài liệu này mô tả toàn diện kiến trúc kỹ thuật, luồng xử lý dữ liệu, thuật toán so khớp lệnh và cơ chế hiển thị định dạng đầu ra của tính năng **Self-Documenting CLI (`--info`)** trong hệ thống **Mod CLI (`mod`)**.
 
@@ -54,8 +54,10 @@ Dữ liệu mô tả tính năng được quản lý tập trung tại file YAML
 mod_tool:
   # 1. Danh sách các cờ điều phối toàn cục (Dispatcher Flags)
   dispatcher_flags:
-    - flag: "--info"
-      description: "In mô tả chi tiết command từ app_features.yml."
+    - flag: "-v / --version"
+      description: "In thông tin phiên bản (v0.1.0) và mô tả công cụ bằng tiếng Anh."
+    - flag: "--info / --des"
+      description: "In mô tả chi tiết command."
     - flag: "-a / --antigravity-IDE"
       description: "Dùng Antigravity IDE thay vì VSCode."
 
@@ -171,7 +173,8 @@ graph TD
 +) Chế độ tương tác: Chạy 'mod' không tham số để vào REPL + Tab Autocomplete.
 
 Các cờ điều phối toàn cục (Dispatcher Flags):
-  --info                 : In mô tả chi tiết command từ app_features.yml.
+  -v / --version         : In thông tin phiên bản (v0.1.0) và mô tả công cụ bằng tiếng Anh.
+  --info / --des         : In mô tả chi tiết command.
   -a / --antigravity-IDE : Dùng Antigravity IDE thay vì VSCode.
 
 Danh sách nhóm lệnh (Types):

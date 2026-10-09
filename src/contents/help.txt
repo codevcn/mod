@@ -47,11 +47,18 @@ notify            :to send multi-channel notifications (ntfy, telegram, toast).
 
 # Available actions:
 ## open:
-                  :open mod files in vscode.
-   -f             :open mod files in File Explorer.
-   ws             :open working workspaces in system folder.
-   env            :open enviroment variables in system folder.
-   proms          :open prompts folder in system folder (Template Replacer Extension).
+   [path]         :open mod root folder or specified path in File Explorer.
+   -c, --code     :open mod files in IDE.
+   ws             :open working workspaces folder in File Explorer.
+   env            :open Environment Variables panel.
+   proms          :open Prompts folder (Template Replacer Extension) in File Explorer.
+   appdata        :open mod AppData folder in File Explorer.
+   mcp            :open MCP servers folder in File Explorer.
+   skills         :open AI Skills folder in File Explorer.
+   agy-mcp-conf   :open Antigravity MCP config file in Notepad.
+   codex-mcp-conf :open OpenAI Codex MCP config file in Notepad.
+   clau-mcp-conf  :open Claude Code MCP config file in Notepad.
+   ssh-conf       :open SSH config file in Notepad.
 ## code:
                   :open mod files in vscode.
    test           :open testing folder in vscode.

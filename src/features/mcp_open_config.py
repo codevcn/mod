@@ -81,17 +81,10 @@ def open_mcp_config(agent_alias: str):
 
     target_path = agent_info["path"]
 
-    # Nếu file cấu hình chưa tồn tại, tự động tạo file mẫu
+    # Nếu file cấu hình không tồn tại, log thông báo lỗi và dừng tiến trình
     if not target_path.exists():
-        try:
-            target_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(target_path, "w", encoding="utf-8") as f:
-                f.write(agent_info["default_content"])
-            print(f"{Colors.YELLOW}>>> [INFO] File cấu hình chưa tồn tại, đã tự động khởi tạo:{Colors.RESET}")
-            print(f"    {target_path}")
-        except Exception as e:
-            print(f"{Colors.RED}>>> Lỗi khi tạo file cấu hình mẫu: {e}{Colors.RESET}")
-            sys.exit(1)
+        print(f"{Colors.RED}❌ Không tìm thấy file: {target_path}{Colors.RESET}")
+        sys.exit(1)
 
     print(f"{Colors.GREEN}>>> Đang mở file cấu hình MCP của {agent_info['name']} bằng Notepad...{Colors.RESET}")
     print(f"    {Colors.CYAN}{target_path}{Colors.RESET}")

@@ -29,9 +29,14 @@ TEMPLATE_REPLACER_FOLDER = (
     "D:/D-Documents/Browser-Extensions/codevoicainay/template_replacer"
 )
 LOCAL_ABSOLUTE_FOLDER_PATH = "D:/D-Documents/MCP"
+MCP_FOLDER_PATH = LOCAL_ABSOLUTE_FOLDER_PATH
 SKILLS_FOLDER_PATH = "D:/D-Documents/SKILLs"
+VSCODE_WORKSPACES_FOLDER = "D:/D-Documents/VSCode-Workspaces"
 
 # === Đường dẫn MCP Config của các AI Agent (Tự động theo User Home) ===
 ANTIGRAVITY_MCP_CONFIG_PATH = str(Path.home() / ".gemini" / "config" / "mcp_config.json")
 CODEX_MCP_CONFIG_PATH = str(Path.home() / ".codex" / "config.toml")
 CLAUDE_MCP_CONFIG_PATH = str(Path.home() / ".claude.json")
+
+# === Đường dẫn cấu hình hệ thống (Tự động theo User Home) ===
+SSH_CONFIG_PATH = str(Path.home() / ".ssh" / "config")

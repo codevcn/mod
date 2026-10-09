@@ -2,7 +2,16 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from configs.paths import PROJECT_ROOT, FEATURES_FOLDER, TEMPLATE_REPLACER_FOLDER
+from configs.paths import (
+    PROJECT_ROOT,
+    FEATURES_FOLDER,
+    TEMPLATE_REPLACER_FOLDER,
+    VSCODE_WORKSPACES_FOLDER,
+    APPDATA_FOLDER,
+    LOCAL_ABSOLUTE_FOLDER_PATH,
+    SKILLS_FOLDER_PATH,
+    SSH_CONFIG_PATH,
+)
 from configs.version import get_version_info
 from utils.errors import (
     handle_cli_error,
@@ -10,6 +19,7 @@ from utils.errors import (
     MissingTypeError,
     InvalidActionError,
     MissingActionError,
+    ModCLIError,
 )
 from utils.interactive_cli import run_interactive_session
 
@@ -63,8 +73,16 @@ MOD_GIST_RATE = "rate"
 
 
 # open
+MOD_OPEN_AGY_MCP_CONF = "agy-mcp-conf"
+MOD_OPEN_APPDATA = "appdata"
+MOD_OPEN_CLAU_MCP_CONF = "clau-mcp-conf"
+MOD_OPEN_CODEX_MCP_CONF = "codex-mcp-conf"
 MOD_OPEN_ENV = "env"
+MOD_OPEN_MCP = "mcp"
 MOD_OPEN_PROMPTS_FOLDER = "proms"
+MOD_OPEN_SKILLS = "skills"
+MOD_OPEN_SSH_CONF = "ssh-conf"
+MOD_OPEN_VSCODE_WORKSPACE = "ws"
 # code
 MOD_CODE_VSCODE_WORKSPACE = "ws"
 MOD_CODE_TEST = "test"
@@ -206,49 +224,52 @@ def run_git_command(git_type, remaining_args):
     sys.exit(result.returncode)
 
 
+def open_in_file_explorer(target_path: str):
+    """Mở an toàn thư mục hoặc tệp trong Windows File Explorer bằng os.startfile."""
+    resolved = Path(target_path).resolve()
+    if not resolved.exists():
+        raise ModCLIError(
+            title="Không tìm thấy đường dẫn",
+            reason=f"Đường dẫn `{target_path}` không tồn tại trên hệ thống.",
+            suggestion="Vui lòng kiểm tra lại đường dẫn hoặc cấu hình trong `src/configs/paths.py`.",
+        )
+
+    folder_str = str(resolved)
+    if hasattr(os, "startfile"):
+        os.startfile(folder_str)
+    else:
+        subprocess.run(["explorer", os.path.normpath(folder_str)])
+
+    sys.exit(0)
+
+
 def open_mod_file_in_system_folder():
-    # Lấy đường dẫn, nếu MOD_ROOT_FOLDER không tồn tại thì lấy thư mục chứa file main.py hiện tại
     folder_path = (
         MOD_ROOT_FOLDER
         if MOD_ROOT_FOLDER
         else os.path.dirname(os.path.abspath(__file__))
     )
-
-    # Sử dụng os.startfile (cách chuẩn nhất trên Windows để mở thư mục/file bằng app mặc định)
-    if hasattr(os, "startfile"):
-        os.startfile(folder_path)
-    else:
-        # Dự phòng gọi thẳng explorer
-        subprocess.run(["explorer", os.path.normpath(folder_path)])
-
-    sys.exit(0)
+    open_in_file_explorer(folder_path)
 
 
-def print_statuses_info():
-    subprocess.run(
-        ["python", get_system_feature_path("_statuses.py")],
-        check=True,
-        shell=True,
-    )
-    sys.exit(0)
+def open_appdata_folder():
+    open_in_file_explorer(APPDATA_FOLDER)
 
 
-def print_help():
-    print_content("help.txt")
+def open_mcp_folder():
+    open_in_file_explorer(LOCAL_ABSOLUTE_FOLDER_PATH)
 
 
-def print_version():
-    print(get_version_info())
-    sys.exit(0)
+def open_skills_folder():
+    open_in_file_explorer(SKILLS_FOLDER_PATH)
 
 
-def print_cURL():
-    subprocess.run(
-        ["python", get_feature_path("print_cURL.py")],
-        check=True,
-        shell=True,
-    )
-    sys.exit(0)
+def open_prompts_folder():
+    open_in_file_explorer(f"{TEMPLATE_REPLACER_FOLDER_PATH}/Prompts")
+
+
+def open_vscode_workspaces_in_system_folder():
+    open_in_file_explorer(VSCODE_WORKSPACES_FOLDER)
 
 
 def open_environment_variables_panel():
@@ -256,13 +277,29 @@ def open_environment_variables_panel():
     sys.exit(0)
 
 
-def open_prompts_folder():
-    subprocess.run(["start", f"{TEMPLATE_REPLACER_FOLDER_PATH}/Prompts"], shell=True)
-    sys.exit(0)
+def open_agent_mcp_config(agent_alias: str):
+    cmd_args = [
+        "python",
+        get_feature_path("mcp_open_config.py"),
+        agent_alias,
+    ]
+    result = subprocess.run(cmd_args)
+    sys.exit(result.returncode)
 
 
-def open_vscode_workspaces_in_system_folder():
-    subprocess.run(["start", "D:/D-Documents/VSCode-Workspaces"], shell=True)
+def open_ssh_config():
+    ssh_path = Path(SSH_CONFIG_PATH)
+    if not ssh_path.exists():
+        print(f"\033[91m❌ Không tìm thấy file: {ssh_path}\033[0m")
+        sys.exit(1)
+
+    print("\033[92m>>> Đang mở file cấu hình SSH bằng Notepad...\033[0m")
+    print(f"    \033[96m{ssh_path}\033[0m")
+    try:
+        subprocess.Popen(["notepad.exe", str(ssh_path)])
+    except Exception as e:
+        print(f"\033[91m>>> Lỗi khi khởi chạy Notepad: {e}\033[0m")
+        sys.exit(1)
     sys.exit(0)
 
 
@@ -832,31 +869,68 @@ def dispatch_command(
         else:
             raise InvalidActionError(type_included, action_included, valid_actions)
     elif type_included == MOD_TYPE_OPEN:
-        valid_actions = [MOD_OPEN_ENV, MOD_OPEN_PROMPTS_FOLDER, MOD_CODE_VSCODE_WORKSPACE]
-        # Gom action + remaining để detect flag -f/--file
+        valid_actions = [
+            MOD_OPEN_AGY_MCP_CONF,
+            MOD_OPEN_APPDATA,
+            MOD_OPEN_CLAU_MCP_CONF,
+            MOD_OPEN_CODEX_MCP_CONF,
+            MOD_OPEN_ENV,
+            MOD_OPEN_MCP,
+            MOD_OPEN_PROMPTS_FOLDER,
+            MOD_OPEN_SKILLS,
+            MOD_OPEN_SSH_CONF,
+            MOD_OPEN_VSCODE_WORKSPACE,
+        ]
         all_open_args = (
             [action_included] if action_included else []
         ) + remaining_args
-        has_file_flag = "-f" in all_open_args or "--file" in all_open_args
+
+        has_code_flag = "-c" in all_open_args or "--code" in all_open_args
         clean_action = (
             action_included
-            if action_included not in ("-f", "--file", None)
+            if action_included not in ("-f", "--file", "-c", "--code", None)
             else None
         )
 
         if clean_action is None:
-            if has_file_flag:
-                open_mod_file_in_system_folder()
-            else:
+            if has_code_flag:
                 open_mod_files_in_vscode(default_ide_prefix)
+            else:
+                open_mod_file_in_system_folder()
+        elif clean_action == MOD_OPEN_AGY_MCP_CONF:
+            open_agent_mcp_config("anti")
+        elif clean_action == MOD_OPEN_CODEX_MCP_CONF:
+            open_agent_mcp_config("codex")
+        elif clean_action == MOD_OPEN_CLAU_MCP_CONF:
+            open_agent_mcp_config("claude")
         elif clean_action == MOD_OPEN_ENV:
             open_environment_variables_panel()
+        elif clean_action == MOD_OPEN_VSCODE_WORKSPACE:
+            open_vscode_workspaces_in_system_folder()
         elif clean_action == MOD_OPEN_PROMPTS_FOLDER:
             open_prompts_folder()
-        elif clean_action == MOD_CODE_VSCODE_WORKSPACE:
-            open_vscode_workspaces_in_system_folder()
+        elif clean_action == MOD_OPEN_APPDATA:
+            open_appdata_folder()
+        elif clean_action in (MOD_OPEN_MCP, "mcps"):
+            open_mcp_folder()
+        elif clean_action in (MOD_OPEN_SKILLS, "skill"):
+            open_skills_folder()
+        elif clean_action == MOD_OPEN_SSH_CONF:
+            open_ssh_config()
         else:
-            raise InvalidActionError(type_included, clean_action, valid_actions)
+            # Custom path check (relative or absolute)
+            custom_path = Path(clean_action).resolve()
+            if custom_path.exists():
+                open_in_file_explorer(str(custom_path))
+            else:
+                if "/" in clean_action or "\\" in clean_action or clean_action.startswith("."):
+                    raise ModCLIError(
+                        title="Đường dẫn không tồn tại",
+                        reason=f"Đường dẫn `{clean_action}` không tồn tại trên hệ thống.",
+                        suggestion="Vui lòng kiểm tra lại tính chính xác của đường dẫn cần mở.",
+                    )
+                else:
+                    raise InvalidActionError(type_included, clean_action, valid_actions)
     elif type_included == MOD_TYPE_PRINT:
         valid_actions = [
             MOD_PRINT_OS_INFO, MOD_PRINT_VSCODE_WORKSPACES, MOD_PRINT_DIRECTORY,
@@ -865,7 +939,7 @@ def dispatch_command(
         if action_included == MOD_PRINT_OS_INFO:
             print_os_info()
         elif action_included == MOD_PRINT_VSCODE_WORKSPACES:
-            print_vscode_workspaces("D:/D-Documents/VSCode-Workspaces")
+            print_vscode_workspaces(VSCODE_WORKSPACES_FOLDER)
         elif action_included == MOD_PRINT_DIRECTORY:
             print_mod_files_root_dir()
         elif action_included == MOD_PRINT_USEFUL_COMMANDS:

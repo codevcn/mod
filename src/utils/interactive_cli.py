@@ -41,7 +41,18 @@ TYPE_ACTION_MAP = {
     "init": [],
     "mcp": ["open-config", "set"],
     "notify": ["channels", "config", "send", "test"],
-    "open": ["env", "proms", "ws"],
+    "open": [
+        "agy-mcp-conf",
+        "appdata",
+        "clau-mcp-conf",
+        "codex-mcp-conf",
+        "env",
+        "mcp",
+        "proms",
+        "skills",
+        "ssh-conf",
+        "ws",
+    ],
     "print": ["cmds", "curl", "dir", "os", "stts", "ws"],
     "proxy": ["test"],
     "py": ["env"],
@@ -52,7 +63,7 @@ TYPE_ACTION_MAP = {
 }
 
 TYPE_DESCRIPTIONS = {
-    "open": "Mở thư mục gốc hoặc các tài nguyên trong Explorer/IDE",
+    "open": "Mở thư mục dự án, tài nguyên hệ thống hoặc đường dẫn bất kỳ trong Explorer",
     "code": "Mở các dự án, template, workspace trong IDE",
     "compress": "Nén toàn bộ dự án hoặc nén thư mục theo cấu hình JSON",
     "file": "Thao tác xử lý file hàng loạt (create, rename, delete, keep)",

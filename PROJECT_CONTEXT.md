@@ -165,10 +165,17 @@ Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--info]`
 | Type | Action | Tham số / Flag đi kèm | Mô tả chức năng |
 | :--- | :--- | :--- | :--- |
 | *(root)* | `version` / `-v` / `--version` | | In thông tin phiên bản (v0.1.0) và mô tả công cụ bằng tiếng Anh. |
-| `open` | *(không có)* | `[-f]` | Mở thư mục gốc project trong IDE. Thêm `-f` để mở trong Windows Explorer. |
-| `open` | `ws` | | Mở thư mục chứa các workspace (`D:/D-Documents/VSCode-Workspaces`). |
+| `open` | *(không có)* | `[path] [-c]` | Mở thư mục gốc project hoặc đường dẫn chỉ định trong File Explorer. Dùng `-c` để mở trong IDE. |
+| `open` | `ws` | | Mở thư mục chứa các workspace (`VSCODE_WORKSPACES_FOLDER`). |
 | `open` | `env` | | Mở bảng quản lý biến môi trường Windows (`rundll32 sysdm.cpl`). |
 | `open` | `proms` | | Mở thư mục Prompts của Template Replacer Extension. |
+| `open` | `appdata` | | Mở thư mục AppData của me-mod (`APPDATA_FOLDER`). |
+| `open` | `mcp` | | Mở thư mục chứa các MCP servers (`LOCAL_ABSOLUTE_FOLDER_PATH`). |
+| `open` | `skills` | | Mở thư mục chứa các AI Skills (`SKILLS_FOLDER_PATH`). |
+| `open` | `agy-mcp-conf` | | Mở file MCP config của Google Antigravity (`~/.gemini/config/mcp_config.json`). |
+| `open` | `codex-mcp-conf` | | Mở file MCP config của OpenAI Codex (`~/.codex/config.toml`). |
+| `open` | `clau-mcp-conf` | | Mở file MCP config của Claude Code (`~/.claude.json`). |
+| `open` | `ssh-conf` | | Mở file cấu hình SSH của người dùng (`~/.ssh/config`). |
 | `code` | *(không có)* | | Mở project trong IDE (`code` hoặc `anti`). |
 | `code` | `ws` | `<value> [-p]` | Mở workspace thiết lập sẵn (`ptb` hoặc `tool`). `-p` chỉ mở Windows Terminal. |
 | `code` | `test` / `js` / `ts` / `py` / `nestjs` / `ext` / `ts-template` | | Mở nhanh các thư mục template hoặc thư mục testing tương ứng trong IDE. |
