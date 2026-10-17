@@ -59,6 +59,9 @@ notify            :to send multi-channel notifications (ntfy, telegram, toast).
    codex-mcp-conf :open OpenAI Codex MCP config file in Notepad.
    clau-mcp-conf  :open Claude Code MCP config file in Notepad.
    ssh-conf       :open SSH config file in Notepad.
+   agy-skills     :open Antigravity skills folder in File Explorer.
+   codex-skills   :open OpenAI Codex skills folder in File Explorer.
+   clau-skills    :open Claude Code skills folder in File Explorer.
 ## code:
                   :open mod files in vscode.
    test           :open testing folder in vscode.
@@ -108,11 +111,18 @@ notify            :to send multi-channel notifications (ntfy, telegram, toast).
    tree           :print folder tree structure.
 ## print:
    os             :print OS info.
+   pc-power [--notepad, -n]
+                  :print detailed hardware specs (CPU, RAM, Disk, Wi-Fi, GPU).
+                  // Example: mod print pc-power
+                  // Example: mod print pc-power --notepad
    stts           :print mod-status description.
    ws             :print the folder vscode workspace.
    curl           :print CRUD of cURL command.
    dir            :print path of mod folder in system.
-   cmds           :print some useful commands.
+   cmds [--notepad, -n]
+                  :print some useful commands with syntax highlighting.
+                  // Example: mod print cmds
+                  // Example: mod print cmds --notepad
 
 ## gdrive:
    sync <source> <dest>

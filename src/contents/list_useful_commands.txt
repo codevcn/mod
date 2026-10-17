@@ -117,3 +117,6 @@ git reset --soft HEAD~1
 
 # Cài Playwright Skill
 playwright-cli install --skills
+
+# Mở tất cả các app trên máy tính trong hộp thoại Run
+shell:AppsFolder

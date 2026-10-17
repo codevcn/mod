@@ -40,3 +40,8 @@ CLAUDE_MCP_CONFIG_PATH = str(Path.home() / ".claude.json")
 
 # === Đường dẫn cấu hình hệ thống (Tự động theo User Home) ===
 SSH_CONFIG_PATH = str(Path.home() / ".ssh" / "config")
+
+# === Đường dẫn Skills của các AI Agent (Tự động theo User Home) ===
+ANTIGRAVITY_SKILLS_PATH = str(Path.home() / ".gemini" / "config" / "skills")
+CODEX_SKILLS_PATH = str(Path.home() / ".codex" / "skills")
+CLAUDE_SKILLS_PATH = str(Path.home() / ".claude" / "skills")

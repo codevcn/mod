@@ -140,6 +140,7 @@ d:\D-Documents\TOOLs\mod\
         ├── print_cURL.py               # In snippet cURL
         ├── print_folder_tree.py        # In cây thư mục có tính năng auto-collapse khi vượt quá số lượng max
         ├── print_os_info.py            # In cấu hình phần cứng, OS, CPU, RAM, Network (systeminfo, wmic, ipconfig)
+        ├── print_pc_power.py           # In thông số phần cứng chi tiết CPU, RAM, Disk, Wi-Fi, GPU (Task Manager format)
         ├── rename_files.py             # Đổi tên file hàng loạt có auto-detect prefix hoặc đặt prefix tùy ý
         ├── send_toast.py               # CLI wrapper gửi Toast notification qua `ToastNotifier`
         ├── set_download_path_in_chrome.py # Sửa file Preferences của tất cả Google Chrome profiles
@@ -176,6 +177,9 @@ Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--info]`
 | `open` | `codex-mcp-conf` | | Mở file MCP config của OpenAI Codex (`~/.codex/config.toml`). |
 | `open` | `clau-mcp-conf` | | Mở file MCP config của Claude Code (`~/.claude.json`). |
 | `open` | `ssh-conf` | | Mở file cấu hình SSH của người dùng (`~/.ssh/config`). |
+| `open` | `agy-skills` | | Mở thư mục chứa các skill của Google Antigravity (`~/.gemini/config/skills`). |
+| `open` | `codex-skills` | | Mở thư mục chứa các skill của OpenAI Codex (`~/.codex/skills`). |
+| `open` | `clau-skills` | | Mở thư mục chứa các skill của Claude Code (`~/.claude/skills`). |
 | `code` | *(không có)* | | Mở project trong IDE (`code` hoặc `anti`). |
 | `code` | `ws` | `<value> [-p]` | Mở workspace thiết lập sẵn (`ptb` hoặc `tool`). `-p` chỉ mở Windows Terminal. |
 | `code` | `test` / `js` / `ts` / `py` / `nestjs` / `ext` / `ts-template` | | Mở nhanh các thư mục template hoặc thư mục testing tương ứng trong IDE. |
@@ -220,11 +224,12 @@ Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--info]`
 | `toast` | *(không có)* | `<title> [msg...] [--audio <path>]` | Bắn Windows Toast Notification kèm âm thanh MP3/WAV tùy chỉnh. |
 | `toast` | `--syntax` | | In cú pháp 1 dòng của lệnh toast để tiện copy. |
 | `print` | `os` | | In cấu hình OS, CPU, RAM, Network adapter. |
+| `print` | `pc-power` | `[--notepad, -n]` | In chi tiết thông số phần cứng CPU, RAM, Disk, Wi-Fi, GPU theo chuẩn Task Manager (hỗ trợ xuất ra Notepad). |
 | `print` | `stts` | | In giải thích các mã trạng thái Mod CLI. |
 | `print` | `ws` | | In danh sách các file trong thư mục VSCode-Workspaces. |
 | `print` | `curl` | | In snippet mẫu cURL CRUD. |
 | `print` | `dir` | | In đường dẫn thư mục `src` của mod. |
-| `print` | `cmds` | | In danh sách các lệnh hữu ích thường dùng. |
+| `print` | `cmds` | `[--notepad, -n]` | In danh sách các lệnh hữu ích thường dùng kèm tô màu trực quan (hỗ trợ mở Notepad). |
 | `skill` | `set` | `[skill_name] [dest_path]` | Sao chép thư mục Skill AI từ kho `SKILLS_FOLDER_PATH` vào thư mục đích (chỉ nhận folder chứa trực tiếp `SKILL.md`). |
 | `compress` | *(không có)* | `[output_path]` | Nén toàn bộ dự án thành file `mod-{dd}-{mm}-{yyyy}-{hh}-{mm}-{ss}.zip` tại thư mục gốc dự án (hoặc output_path), áp dụng bộ lọc `.compressignore`. |
 | `compress` | `folder` | `<path> [--config-file C] [--ignore-file I]` | Nén thư mục cục bộ tự động đọc `.compressignore` hoặc theo JSON config. |

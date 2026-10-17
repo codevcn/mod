@@ -11,6 +11,9 @@ from configs.paths import (
     LOCAL_ABSOLUTE_FOLDER_PATH,
     SKILLS_FOLDER_PATH,
     SSH_CONFIG_PATH,
+    ANTIGRAVITY_SKILLS_PATH,
+    CODEX_SKILLS_PATH,
+    CLAUDE_SKILLS_PATH,
 )
 from configs.version import get_version_info
 from utils.errors import (
@@ -74,9 +77,12 @@ MOD_GIST_RATE = "rate"
 
 # open
 MOD_OPEN_AGY_MCP_CONF = "agy-mcp-conf"
+MOD_OPEN_AGY_SKILLS = "agy-skills"
 MOD_OPEN_APPDATA = "appdata"
 MOD_OPEN_CLAU_MCP_CONF = "clau-mcp-conf"
+MOD_OPEN_CLAU_SKILLS = "clau-skills"
 MOD_OPEN_CODEX_MCP_CONF = "codex-mcp-conf"
+MOD_OPEN_CODEX_SKILLS = "codex-skills"
 MOD_OPEN_ENV = "env"
 MOD_OPEN_MCP = "mcp"
 MOD_OPEN_PROMPTS_FOLDER = "proms"
@@ -121,6 +127,7 @@ MOD_PRINT_VSCODE_WORKSPACES = "ws"
 MOD_PRINT_CURL = "curl"
 MOD_PRINT_DIRECTORY = "dir"
 MOD_PRINT_USEFUL_COMMANDS = "cmds"
+MOD_PRINT_PC_POWER = "pc-power"
 # py
 MOD_PY_ENV = "env"
 # proxy
@@ -191,6 +198,34 @@ def print_content(content_filename):
     sys.exit(0)
 
 
+def print_statuses_info():
+    subprocess.run(
+        ["python", get_system_feature_path("_statuses.py")],
+        check=True,
+        shell=True,
+    )
+    sys.exit(0)
+
+
+def print_help():
+    print_content("help.txt")
+
+
+def print_version():
+    print(get_version_info())
+    sys.exit(0)
+
+
+def print_cURL():
+    subprocess.run(
+        ["python", get_feature_path("print_cURL.py")],
+        check=True,
+        shell=True,
+    )
+    sys.exit(0)
+
+
+
 def open_vscode_extensions_in_vscode(ide_prefix):
     subprocess.run([ide_prefix, "D:/D-Documents/Browser-Extensions"], shell=True)
     sys.exit(0)
@@ -206,8 +241,14 @@ def print_mod_files_root_dir():
     sys.exit(0)
 
 
-def print_useful_commands():
-    print_content("list_useful_commands.txt")
+def print_useful_commands(remaining_args: list[str]):
+    cmd_args = [
+        "python",
+        get_feature_path("print_useful_commands.py"),
+    ]
+    cmd_args.extend(remaining_args)
+    result = subprocess.run(cmd_args, shell=True)
+    sys.exit(result.returncode)
 
 
 def run_git_command(git_type, remaining_args):
@@ -262,6 +303,18 @@ def open_mcp_folder():
 
 def open_skills_folder():
     open_in_file_explorer(SKILLS_FOLDER_PATH)
+
+
+def open_antigravity_skills_folder():
+    open_in_file_explorer(ANTIGRAVITY_SKILLS_PATH)
+
+
+def open_codex_skills_folder():
+    open_in_file_explorer(CODEX_SKILLS_PATH)
+
+
+def open_claude_skills_folder():
+    open_in_file_explorer(CLAUDE_SKILLS_PATH)
 
 
 def open_prompts_folder():
@@ -349,6 +402,16 @@ def print_os_info():
         shell=True,
     )
     sys.exit(0)
+
+
+def print_pc_power(remaining_args: list[str]):
+    cmd_args = [
+        "python",
+        get_feature_path("print_pc_power.py"),
+    ]
+    cmd_args.extend(remaining_args)
+    result = subprocess.run(cmd_args, shell=True)
+    sys.exit(result.returncode)
 
 
 def run_Unikey_app():
@@ -871,9 +934,12 @@ def dispatch_command(
     elif type_included == MOD_TYPE_OPEN:
         valid_actions = [
             MOD_OPEN_AGY_MCP_CONF,
+            MOD_OPEN_AGY_SKILLS,
             MOD_OPEN_APPDATA,
             MOD_OPEN_CLAU_MCP_CONF,
+            MOD_OPEN_CLAU_SKILLS,
             MOD_OPEN_CODEX_MCP_CONF,
+            MOD_OPEN_CODEX_SKILLS,
             MOD_OPEN_ENV,
             MOD_OPEN_MCP,
             MOD_OPEN_PROMPTS_FOLDER,
@@ -899,10 +965,16 @@ def dispatch_command(
                 open_mod_file_in_system_folder()
         elif clean_action == MOD_OPEN_AGY_MCP_CONF:
             open_agent_mcp_config("anti")
+        elif clean_action == MOD_OPEN_AGY_SKILLS:
+            open_antigravity_skills_folder()
         elif clean_action == MOD_OPEN_CODEX_MCP_CONF:
             open_agent_mcp_config("codex")
+        elif clean_action == MOD_OPEN_CODEX_SKILLS:
+            open_codex_skills_folder()
         elif clean_action == MOD_OPEN_CLAU_MCP_CONF:
             open_agent_mcp_config("claude")
+        elif clean_action == MOD_OPEN_CLAU_SKILLS:
+            open_claude_skills_folder()
         elif clean_action == MOD_OPEN_ENV:
             open_environment_variables_panel()
         elif clean_action == MOD_OPEN_VSCODE_WORKSPACE:
@@ -934,7 +1006,8 @@ def dispatch_command(
     elif type_included == MOD_TYPE_PRINT:
         valid_actions = [
             MOD_PRINT_OS_INFO, MOD_PRINT_VSCODE_WORKSPACES, MOD_PRINT_DIRECTORY,
-            MOD_PRINT_USEFUL_COMMANDS, MOD_PRINT_CURL, MOD_PRINT_STATUSES_INFO
+            MOD_PRINT_USEFUL_COMMANDS, MOD_PRINT_CURL, MOD_PRINT_STATUSES_INFO,
+            MOD_PRINT_PC_POWER
         ]
         if action_included == MOD_PRINT_OS_INFO:
             print_os_info()
@@ -943,11 +1016,13 @@ def dispatch_command(
         elif action_included == MOD_PRINT_DIRECTORY:
             print_mod_files_root_dir()
         elif action_included == MOD_PRINT_USEFUL_COMMANDS:
-            print_useful_commands()
+            print_useful_commands(remaining_args)
         elif action_included == MOD_PRINT_CURL:
             print_cURL()
         elif action_included == MOD_PRINT_STATUSES_INFO:
             print_statuses_info()
+        elif action_included == MOD_PRINT_PC_POWER:
+            print_pc_power(remaining_args)
         elif action_included is None:
             raise MissingActionError(type_included, valid_actions)
         else:
