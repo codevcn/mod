@@ -95,7 +95,7 @@ d:\D-Documents\TOOLs\mod\
     ├── contents/                       # Dữ liệu tĩnh và tài liệu định dạng
     │   ├── app_features.yml            # Catalog chi tiết cho lệnh `mod <type> <action> --info`
     │   ├── help.txt                    # Nội dung help khi chạy `mod` hoặc `mod -h`
-    │   ├── list_useful_commands.txt    # Danh sách các câu lệnh hệ điều hành / server hay dùng
+    │   ├── note.txt                    # Ghi chú các câu lệnh hệ điều hành / server hay dùng
     │   ├── statuses.txt                # Bảng giải thích các mã trạng thái mod-status
     │   ├── files_source.txt            # Template nguồn dùng cho tính năng `mod file create`
     │   └── cURL.txt                    # Snippet mẫu các thao tác cURL CRUD
@@ -229,7 +229,7 @@ Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--info]`
 | `print` | `ws` | | In danh sách các file trong thư mục VSCode-Workspaces. |
 | `print` | `curl` | | In snippet mẫu cURL CRUD. |
 | `print` | `dir` | | In đường dẫn thư mục `src` của mod. |
-| `print` | `cmds` | `[--notepad, -n]` | In danh sách các lệnh hữu ích thường dùng kèm tô màu trực quan (hỗ trợ mở Notepad). |
+| `print` | `note` | `[--notepad, -n] [--find, -f <text>]` | In hoặc tìm kiếm danh sách các lệnh hữu ích thường dùng kèm tô màu trực quan (hỗ trợ mở Notepad). |
 | `skill` | `set` | `[skill_name] [dest_path]` | Sao chép thư mục Skill AI từ kho `SKILLS_FOLDER_PATH` vào thư mục đích (chỉ nhận folder chứa trực tiếp `SKILL.md`). |
 | `compress` | *(không có)* | `[output_path]` | Nén toàn bộ dự án thành file `mod-{dd}-{mm}-{yyyy}-{hh}-{mm}-{ss}.zip` tại thư mục gốc dự án (hoặc output_path), áp dụng bộ lọc `.compressignore`. |
 | `compress` | `folder` | `<path> [--config-file C] [--ignore-file I]` | Nén thư mục cục bộ tự động đọc `.compressignore` hoặc theo JSON config. |
@@ -243,7 +243,7 @@ Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--info]`
 
 | `edit` | `proms` | | Mở thư mục prompts của extension trong Notepad. |
 | `edit` | `to` | | Mở PowerShell Profile trong Notepad. |
-| `edit` | `cmds` | | Mở file `list_useful_commands.txt` trong Notepad để chỉnh sửa. |
+| `edit` | `note` | | Mở file `note.txt` trong Notepad để chỉnh sửa. |
 | `py` | `env` | `[--path P] [--name N] [--skip-dotenv]` | Khởi tạo venv chuẩn cho project Python hiện tại. |
 | `init` | *(không có)* | | Chạy script `init.cmd` để dọn dẹp các tiến trình Windows chạy ngầm thừa thãi. |
 

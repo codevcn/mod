@@ -20,7 +20,7 @@ Tree view of: D:\D-Documents\TOOLs\mod
 │   │   ├── files
 │   │   ├── files_source.txt
 │   │   ├── help.txt
-│   │   ├── list_useful_commands.txt
+│   │   ├── note.txt
 │   │   └── statuses.txt
 │   ├── features
 │   │   ├── create_files_in_folder.py

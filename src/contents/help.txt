@@ -75,7 +75,7 @@ notify            :to send multi-channel notifications (ntfy, telegram, toast).
 ## edit:
    proms          :edit prompts in prompts folder in notepad (Template Replacer Extension).
    to             :edit to command in notepad (Template Replacer Extension).
-   cmds           :edit useful commands in notepad.
+   note           :edit useful commands in notepad.
 ## git:
    commit -m "msg":add all files and commit with a message and push with upstream.
    remote         :print git remote URL (git remote -v).
@@ -119,10 +119,11 @@ notify            :to send multi-channel notifications (ntfy, telegram, toast).
    ws             :print the folder vscode workspace.
    curl           :print CRUD of cURL command.
    dir            :print path of mod folder in system.
-   cmds [--notepad, -n]
-                  :print some useful commands with syntax highlighting.
-                  // Example: mod print cmds
-                  // Example: mod print cmds --notepad
+   note [--notepad, -n] [--find, -f <text>]
+                  :print some useful commands with syntax highlighting or search blocks.
+                  // Example: mod print note
+                  // Example: mod print note --find "scp"
+                  // Example: mod print note --find "git" --notepad
 
 ## gdrive:
    sync <source> <dest>

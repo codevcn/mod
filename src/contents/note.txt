@@ -20,7 +20,7 @@ wt -w 0 nt -p "Win PowerShell 1" ; wt -w 0 nt -p "Win PowerShell 2"
 # Open new cmd tab in windows terminal (then run new command)
 start cmd /k "cd express-server && dev.cmd" (if previous command is successful then run next command)
 npm run dev
-## Or
+# Or
 start cmd /k "cd express-server & dev.cmd" (regardless of previous command success then run next command)
 npm run dev
 
@@ -120,3 +120,16 @@ playwright-cli install --skills
 
 # Mở tất cả các app trên máy tính trong hộp thoại Run
 shell:AppsFolder
+
+# Chạy / tắt OpenDesign
+opendesign run
+opendesign stop
+
+############################################################
+# Các app open src đã cài trên máy tính này
+############################################################
+- OpenDesign
+- agent reach
+- claude-video
+- watch-skill
+- jizura

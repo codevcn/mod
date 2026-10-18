@@ -32,7 +32,7 @@ class Colors:
 TYPE_ACTION_MAP = {
     "code": ["ext", "js", "nestjs", "py", "test", "ts", "ts-template", "ws"],
     "compress": ["folder", "init-ignore"],
-    "edit": ["cmds", "proms", "to"],
+    "edit": ["note", "proms", "to"],
     "file": ["create", "delete", "keep", "rename"],
     "folder": ["create", "dld-path", "merge", "tree"],
     "gdrive": ["del-fd", "dl", "guide", "link", "list", "remote", "reset", "sync", "url"],
@@ -56,7 +56,7 @@ TYPE_ACTION_MAP = {
         "ssh-conf",
         "ws",
     ],
-    "print": ["cmds", "curl", "dir", "os", "pc-power", "stts", "ws"],
+    "print": ["curl", "dir", "note", "os", "pc-power", "stts", "ws"],
     "proxy": ["test"],
     "py": ["env"],
     "run": ["gen-qr", "keep-awake", "keep-screen", "srt-count-line", "unikey"],

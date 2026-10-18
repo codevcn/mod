@@ -117,7 +117,7 @@ MOD_FOLDER_TREE = "tree"
 # edit
 MOD_EDIT_PROMPTS = "proms"
 MOD_EDIT_TO_COMMAND = "to"
-MOD_EDIT_USEFUL_COMMANDS = "cmds"
+MOD_EDIT_NOTE = "note"
 # git
 MOD_GIT_COMMIT_AND_PUSH = "commit"
 # print
@@ -126,7 +126,7 @@ MOD_PRINT_STATUSES_INFO = "stts"
 MOD_PRINT_VSCODE_WORKSPACES = "ws"
 MOD_PRINT_CURL = "curl"
 MOD_PRINT_DIRECTORY = "dir"
-MOD_PRINT_USEFUL_COMMANDS = "cmds"
+MOD_PRINT_NOTE = "note"
 MOD_PRINT_PC_POWER = "pc-power"
 # py
 MOD_PY_ENV = "env"
@@ -589,7 +589,7 @@ def edit_to_command():
 def edit_useful_commands():
     cmd_args = [
         "notepad",
-        get_content_path("list_useful_commands.txt"),
+        get_content_path("note.txt"),
     ]
     subprocess.run(cmd_args, shell=True)
     sys.exit(0)
@@ -790,12 +790,12 @@ def dispatch_command(
 
 
     elif type_included == MOD_TYPE_EDIT:
-        valid_actions = [MOD_EDIT_PROMPTS, MOD_EDIT_TO_COMMAND, MOD_EDIT_USEFUL_COMMANDS]
+        valid_actions = [MOD_EDIT_PROMPTS, MOD_EDIT_TO_COMMAND, MOD_EDIT_NOTE]
         if action_included == MOD_EDIT_PROMPTS:
             edit_prompts()
         elif action_included == MOD_EDIT_TO_COMMAND:
             edit_to_command()
-        elif action_included == MOD_EDIT_USEFUL_COMMANDS:
+        elif action_included == MOD_EDIT_NOTE:
             edit_useful_commands()
         elif action_included is None:
             raise MissingActionError(type_included, valid_actions)
@@ -1006,7 +1006,7 @@ def dispatch_command(
     elif type_included == MOD_TYPE_PRINT:
         valid_actions = [
             MOD_PRINT_OS_INFO, MOD_PRINT_VSCODE_WORKSPACES, MOD_PRINT_DIRECTORY,
-            MOD_PRINT_USEFUL_COMMANDS, MOD_PRINT_CURL, MOD_PRINT_STATUSES_INFO,
+            MOD_PRINT_NOTE, MOD_PRINT_CURL, MOD_PRINT_STATUSES_INFO,
             MOD_PRINT_PC_POWER
         ]
         if action_included == MOD_PRINT_OS_INFO:
@@ -1015,7 +1015,7 @@ def dispatch_command(
             print_vscode_workspaces(VSCODE_WORKSPACES_FOLDER)
         elif action_included == MOD_PRINT_DIRECTORY:
             print_mod_files_root_dir()
-        elif action_included == MOD_PRINT_USEFUL_COMMANDS:
+        elif action_included == MOD_PRINT_NOTE:
             print_useful_commands(remaining_args)
         elif action_included == MOD_PRINT_CURL:
             print_cURL()

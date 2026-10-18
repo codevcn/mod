@@ -105,27 +105,170 @@ def highlight_line(line: str) -> str:
     return colorize_command_line(line)
 
 
+def parse_blocks(text: str) -> list[str]:
+    """Phân tách văn bản thành danh sách các block (mục) có ý nghĩa.
+    Nếu gặp banner tiêu đề lớn (################...), tự động gom các mục con/lệnh
+    thuộc cùng section đó vào một block duy nhất để không làm mất ngữ cảnh và nội dung.
+    """
+    raw_blocks = [b.strip() for b in re.split(r"\n\s*\n+", text.strip()) if b.strip()]
+
+    def is_pure_banner(block: str) -> bool:
+        """Kiểm tra xem block có phải chỉ là khung banner đơn thuần (chưa có content)."""
+        lines = [line.strip() for line in block.splitlines() if line.strip()]
+        if len(lines) >= 3 and re.match(r"^#{5,}", lines[0]) and re.match(r"^#{5,}", lines[-1]):
+            inner_lines = lines[1:-1]
+            return all(l.startswith("#") for l in inner_lines)
+        return False
+
+    def extract_banner_keywords(block: str) -> set[str]:
+        """Trích xuất các từ khóa ngữ nghĩa từ tiêu đề banner."""
+        lines = [line.strip() for line in block.splitlines() if line.strip()]
+        inner_text = " ".join(lines[1:-1]).lower()
+        words = re.findall(r"[a-zA-Z0-9_\u00C0-\u024F\u1EA0-\u1EF9]+", inner_text)
+        stopwords = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "vps", "local", "to"}
+        return {w for w in words if len(w) > 2 and w not in stopwords}
+
+    merged_blocks = []
+    i = 0
+    while i < len(raw_blocks):
+        block = raw_blocks[i]
+
+        if is_pure_banner(block):
+            banner_block = block
+            banner_keywords = extract_banner_keywords(block)
+            section_items = [banner_block]
+            i += 1
+
+            # Block ngay sau pure banner luôn thuộc về section này
+            if i < len(raw_blocks) and not re.match(r"^#{5,}", raw_blocks[i].strip()):
+                section_items.append(raw_blocks[i])
+                i += 1
+
+                # Gom tiếp các block con tiếp theo nếu thỏa mãn điều kiện
+                while i < len(raw_blocks):
+                    next_block = raw_blocks[i]
+                    # Nếu gặp banner mới -> dừng ngay
+                    if re.match(r"^#{5,}", next_block.strip()):
+                        break
+
+                    next_lower = next_block.lower()
+                    has_common_keyword = any(kw in next_lower for kw in banner_keywords)
+                    has_using_marker = bool(re.search(r"#\s*using\s+", next_lower))
+
+                    if has_common_keyword or has_using_marker:
+                        section_items.append(next_block)
+                        i += 1
+                    else:
+                        break
+
+            merged_blocks.append("\n\n".join(section_items))
+        else:
+            merged_blocks.append(block)
+            i += 1
+
+    return merged_blocks
+
+
 def print_useful_commands(args=None):
     """In danh sách các lệnh hữu ích với cú pháp tô màu,
-    hoặc xuất ra Notepad nếu có cờ --notepad / -n.
+    hoặc xuất ra Notepad nếu có cờ --notepad / -n,
+    hoặc tìm kiếm các mục khớp nếu có cờ --find / -f.
     """
     if args is None:
         args = sys.argv[1:]
 
-    use_notepad = "--notepad" in args or "-n" in args
+    use_notepad = False
+    find_text = None
 
-    content_file = Path(CONTENTS_FOLDER) / "list_useful_commands.txt"
+    # Parse arguments
+    i = 0
+    while i < len(args):
+        arg = args[i]
+        if arg in ("--notepad", "-n"):
+            use_notepad = True
+            i += 1
+        elif arg in ("--find", "-f"):
+            if i + 1 < len(args):
+                find_text = args[i + 1]
+                i += 2
+            else:
+                print(f"\033[91m❌ Lỗi: Thiếu từ khóa tìm kiếm sau cờ {arg}. (Ví dụ: mod print note --find \"git\")\033[0m")
+                sys.exit(1)
+        elif arg.startswith("--find="):
+            find_text = arg.split("=", 1)[1]
+            i += 1
+        elif arg.startswith("-f="):
+            find_text = arg.split("=", 1)[1]
+            i += 1
+        else:
+            i += 1
+
+    if find_text is not None and not find_text.strip():
+        print("\033[91m❌ Lỗi: Từ khóa tìm kiếm không được để trống.\033[0m")
+        sys.exit(1)
+
+    content_file = Path(CONTENTS_FOLDER) / "note.txt"
     if not content_file.exists():
         print(f"\033[91m❌ Không tìm thấy file: {content_file}\033[0m")
         sys.exit(1)
 
     raw_text = content_file.read_text(encoding="utf-8")
 
+    # Xử lý khi có cờ --find
+    if find_text is not None:
+        keyword = find_text.strip().lower()
+        # Phân tách thành các block theo ngữ cảnh section thông minh
+        raw_blocks = parse_blocks(raw_text)
+        matched_blocks = [b for b in raw_blocks if keyword in b.lower()]
+
+        if not matched_blocks:
+            print(f"\033[93m>>> Không tìm thấy mục nào khớp với từ khóa: '{find_text}'\033[0m")
+            sys.exit(0)
+
+        result_text = "\n\n".join(matched_blocks)
+
+        if use_notepad:
+            try:
+                out_dir = Path(APPDATA_FOLDER)
+                out_dir.mkdir(parents=True, exist_ok=True)
+                target_file = out_dir / "note.txt"
+
+                # Xóa file txt cũ trước đó nếu tồn tại
+                if target_file.exists():
+                    try:
+                        target_file.unlink()
+                    except Exception:
+                        pass
+
+                target_file.write_text(result_text + "\n", encoding="utf-8")
+                subprocess.Popen(["notepad.exe", str(target_file)])
+                print(f">>> Đã tìm thấy {len(matched_blocks)} mục khớp với từ khóa '{find_text}'.")
+                print(">>> Đã xuất kết quả ra file và mở bằng Notepad:")
+                print(f"    {target_file}")
+            except Exception as err:
+                print(f"\033[91m❌ Lỗi khi xuất ra Notepad: {err}\033[0m")
+                print("Đang in ra màn hình CLI thay thế:\n")
+                print(f">>> Tìm thấy {len(matched_blocks)} mục khớp với từ khóa '{find_text}':\n")
+                for idx, block in enumerate(matched_blocks):
+                    for line in block.splitlines():
+                        print(highlight_line(line))
+                    if idx < len(matched_blocks) - 1:
+                        print()
+        else:
+            print(f">>> Tìm thấy {len(matched_blocks)} mục khớp với từ khóa '{find_text}':\n")
+            for idx, block in enumerate(matched_blocks):
+                for line in block.splitlines():
+                    print(highlight_line(line))
+                if idx < len(matched_blocks) - 1:
+                    print()
+        sys.exit(0)
+
+    # Xử lý khi in toàn bộ note
     if use_notepad:
         try:
             out_dir = Path(APPDATA_FOLDER)
             out_dir.mkdir(parents=True, exist_ok=True)
-            target_file = out_dir / "useful_commands.txt"
+            target_file = out_dir / "note.txt"
 
             # Xóa file txt cũ trước đó nếu tồn tại
             if target_file.exists():
@@ -136,7 +279,7 @@ def print_useful_commands(args=None):
 
             target_file.write_text(raw_text, encoding="utf-8")
             subprocess.Popen(["notepad.exe", str(target_file)])
-            print(">>> Đã xuất danh sách lệnh hữu ích ra file và mở bằng Notepad:")
+            print(">>> Đã xuất nội dung note ra file và mở bằng Notepad:")
             print(f"    {target_file}")
         except Exception as err:
             print(f"\033[91m❌ Lỗi khi xuất ra Notepad: {err}\033[0m")
