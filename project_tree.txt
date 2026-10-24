@@ -2,14 +2,16 @@ Tree view of: D:\D-Documents\TOOLs\mod
 
 ├── .agent
 │   └── skills
-│       └── mod-cli-developer
-│           ├── SKILL.md
-│           ├── examples
-│           │   └── new_feature_example.py
-│           ├── references
-│           │   └── architecture_checklist.md
-│           └── resources
-│               └── feature_template.yml
+│       ├── mod-cli-developer
+│       │   ├── SKILL.md
+│       │   ├── examples
+│       │   │   └── new_feature_example.py
+│       │   ├── references
+│       │   │   └── architecture_checklist.md
+│       │   └── resources
+│       │       └── feature_template.yml
+│       └── mod-git-commit
+│           └── SKILL.md
 ├── .compressignore
 ├── .env
 ├── .gitignore

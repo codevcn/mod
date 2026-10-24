@@ -62,11 +62,13 @@ d:\D-Documents\TOOLs\mod\
 ├── project_tree.txt                    # Output cây thư mục
 ├── .agent/                             # Cấu hình & Kỹ năng chuẩn cho AI Agent (Antigravity/Agentic Framework)
 │   └── skills/
-│       └── mod-cli-developer/          # Skill hướng dẫn AI Agent phát triển và bảo trì Mod CLI
-│           ├── SKILL.md                # Tài liệu kỹ năng chính kèm YAML frontmatter
-│           ├── examples/               # Mã nguồn mẫu (feature script template)
-│           ├── references/             # Checklist và tài liệu tham khảo kiến trúc
-│           └── resources/              # Template YAML khai báo tính năng
+│       ├── mod-cli-developer/          # Skill hướng dẫn AI Agent phát triển và bảo trì Mod CLI
+│       │   ├── SKILL.md                # Tài liệu kỹ năng chính kèm YAML frontmatter
+│       │   ├── examples/               # Mã nguồn mẫu (feature script template)
+│       │   ├── references/             # Checklist và tài liệu tham khảo kiến trúc
+│       │   └── resources/              # Template YAML khai báo tính năng
+│       └── mod-git-commit/             # Skill chuẩn hóa quy trình review thay đổi, commit & push bằng Mod CLI
+│           └── SKILL.md                # Hướng dẫn quy trình 5 bước kiểm tra, dọn dẹp và mod git commit
 ├── data/
 │   └── media/audio/
 │       └── burnttoast-notification-sound.mp3 # File âm thanh thông báo mặc định cho Toast Notifier
