@@ -1,4 +1,8 @@
 import os
+import sys
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 
 def print_tree(root_path, file_handle, prefix="", exclude_dirs=None):

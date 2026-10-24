@@ -25,6 +25,7 @@ MOD_HISTORY_FILE_PATH = f"{PROJECT_ROOT}/data/credentials/.mod_history"
 
 # === Đường dẫn ngoài project (SỬA KHI CHUYỂN MÁY) ===
 APPDATA_FOLDER = "D:/D-AppData/me-mod"
+OPEN_ALIASES_FILE_PATH = f"{APPDATA_FOLDER}/open_aliases.json"
 TEMPLATE_REPLACER_FOLDER = (
     "D:/D-Documents/Browser-Extensions/codevoicainay/template_replacer"
 )

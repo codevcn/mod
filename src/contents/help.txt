@@ -62,6 +62,10 @@ notify            :to send multi-channel notifications (ntfy, telegram, toast).
    agy-skills     :open Antigravity skills folder in File Explorer.
    codex-skills   :open OpenAI Codex skills folder in File Explorer.
    clau-skills    :open Claude Code skills folder in File Explorer.
+   <alias> [-c]   :open folder by registered alias in File Explorer (or IDE with -c/--code).
+   add <alias> <path> :register a folder alias for quick opening.
+   list, ls       :list all registered folder aliases.
+   rm, remove <alias> :remove a registered folder alias.
 ## code:
                   :open mod files in vscode.
    test           :open testing folder in vscode.
@@ -101,6 +105,10 @@ notify            :to send multi-channel notifications (ntfy, telegram, toast).
                   :keep files in specified folder with specified extension, delete others.
                   // Example: mod file keep "D:/D-Documents/Làm về TikTok" "png"
 ## folder:
+   cr-linear <path> [--content, -c <text>] [--file, -f] [--folder, -d]
+                  :linearly create folder or file path with missing parent folders.
+                  // Example: mod folder cr-linear "D:/projects/demo/app/main.py" --content "print('hello')"
+                  // Example: mod folder cr-linear "D:/projects/demo/subfolder/"
    create <folder_path> [pattern] [starting_index] [num_folders]
                   :create one or multiple folders using a pattern.
                   // Example: mod folder create "D:/D-Documents/tool" "folder" 1 5
@@ -108,7 +116,11 @@ notify            :to send multi-channel notifications (ntfy, telegram, toast).
    merge <from_folder> <to_folder> [-y] [--dry-run]
                   :check internal tree intersection & merge folder content from source to dest.
                   // Example: mod folder merge "D:/source_project" "D:/dest_project"
-   tree           :print folder tree structure.
+   tree [path] [--level, -l <N|deep>] [--max <N>]
+                  :print folder tree structure with level depth control and auto-collapse.
+                  // Example: mod folder tree
+                  // Example: mod folder tree --level 1
+                  // Example: mod folder tree "D:/projects" -l 2 --max 30
 ## print:
    os             :print OS info.
    pc-power [--notepad, -n]
@@ -194,9 +206,13 @@ notify            :to send multi-channel notifications (ntfy, telegram, toast).
                   // Example: mod mcp open-config claude
 
 ## skill:
-   set [skill_name] [dest_folder_path]
-                  :copy a folder from SKILLS_FOLDER_PATH to dest_folder_path (only folders with direct SKILL.md; enter 'q' to cancel).
+   set [skill_name] [dest_folder_path] [--ai, --llm, --agent <name>]
+                  :copy a folder from SKILLS_FOLDER_PATH to dest_folder_path or into AI Agent global skills directory (agy, codex, claude, all).
                   // Example: mod skill set split-code .
+                  // Example: mod skill set watch-video --ai agy
+                  // Example: mod skill set playwright --agent claude
+                  // Example: mod skill set diagram-design --llm codex
+                  // Example: mod skill set diagram-design --ai all
 
 ## toast:
    <title> [msg...] [--audio <path>]

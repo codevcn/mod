@@ -1,49 +1,118 @@
 Tree view of: D:\D-Documents\TOOLs\mod
 
+├── .agent
+│   └── skills
+│       └── mod-cli-developer
+│           ├── SKILL.md
+│           ├── examples
+│           │   └── new_feature_example.py
+│           ├── references
+│           │   └── architecture_checklist.md
+│           └── resources
+│               └── feature_template.yml
+├── .compressignore
 ├── .env
 ├── .gitignore
 ├── ARCHITECTURE.md
+├── PROJECT_CONTEXT.md
 ├── README.md
-├── downloads
-│   └── Hào Khí Việt Nam.mp3
+├── compress.cmd
+├── data
+│   ├── credentials
+│   │   └── .mod_history
+│   └── media
+│       └── audio
+│           └── burnttoast-notification-sound.mp3
+├── doc
+│   ├── add-sound-notifier.md
+│   ├── autocomplete.md
+│   └── info-flag-guide.md
+├── docs
+│   └── diagrams
+│       └── system-architecture.html
+├── mod-28-09-2026-18-16-05.zip
 ├── mod.cmd
 ├── note.md
 ├── print_project_tree.py
 ├── project_tree.txt
 ├── requirements.txt
+├── sensitive
+│   └── credentials.txt
 ├── src
 │   ├── cmd
 │   │   └── init.cmd
+│   ├── configs
+│   │   ├── __init__.py
+│   │   ├── paths.py
+│   │   └── version.py
 │   ├── contents
 │   │   ├── app_features.yml
 │   │   ├── cURL.txt
-│   │   ├── files
 │   │   ├── files_source.txt
 │   │   ├── help.txt
 │   │   ├── note.txt
 │   │   └── statuses.txt
 │   ├── features
+│   │   ├── cloudflare
+│   │   │   └── cloudflared_wrapper.py
+│   │   ├── compress_project.py
 │   │   ├── create_files_in_folder.py
+│   │   ├── create_folders_in_path.py
+│   │   ├── create_linear_path.py
 │   │   ├── delete_files.py
 │   │   ├── edit_to_command.py
 │   │   ├── gen_qr_image.py
+│   │   ├── gist
+│   │   │   ├── README.md
+│   │   │   ├── __init__.py
+│   │   │   ├── gist_auditor.py
+│   │   │   ├── gist_cli.py
+│   │   │   └── gist_manager.py
 │   │   ├── keep_files_with_ext.py
+│   │   ├── keep_screen.py
+│   │   ├── keep_server_awake.py
+│   │   ├── manage_open_aliases.py
+│   │   ├── mcp_open_config.py
+│   │   ├── mcp_set.py
+│   │   ├── merge_folders.py
+│   │   ├── notify
+│   │   │   ├── __init__.py
+│   │   │   └── notify_cli.py
 │   │   ├── open_main_ws.py
 │   │   ├── print_cURL.py
+│   │   ├── print_folder_tree.py
 │   │   ├── print_os_info.py
+│   │   ├── print_pc_power.py
+│   │   ├── print_useful_commands.py
 │   │   ├── rename_files.py
+│   │   ├── send_toast.py
 │   │   ├── set_download_path_in_chrome.py
 │   │   ├── setup_venv_in_project.py
+│   │   ├── skill_set.py
+│   │   ├── srt_count_line.py
 │   │   ├── sync-to-gdrive
 │   │   │   ├── AUTH_GUIDE.txt
 │   │   │   ├── configs.json
 │   │   │   └── sync_to_gdrive.py
-│   │   └── system
-│   │       ├── _git.py
-│   │       ├── _print_content.py
-│   │       ├── _statuses.py
-│   │       ├── _print_root_folder.py
-│   │       └── _print_feature_description.py
-│   └── main.py
+│   │   ├── system
+│   │   │   ├── _git.py
+│   │   │   ├── _print_content.py
+│   │   │   ├── _print_feature_description.py
+│   │   │   ├── _print_root_folder.py
+│   │   │   └── _statuses.py
+│   │   └── test_proxy.py
+│   ├── main.py
+│   └── utils
+│       ├── errors.py
+│       ├── interactive_cli.py
+│       └── notifications
+│           ├── __init__.py
+│           ├── base.py
+│           ├── ntfy_notifier.py
+│           ├── telegram_notifier.py
+│           └── toast_notifier.py
+├── terminal.log
+├── todo
+│   └── todo.md
 └── warehouse
     └── runner_main_ws.txt

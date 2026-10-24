@@ -127,12 +127,14 @@ d:\D-Documents\TOOLs\mod\
         ├── compress_project.py         # Nén toàn bộ mã nguồn dự án thành file zip (lọc qua .compressignore)
         ├── create_files_in_folder.py   # Tạo file/thư mục từ template trong files_source.txt (interactive)
         ├── create_folders_in_path.py   # Tạo folder tự động theo pattern và tự tăng index
+        ├── create_linear_path.py       # Tạo folder hoặc file theo path với cơ chế linear cha-con và bảo vệ không ghi đè
         ├── delete_files.py             # Xóa file cấp 1 theo danh sách extension (vd: "tmp,log")
         ├── edit_to_command.py          # Mở PowerShell Profile ($PROFILE) trong Notepad
         ├── gen_qr_image.py             # Sinh file ảnh QR Code từ text nhập vào và lưu vào APPDATA_FOLDER
         ├── keep_files_with_ext.py      # Xóa toàn bộ file khác đuôi chỉ định (chỉ giữ 1 extension)
         ├── keep_screen.py              # Giữ màn hình Windows luôn bật qua SetThreadExecutionState Win32 API
         ├── keep_server_awake.py        # Ping HTTP GET định kỳ để giữ sống server miễn phí (Render/Kaggle)
+        ├── manage_open_aliases.py      # Quản lý alias mở thư mục: add, list, rm (lưu tại open_aliases.json)
         ├── mcp_open_config.py          # Mở file cấu hình MCP của AI Agent (Antigravity, Codex, Claude) bằng Notepad
         ├── mcp_set.py                  # Copy thư mục MCP từ kho LOCAL_ABSOLUTE_FOLDER_PATH vào project đích
         ├── merge_folders.py            # Merge thư mục có kiểm tra độ tương đồng/giao nhau của cây thư mục
@@ -180,6 +182,10 @@ Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--info]`
 | `open` | `agy-skills` | | Mở thư mục chứa các skill của Google Antigravity (`~/.gemini/config/skills`). |
 | `open` | `codex-skills` | | Mở thư mục chứa các skill của OpenAI Codex (`~/.codex/skills`). |
 | `open` | `clau-skills` | | Mở thư mục chứa các skill của Claude Code (`~/.claude/skills`). |
+| `open` | `<alias>` | `[-c, --code]` | Mở thư mục theo alias đã đăng ký trong File Explorer (hoặc IDE nếu có `-c`). |
+| `open` | `add` | `<alias> <path>` | Đăng ký alias mở nhanh thư mục (chỉ gồm chữ cái, số, `_`, `-`). |
+| `open` | `list` / `ls` | | Liệt kê danh sách các alias đã đăng ký và trạng thái tồn tại. |
+| `open` | `rm` / `remove` | `<alias>` | Xóa alias mở thư mục đã đăng ký khỏi danh sách. |
 | `code` | *(không có)* | | Mở project trong IDE (`code` hoặc `anti`). |
 | `code` | `ws` | `<value> [-p]` | Mở workspace thiết lập sẵn (`ptb` hoặc `tool`). `-p` chỉ mở Windows Terminal. |
 | `code` | `test` / `js` / `ts` / `py` / `nestjs` / `ext` / `ts-template` | | Mở nhanh các thư mục template hoặc thư mục testing tương ứng trong IDE. |
@@ -187,10 +193,11 @@ Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--info]`
 | `file` | `rename` | `<folder_path> [prefix]` | Đổi tên file hàng loạt thành `<prefix>-1.ext`, `<prefix>-2.ext`... |
 | `file` | `delete` | `<folder_path> <ext1,ext2,...>` | Xóa toàn bộ file có extension nằm trong danh sách chỉ định. |
 | `file` | `keep` | `<folder_path> <ext>` | Chỉ giữ lại file có extension chỉ định, xóa tất cả các file khác. |
+| `folder` | `cr-linear` | `<path> [--content, -c <text>] [--file, -f] [--folder, -d]` | Tạo folder hoặc file linear theo path, tự tạo chuỗi thư mục cha còn thiếu và không ghi đè file có sẵn (hỗ trợ nội dung khởi tạo). |
 | `folder` | `create` | `<folder_path> [pattern] [start_idx] [count]` | Tạo hàng loạt folder con tự tăng index. |
 | `folder` | `dld-path` | `[folder_name]` | Đặt lại đường dẫn download cho toàn bộ Chrome profiles. |
 | `folder` | `merge` | `<from_folder> <to_folder> [-y] [--dry-run]` | Kiểm tra giao nhau của cây thư mục nguồn/đích và merge nội dung (ghi đè/tạo mới). |
-| `folder` | `tree` | `[folder_path] [--max N]` | In cây thư mục có tự động thu gọn thư mục quá lớn (> max). |
+| `folder` | `tree` | `[folder_path] [--level <N|deep>] [--max N]` | In cây thư mục có tự động thu gọn thư mục quá lớn (> max) và giới hạn độ sâu hiển thị theo level. |
 | `run` | `unikey` | | Khởi động UniKey. |
 | `run` | `gen-qr` | | Nhập text tương tác và tạo ảnh mã QR lưu vào thư mục AppData. |
 | `run` | `keep-awake` | `[url] [-i interval]` | Gửi HTTP GET định kỳ giữ server không bị sleep (khoảng random hoặc fixed). |
@@ -230,7 +237,7 @@ Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--info]`
 | `print` | `curl` | | In snippet mẫu cURL CRUD. |
 | `print` | `dir` | | In đường dẫn thư mục `src` của mod. |
 | `print` | `note` | `[--notepad, -n] [--find, -f <text>]` | In hoặc tìm kiếm danh sách các lệnh hữu ích thường dùng kèm tô màu trực quan (hỗ trợ mở Notepad). |
-| `skill` | `set` | `[skill_name] [dest_path]` | Sao chép thư mục Skill AI từ kho `SKILLS_FOLDER_PATH` vào thư mục đích (chỉ nhận folder chứa trực tiếp `SKILL.md`). |
+| `skill` | `set` | `[skill_name] [dest_path] [--ai, --llm, --agent <name>]` | Sao chép thư mục Skill AI từ kho `SKILLS_FOLDER_PATH` vào thư mục đích hoặc thư mục Global của AI Agent (agy, codex, claude, all). |
 | `compress` | *(không có)* | `[output_path]` | Nén toàn bộ dự án thành file `mod-{dd}-{mm}-{yyyy}-{hh}-{mm}-{ss}.zip` tại thư mục gốc dự án (hoặc output_path), áp dụng bộ lọc `.compressignore`. |
 | `compress` | `folder` | `<path> [--config-file C] [--ignore-file I]` | Nén thư mục cục bộ tự động đọc `.compressignore` hoặc theo JSON config. |
 | `compress` | `init-ignore` | `<path> ["rules..."]` | Khởi tạo file `.compressignore` mẫu tại đường dẫn chỉ định với các rule tùy chỉnh. |

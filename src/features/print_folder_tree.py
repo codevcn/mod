@@ -1,5 +1,14 @@
+import os
+import sys
 from pathlib import Path
 import argparse
+
+# Cấu hình UTF-8 cho Windows Console
+os.environ.setdefault("PYTHONIOENCODING", "utf-8")
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 MAX_DEPTH: int = 5
 THRESHOLD: int = 50  # max
@@ -86,7 +95,7 @@ def print_tree(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Print folder tree with auto-collapse for large folders."
+        description="Print folder tree with auto-collapse for large folders and level depth control."
     )
 
     parser.add_argument(
@@ -94,6 +103,14 @@ def main():
         nargs="?",
         default=".",
         help="Folder path. Can be relative or absolute. Default: current terminal folder.",
+    )
+
+    parser.add_argument(
+        "--level",
+        "-l",
+        type=str,
+        default="deep",
+        help="Folder tree depth level (1, 2, 3... or 'deep'). Default: 'deep'.",
     )
 
     parser.add_argument(
@@ -105,23 +122,38 @@ def main():
 
     args = parser.parse_args()
 
+    # Xử lý cờ --level
+    level_raw = str(args.level).strip().lower()
+    if level_raw == "deep":
+        max_depth = MAX_DEPTH
+    else:
+        try:
+            max_depth = int(level_raw)
+            if max_depth < 1:
+                print("Error: --level must be a positive integer (>= 1) or 'deep'")
+                sys.exit(1)
+        except ValueError:
+            print(f"Error: Invalid --level value '{args.level}'. Must be a positive integer or 'deep'")
+            sys.exit(1)
+
     folder_path = Path(args.folder_path).expanduser().resolve()
 
     if args.max < 1:
         print("Error: --max must be greater than or equal to 1")
-        return
+        sys.exit(1)
 
     if not folder_path.exists():
         print(f"Error: path does not exist: {folder_path}")
-        return
+        sys.exit(1)
 
     if not folder_path.is_dir():
         print(f"Error: path is not a folder: {folder_path}")
-        return
+        sys.exit(1)
 
     print(str(folder_path))
     print_tree(
         folder_path,
+        max_depth=max_depth,
         threshold=args.max,
     )
 

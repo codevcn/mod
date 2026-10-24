@@ -14,6 +14,7 @@ from configs.paths import (
     ANTIGRAVITY_SKILLS_PATH,
     CODEX_SKILLS_PATH,
     CLAUDE_SKILLS_PATH,
+    OPEN_ALIASES_FILE_PATH,
 )
 from configs.version import get_version_info
 from utils.errors import (
@@ -76,6 +77,9 @@ MOD_GIST_RATE = "rate"
 
 
 # open
+MOD_OPEN_ADD = "add"
+MOD_OPEN_LIST = "list"
+MOD_OPEN_RM = "rm"
 MOD_OPEN_AGY_MCP_CONF = "agy-mcp-conf"
 MOD_OPEN_AGY_SKILLS = "agy-skills"
 MOD_OPEN_APPDATA = "appdata"
@@ -111,6 +115,7 @@ MOD_FILE_DELETE = "delete"
 MOD_FILE_KEEP = "keep"
 # folder
 MOD_FOLDER_CREATE = "create"
+MOD_FOLDER_CR_LINEAR = "cr-linear"
 MOD_FOLDER_DLD_PATH = "dld-path"
 MOD_FOLDER_MERGE = "merge"
 MOD_FOLDER_TREE = "tree"
@@ -385,6 +390,22 @@ def print_vscode_workspaces(workspace_path):
     sys.exit(0)
 
 
+def open_path_in_ide(target_path: str, ide_prefix: str):
+    subprocess.run([ide_prefix, target_path], shell=True)
+    sys.exit(0)
+
+
+def manage_open_aliases(subaction: str, remaining_args: list[str]):
+    cmd_args = [
+        "python",
+        get_feature_path("manage_open_aliases.py"),
+        subaction,
+    ]
+    cmd_args.extend(remaining_args)
+    result = subprocess.run(cmd_args, shell=True)
+    sys.exit(result.returncode)
+
+
 def open_mod_files_in_vscode(ide_prefix):
     subprocess.run([ide_prefix, f"{MOD_ROOT_FOLDER}"], shell=True)
     sys.exit(0)
@@ -462,6 +483,16 @@ def create_folders_in_path(remaining_args: list[str]):
     cmd_args.extend(remaining_args)
     subprocess.run(cmd_args, shell=True)
     sys.exit(0)
+
+
+def create_linear_path(remaining_args: list[str]):
+    cmd_args = [
+        "python",
+        get_feature_path("create_linear_path.py"),
+    ]
+    cmd_args.extend(remaining_args)
+    result = subprocess.run(cmd_args, shell=True)
+    sys.exit(result.returncode)
 
 
 def merge_folders(remaining_args: list[str]):
@@ -639,8 +670,8 @@ def print_folder_tree(remaining_args):
         get_feature_path("print_folder_tree.py"),
     ]
     cmd_args.extend(remaining_args)
-    subprocess.run(cmd_args, shell=True)
-    sys.exit(0)
+    result = subprocess.run(cmd_args, shell=True)
+    sys.exit(result.returncode)
 
 
 def cmd_mcp(action, remaining_args):
@@ -914,6 +945,7 @@ def dispatch_command(
             raise InvalidActionError(type_included, action_included, valid_actions)
     elif type_included == MOD_TYPE_FOLDER:
         valid_actions = [
+            MOD_FOLDER_CR_LINEAR,
             MOD_FOLDER_CREATE,
             MOD_FOLDER_DLD_PATH,
             MOD_FOLDER_MERGE,
@@ -921,6 +953,8 @@ def dispatch_command(
         ]
         if action_included == MOD_FOLDER_CREATE:
             create_folders_in_path(remaining_args)
+        elif action_included == MOD_FOLDER_CR_LINEAR:
+            create_linear_path(remaining_args)
         elif action_included == MOD_FOLDER_DLD_PATH:
             set_download_path_in_chrome(remaining_args)
         elif action_included == MOD_FOLDER_MERGE:
@@ -933,6 +967,9 @@ def dispatch_command(
             raise InvalidActionError(type_included, action_included, valid_actions)
     elif type_included == MOD_TYPE_OPEN:
         valid_actions = [
+            MOD_OPEN_ADD,
+            MOD_OPEN_LIST,
+            MOD_OPEN_RM,
             MOD_OPEN_AGY_MCP_CONF,
             MOD_OPEN_AGY_SKILLS,
             MOD_OPEN_APPDATA,
@@ -987,22 +1024,58 @@ def dispatch_command(
             open_mcp_folder()
         elif clean_action in (MOD_OPEN_SKILLS, "skill"):
             open_skills_folder()
+        elif clean_action == MOD_OPEN_ADD:
+            manage_open_aliases("add", remaining_args)
+        elif clean_action in (MOD_OPEN_LIST, "ls", "aliases"):
+            manage_open_aliases("list", remaining_args)
+        elif clean_action in (MOD_OPEN_RM, "remove", "del"):
+            manage_open_aliases("rm", remaining_args)
         elif clean_action == MOD_OPEN_SSH_CONF:
             open_ssh_config()
         else:
-            # Custom path check (relative or absolute)
-            custom_path = Path(clean_action).resolve()
-            if custom_path.exists():
-                open_in_file_explorer(str(custom_path))
-            else:
-                if "/" in clean_action or "\\" in clean_action or clean_action.startswith("."):
-                    raise ModCLIError(
-                        title="Đường dẫn không tồn tại",
-                        reason=f"Đường dẫn `{clean_action}` không tồn tại trên hệ thống.",
-                        suggestion="Vui lòng kiểm tra lại tính chính xác của đường dẫn cần mở.",
-                    )
+            # 1. Kiểm tra xem clean_action có phải là một folder alias đã lưu không
+            aliases_file = Path(OPEN_ALIASES_FILE_PATH)
+            alias_path_str = None
+            if aliases_file.exists():
+                try:
+                    import json
+                    with open(aliases_file, "r", encoding="utf-8") as f:
+                        alias_dict = json.load(f)
+                        if isinstance(alias_dict, dict) and clean_action in alias_dict:
+                            alias_path_str = alias_dict[clean_action]
+                except Exception:
+                    pass
+
+            if alias_path_str:
+                target_folder = Path(alias_path_str).resolve()
+                if target_folder.exists() and target_folder.is_dir():
+                    if has_code_flag:
+                        open_path_in_ide(str(target_folder), default_ide_prefix)
+                    else:
+                        open_in_file_explorer(str(target_folder))
                 else:
-                    raise InvalidActionError(type_included, clean_action, valid_actions)
+                    raise ModCLIError(
+                        title="Thư mục Alias không tồn tại",
+                        reason=f"Thư mục gán cho alias '{clean_action}' không còn tồn tại trên máy tính:\n  {alias_path_str}",
+                        suggestion=f"Vui lòng kiểm tra lại đường dẫn hoặc cập nhật bằng: mod open add {clean_action} <đường_dẫn_mới>",
+                    )
+            else:
+                # 2. Custom path check (relative or absolute)
+                custom_path = Path(clean_action).resolve()
+                if custom_path.exists():
+                    if has_code_flag:
+                        open_path_in_ide(str(custom_path), default_ide_prefix)
+                    else:
+                        open_in_file_explorer(str(custom_path))
+                else:
+                    if "/" in clean_action or "\\" in clean_action or clean_action.startswith("."):
+                        raise ModCLIError(
+                            title="Đường dẫn không tồn tại",
+                            reason=f"Đường dẫn `{clean_action}` không tồn tại trên hệ thống.",
+                            suggestion="Vui lòng kiểm tra lại tính chính xác của đường dẫn cần mở.",
+                        )
+                    else:
+                        raise InvalidActionError(type_included, clean_action, valid_actions)
     elif type_included == MOD_TYPE_PRINT:
         valid_actions = [
             MOD_PRINT_OS_INFO, MOD_PRINT_VSCODE_WORKSPACES, MOD_PRINT_DIRECTORY,
