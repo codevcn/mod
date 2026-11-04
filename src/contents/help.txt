@@ -113,7 +113,12 @@ paths             :to print all configured paths in paths.py (supports -k/--key/
    srt-count-line :count lines in an srt file.
                   // Example: mod run srt-count-line "path/to/file.srt"
 ## file:
-   create         :create files in standing folder in CLI.
+   create [--full-path, --full]
+                  :create template file in current directory (flat by default, or with full folder structure using --full-path / --full).
+                  // Example: mod file create
+                  // Example: mod file create 1
+                  // Example: mod file create 1 --full-path
+                  // Example: mod file create 1 --full
    add-src <file> [--folder <name>]
                   :add file to centralized source-files template folder (supports recursive subfolder).
                   // Example: mod file add-src "D:/test.py" --folder "coding/farm"

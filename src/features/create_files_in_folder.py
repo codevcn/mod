@@ -49,7 +49,7 @@ def list_template_files(base_folder: str) -> list[str]:
 
 
 def main():
-    # Phân tích cờ dòng lệnh
+    # Phân tích cờ dòng lệnh CLI ban đầu
     is_full_path = False
     cli_tokens = []
     for arg in sys.argv[1:]:
@@ -68,9 +68,9 @@ def main():
         sys.exit(0)
 
     mode_label = (
-        f"{Fore.CYAN}[Chế độ: Đầy đủ đường dẫn (--full-path)]{Style.RESET_ALL}"
+        f"{Fore.CYAN}[Chế độ: Đầy đủ đường dẫn (--full-path / --full)]{Style.RESET_ALL}"
         if is_full_path
-        else f"{Fore.LIGHTBLACK_EX}[Mặc định: Chỉ tạo tệp tại thư mục hiện hành - Dùng --full-path để giữ thư mục]{Style.RESET_ALL}"
+        else f"{Fore.LIGHTBLACK_EX}[Mặc định: Chỉ tạo tệp tại thư mục hiện hành - Thêm --full-path hoặc --full để giữ thư mục]{Style.RESET_ALL}"
     )
 
     print(f"\n{Fore.CYAN}=== KHỞI TẠO TỆP TỪ KHO TEMPLATE (MOD FILE CREATE) ==={Style.RESET_ALL}")
@@ -88,6 +88,7 @@ def main():
             print(f"  [{idx:2d}] {f}")
         if len(template_files) > 1:
             print(f"  [ a] Tạo TẤT CẢ các tệp trên ({len(template_files)} tệp)")
+        print(f"\n{Fore.YELLOW}💡 Mẹo:{Style.RESET_ALL} Bạn có thể nhập kèm cờ {Fore.CYAN}--full-path{Style.RESET_ALL} hoặc {Fore.CYAN}--full{Style.RESET_ALL} (vd: {Fore.WHITE}1 --full{Style.RESET_ALL} hoặc {Fore.WHITE}a --full-path{Style.RESET_ALL}).")
         print()
 
         try:
@@ -97,6 +98,20 @@ def main():
         except (KeyboardInterrupt, EOFError):
             print("\n>>> Hủy thao tác.")
             sys.exit(0)
+
+    if not user_input or user_input.lower() in ("0", "q", "quit", "exit"):
+        print(">>> Hủy thao tác an toàn.")
+        sys.exit(0)
+
+    # Bóc tách cờ --full-path hoặc --full nếu người dùng nhập trực tiếp trong interactive prompt
+    tokens = user_input.split()
+    cleaned_tokens = []
+    for t in tokens:
+        if t.lower() in ("--full-path", "--full"):
+            is_full_path = True
+        else:
+            cleaned_tokens.append(t)
+    user_input = " ".join(cleaned_tokens).strip()
 
     if not user_input or user_input.lower() in ("0", "q", "quit", "exit"):
         print(">>> Hủy thao tác an toàn.")

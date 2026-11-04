@@ -76,7 +76,7 @@ TYPE_DESCRIPTIONS = {
     "open": "Mở thư mục dự án, tài nguyên hệ thống hoặc đường dẫn bất kỳ trong Explorer",
     "code": "Mở các dự án, template, workspace trong IDE",
     "compress": "Nén toàn bộ dự án hoặc nén thư mục theo cấu hình JSON",
-    "file": "Thao tác xử lý file hàng loạt (create, rename, delete, keep)",
+    "file": "Thao tác xử lý file (create flat/full-path, add-src, rename, delete, keep)",
     "find": "Tìm kiếm file hoặc folder trong project theo tên tối ưu",
     "folder": "Thao tác xử lý folder (create, dld-path, merge, tree)",
     "run": "Thực thi các script tiện ích (unikey, gen-qr, keep-awake...)",
