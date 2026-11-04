@@ -112,6 +112,7 @@ MOD_RUN_KEEP_SCREEN = "keep-screen"
 MOD_SRT_COUNT_LINE = "srt-count-line"
 # file
 MOD_FILE_CREATE = "create"
+MOD_FILE_ADD_SRC = "add-src"
 MOD_FILE_RENAME = "rename"
 MOD_FILE_DELETE = "delete"
 MOD_FILE_KEEP = "keep"
@@ -508,6 +509,16 @@ def create_files_in_folder():
         ["py", get_feature_path("create_files_in_folder.py")],
         shell=True,
     )
+    sys.exit(0)
+
+
+def add_source_file(remaining_args: list[str]):
+    cmd_args = [
+        "py",
+        get_feature_path("add_source_file.py"),
+    ]
+    cmd_args.extend(remaining_args)
+    subprocess.run(cmd_args, shell=True)
     sys.exit(0)
 
 
@@ -1028,9 +1039,11 @@ def dispatch_command(
         else:
             raise InvalidActionError(type_included, action_included, valid_actions)
     elif type_included == MOD_TYPE_FILE:
-        valid_actions = [MOD_FILE_CREATE, MOD_FILE_RENAME, MOD_FILE_DELETE, MOD_FILE_KEEP]
+        valid_actions = [MOD_FILE_CREATE, MOD_FILE_ADD_SRC, MOD_FILE_RENAME, MOD_FILE_DELETE, MOD_FILE_KEEP]
         if action_included == MOD_FILE_CREATE:
             create_files_in_folder()
+        elif action_included == MOD_FILE_ADD_SRC:
+            add_source_file(remaining_args)
         elif action_included == MOD_FILE_RENAME:
             rename_files(remaining_args)
         elif action_included == MOD_FILE_DELETE:

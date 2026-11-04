@@ -70,12 +70,20 @@ d:\D-Documents\TOOLs\mod\
 │       └── mod-git-commit/             # Skill chuẩn hóa quy trình review thay đổi, commit & push bằng Mod CLI
 │           └── SKILL.md                # Hướng dẫn quy trình 5 bước kiểm tra, dọn dẹp và mod git commit
 ├── data/
+│   ├── credentials/
+│   │   └── .mod_history                # Lịch sử câu lệnh nhập trong interactive CLI
 │   └── media/audio/
 │       └── burnttoast-notification-sound.mp3 # File âm thanh thông báo mặc định cho Toast Notifier
 ├── doc/
 │   ├── add-sound-notifier.md          # Tài liệu hướng dẫn cấu hình âm thanh BurntToast
 │   ├── autocomplete.md                # Tài liệu mô tả chi tiết tính năng Auto-complete & REPL
 │   └── info-flag-guide.md             # Hướng dẫn toàn diện kiến trúc và triển khai cờ --info
+├── docs/
+│   └── diagrams/                      # Thư mục sơ đồ kiến trúc và luồng dữ liệu
+├── todo/
+│   └── todo.md                        # Kế hoạch phát triển tính năng và backlog
+├── warehouse/
+│   └── runner_main_ws.txt             # Script runner phục vụ mở workspace lập trình
 
 └── src/
     ├── main.py                         # Central Dispatcher (Định tuyến lệnh trung tâm)
@@ -99,7 +107,6 @@ d:\D-Documents\TOOLs\mod\
     │   ├── help.txt                    # Nội dung help khi chạy `mod` hoặc `mod -h`
     │   ├── note.txt                    # Ghi chú các câu lệnh hệ điều hành / server hay dùng
     │   ├── statuses.txt                # Bảng giải thích các mã trạng thái mod-status
-    │   ├── files_source.txt            # Template nguồn dùng cho tính năng `mod file create`
     │   └── cURL.txt                    # Snippet mẫu các thao tác cURL CRUD
     └── features/                       # Toàn bộ script tính năng
         ├── system/                     # Script nội bộ phục vụ CLI framework
@@ -127,7 +134,7 @@ d:\D-Documents\TOOLs\mod\
         │   ├── AUTH_GUIDE.txt          # Hướng dẫn chi tiết cách tạo Google Cloud OAuth credentials
         │   └── sync_to_gdrive.py       # Script thực thi sync, list, remote info, del-fd, link, dl (download)
         ├── compress_project.py         # Nén toàn bộ mã nguồn dự án thành file zip (lọc qua .compressignore)
-        ├── create_files_in_folder.py   # Tạo file/thư mục từ template trong files_source.txt (interactive)
+        ├── create_files_in_folder.py   # Chọn và sao chép template từ kho SOURCE_FILES_FOLDER (interactive)
         ├── create_folders_in_path.py   # Tạo folder tự động theo pattern và tự tăng index
         ├── create_linear_path.py       # Tạo folder hoặc file theo path với cơ chế linear cha-con và bảo vệ không ghi đè
         ├── delete_files.py             # Xóa file cấp 1 theo danh sách extension (vd: "tmp,log")
@@ -149,6 +156,7 @@ d:\D-Documents\TOOLs\mod\
         ├── print_folder_tree.py        # In cây thư mục có tính năng auto-collapse khi vượt quá số lượng max
         ├── print_os_info.py            # In cấu hình phần cứng, OS, CPU, RAM, Network (systeminfo, wmic, ipconfig)
         ├── print_pc_power.py           # In thông số phần cứng chi tiết CPU, RAM, Disk, Wi-Fi, GPU (Task Manager format)
+        ├── print_useful_commands.py    # In hoặc tìm kiếm lệnh hữu ích trong note.txt kèm tô màu cú pháp (mod print note)
         ├── rename_files.py             # Đổi tên file hàng loạt có auto-detect prefix hoặc đặt prefix tùy ý
         ├── send_toast.py               # CLI wrapper gửi Toast notification qua `ToastNotifier`
         ├── set_download_path_in_chrome.py # Sửa file Preferences của tất cả Google Chrome profiles
@@ -199,7 +207,7 @@ Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--info]`
 | `code` | *(không có)* | | Mở project trong IDE (`code` hoặc `anti`). |
 | `code` | `ws` | `<value> [-p]` | Mở workspace thiết lập sẵn (`ptb` hoặc `tool`). `-p` chỉ mở Windows Terminal. |
 | `code` | `test` / `js` / `ts` / `py` / `nestjs` / `ext` / `ts-template` | | Mở nhanh các thư mục template hoặc thư mục testing tương ứng trong IDE. |
-| `file` | `create` | | Menu tương tác tạo file từ template `files_source.txt`. |
+| `file` | `create` | | Menu tương tác chọn và sao chép template file từ kho `SOURCE_FILES_FOLDER` vào thư mục hiện tại. |
 | `file` | `add-src` | `<file_path> [--folder <name>]` | Thêm tệp vào kho template `SOURCE_FILES_FOLDER` (hỗ trợ tạo đệ quy thư mục nhiều cấp). |
 | `file` | `rename` | `<folder_path> [prefix]` | Đổi tên file hàng loạt thành `<prefix>-1.ext`, `<prefix>-2.ext`... |
 | `file` | `delete` | `<folder_path> <ext1,ext2,...>` | Xóa toàn bộ file có extension nằm trong danh sách chỉ định. |
@@ -217,8 +225,8 @@ Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--info]`
 | `git` | `commit` | `-m "<commit_message>"` | Tự động thực hiện: `git add .` -> `git commit -m` -> `git push origin main`. |
 | `git` | `dl-folder` | `<git_folder_url> [dest_path]` | Tải toàn bộ thư mục và nội dung con từ GitHub repo về máy mà không kèm file .git. |
 | `git` | `dl-file` | `<git_file_url> [dest_path]` | Tải một tệp đơn lẻ từ GitHub repo về máy tính. |
-| `git` | `stash` | `[list \| ls]` | Liệt kê các Git Stash hiện có trong kho lưu trữ mod tool. |
-| `git` | `drop` | `[stash_index]` | Xóa 1 stash khỏi kho lưu trữ (chọn qua bảng câu hỏi tương tác hoặc nhập trực tiếp). |
+| `git` | `stash` | `[list, ls]` | Liệt kê các Git Stash hiện có trong kho lưu trữ mod tool (`mod git stash list` / `ls` / `mod git stash`). |
+| `git` | `drop` / `stash drop` | `[stash_index] [-y, --yes]` | Xóa 1 stash khỏi kho lưu trữ (menu tương tác chọn số thứ tự hoặc truyền trực tiếp index/ref `stash@{N}`). |
 | `git` | `remote` | | In danh sách remote URL (`git remote -v`). |
 | `gdrive` | `sync` | `"<source>" "<dest>" [--noti [platform]]` | Đồng bộ thư mục lên Google Drive bằng rclone. |
 | `gdrive` | `list` | `[target_path] [-d] [--file]` | Liệt kê folder/file trên GDrive (`-d`: đệ quy sâu, `--file`: chỉ liệt kê file). |
@@ -291,11 +299,24 @@ File này tập trung toàn bộ cấu hình đường dẫn của hệ thống:
   - `FEATURES_FOLDER`: `<PROJECT_ROOT>/src/features`.
   - `CONTENTS_FOLDER`: `<PROJECT_ROOT>/src/contents`.
   - `TOAST_SOUND_AUDIO_FILE_PATH`: `<PROJECT_ROOT>/data/media/audio/burnttoast-notification-sound.mp3`.
+  - `MOD_HISTORY_FILE_PATH`: `<PROJECT_ROOT>/data/credentials/.mod_history`.
 - **Cấu hình môi trường máy cục bộ (Sửa khi chuyển máy):**
-  - `APPDATA_FOLDER`: `D:/D-AppData/me-mod` (Nơi lưu QR Code sinh ra).
+  - `APPDATA_FOLDER`: `D:/D-AppData/me-mod` (Nơi lưu QR Code sinh ra, file `open_aliases.json`).
+  - `OPEN_ALIASES_FILE_PATH`: `<APPDATA_FOLDER>/open_aliases.json` (Lưu alias mở thư mục nhanh).
   - `TEMPLATE_REPLACER_FOLDER`: Đường dẫn đến extension Template Replacer.
-  - `LOCAL_ABSOLUTE_FOLDER_PATH`: `D:/D-Documents/MCP` (Kho chứa MCP templates).
+  - `LOCAL_ABSOLUTE_FOLDER_PATH` / `MCP_FOLDER_PATH`: `D:/D-Documents/MCP` (Kho chứa MCP templates).
   - `SKILLS_FOLDER_PATH`: `D:/D-Documents/SKILLs` (Kho chứa các thư mục AI Skill).
+  - `VSCODE_WORKSPACES_FOLDER`: `D:/D-Documents/VSCode-Workspaces` (Kho chứa các file `.code-workspace`).
+  - `SOURCE_FILES_FOLDER`: `D:/D-Documents/Souce-Files` (Kho chứa các tệp mã nguồn mẫu/template).
+  - `SOURCE_FILES_UTILITY_FOLDER`: `D:/D-Documents/Souce-Files/utilty`.
+- **Đường dẫn cấu hình & Skills của AI Coding Agent (Tự động theo User Home):**
+  - `ANTIGRAVITY_MCP_CONFIG_PATH`: `~/.gemini/config/mcp_config.json`
+  - `CODEX_MCP_CONFIG_PATH`: `~/.codex/config.toml`
+  - `CLAUDE_MCP_CONFIG_PATH`: `~/.claude.json`
+  - `SSH_CONFIG_PATH`: `~/.ssh/config`
+  - `ANTIGRAVITY_SKILLS_PATH`: `~/.gemini/config/skills`
+  - `CODEX_SKILLS_PATH`: `~/.codex/skills`
+  - `CLAUDE_SKILLS_PATH`: `~/.claude/skills`
 
 ### 5.2. File `.env` tại thư mục gốc
 Dùng cho các thông tin bảo mật và cấu hình runtime:
@@ -341,6 +362,20 @@ TELEGRAM_CHAT_ID=987654321
 - **`mod skill set` ([`skill_set.py`](file:///d:/D-Documents/TOOLs/mod/src/features/skill_set.py)):** Quét đệ quy kho `SKILLS_FOLDER_PATH` nhưng **chỉ lọc các folder có chứa trực tiếp file `SKILL.md`**, tự động bỏ qua thư mục cha phân loại và các thư mục con nội bộ (`agents`, `assets`, `references`...). Hỗ trợ nhập `q` để hủy thao tác tại prompt. Chuẩn hóa UTF-8 console output.
 - **`mod mcp set` ([`mcp_set.py`](file:///d:/D-Documents/TOOLs/mod/src/features/mcp_set.py)):** Quét đệ quy kho `LOCAL_ABSOLUTE_FOLDER_PATH` nhưng **chỉ lọc các folder có chứa trực tiếp file `README.md`**, tự động bỏ qua thư mục cha phân loại và các thư mục con bên trong MCP (`src`, `assets`...). Hỗ trợ nhập `q` để hủy thao tác tại prompt. Chuẩn hóa UTF-8 console output.
 
+### 6.7. Quản lý Kho Template Source Files (`SOURCE_FILES_FOLDER`)
+- **`mod file create` ([`create_files_in_folder.py`](file:///d:/D-Documents/TOOLs/mod/src/features/create_files_in_folder.py)):** Quét kho `SOURCE_FILES_FOLDER` (`D:/D-Documents/Souce-Files`), hiển thị menu tương tác đánh số, hỗ trợ người dùng nhập số thứ tự các tệp cần sao chép (ví dụ `1 3 5` hoặc `a` để chọn tất cả), kiểm tra bảo vệ tránh ghi đè tệp có sẵn tại thư mục hiện hành [y/N/a], hỗ trợ `q` để hủy.
+- **`mod file add-src` ([`add_source_file.py`](file:///d:/D-Documents/TOOLs/mod/src/features/add_source_file.py)):** Thêm tệp mã nguồn mẫu từ máy tính vào kho `SOURCE_FILES_FOLDER`. Hỗ trợ cờ `--folder` / `-d` để đặt vào thư mục con đệ quy nhiều cấp (ví dụ `--folder "coding/farm"`), tự tạo toàn bộ chuỗi thư mục cha nếu chưa có và hỏi xác nhận an toàn trước khi ghi đè.
+
+### 6.8. Cơ chế Đăng ký & Mở Nhanh Thư Mục qua Alias (`open_aliases.json`)
+- Quản lý qua [`manage_open_aliases.py`](file:///d:/D-Documents/TOOLs/mod/src/features/manage_open_aliases.py), lưu trữ tập trung tại `open_aliases.json` trong `APPDATA_FOLDER`.
+- Hỗ trợ các lệnh: `mod open add <alias> <path>`, `mod open list` (hoặc `ls`), `mod open rm <alias>`.
+- Khi thực thi `mod open <alias>`, hệ thống tự động kiểm tra alias trong file JSON và mở thư mục tương ứng trong File Explorer (hoặc mở trực tiếp bằng IDE nếu có cờ `-c` / `--code`).
+
+### 6.9. Cơ chế Chuẩn hóa Vị trí Cài đặt AI Skill (`.agents/skills`)
+- Trong [`skill_set.py`](file:///d:/D-Documents/TOOLs/mod/src/features/skill_set.py):
+  - **Cài đặt vào Project:** Khi sử dụng cờ `--project [root]` (hoặc `--prj`, `-p`) hoặc action độc lập `mod skill project / prj / p`, hệ thống ưu tiên cài đặt skill vào thư mục chuẩn `.agents/skills` (fallback `.agent/skills` nếu thư mục này đã tồn tại trước đó) theo chuẩn Open Agent Skills phổ biến hiện nay.
+  - **Cài đặt vào Global AI Agent:** Khi sử dụng cờ `--ai`, `--llm`, `--agent <name>` (hỗ trợ `agy`, `codex`, `claude`, `all`), hệ thống sao chép skill trực tiếp vào thư mục Global Skills của AI Coding Agent tương ứng (`~/.gemini/config/skills`, `~/.codex/skills`, `~/.claude/skills`).
+
 ---
 
 ## 7. Hướng Dẫn Mở Rộng & Thêm Tính Năng Mới (How to Add a Feature)
@@ -364,6 +399,6 @@ Khi cần bổ sung một lệnh mới vào `mod CLI`, làm theo đúng 5 bướ
 ## 8. Các Lưu Ý Quan Trọng Cho AI Agent & Developer (Crucial Notes & Caveats)
 
 1. **Không can thiệp vào cách parse của Dispatcher:** Dispatcher cố tình parse thủ công bằng mảng `sys.argv` để đảm bảo mọi argument phức tạp (như commit message có dấu cách, regex, danh sách extension) được forward nguyên vẹn cho script con. Không tự ý chuyển `main.py` sang dùng `argparse`.
-2. **Kiểm tra đường dẫn khi chạy trên máy mới:** Nếu clone project sang máy tính khác, hãy kiểm tra lại 3 biến đường dẫn ngoài project trong [`src/configs/paths.py`](file:///d:/D-Documents/TOOLs/mod/src/configs/paths.py) (`APPDATA_FOLDER`, `TEMPLATE_REPLACER_FOLDER`, `LOCAL_ABSOLUTE_FOLDER_PATH`).
+2. **Kiểm tra đường dẫn khi chạy trên máy mới:** Nếu clone project sang máy tính khác, hãy kiểm tra lại các biến đường dẫn ngoài project trong [`src/configs/paths.py`](file:///d:/D-Documents/TOOLs/mod/src/configs/paths.py) (`APPDATA_FOLDER`, `TEMPLATE_REPLACER_FOLDER`, `LOCAL_ABSOLUTE_FOLDER_PATH`, `SKILLS_FOLDER_PATH`, `VSCODE_WORKSPACES_FOLDER`, `SOURCE_FILES_FOLDER`).
 3. **Các thao tác file nhạy cảm:** Các lệnh `file delete`, `file keep`, `gdrive del-fd`, `gdrive reset` có tính chất xóa dữ liệu vĩnh viễn. Đảm bảo script luôn có validate hoặc xác nhận trước khi thực thi.
 4. **Bảo mật:** Không bao giờ commit file `.env`, file cấu hình chứa token/OAuth secret thật lên git repository công khai.
