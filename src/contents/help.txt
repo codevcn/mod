@@ -122,6 +122,11 @@ paths             :to print all configured paths in paths.py (supports -k/--key/
    add-src <file> [--folder <name>]
                   :add file to centralized source-files template folder (supports recursive subfolder).
                   // Example: mod file add-src "D:/test.py" --folder "coding/farm"
+   open, open-src [-c]
+                  :open centralized source-files folder in File Explorer (or IDE with -c/--code). (Alias of 'mod open src-files')
+                  // Example: mod file open
+                  // Example: mod file open-src
+                  // Example: mod file open -c
    rename <folder_path> [prefix]
                   :rename files in specified folder with specified prefix.
                   // Example: mod file rename "D:/D-Documents/Làm về TikTok" "tiktok"

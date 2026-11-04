@@ -121,6 +121,8 @@ MOD_SRT_COUNT_LINE = "srt-count-line"
 # file
 MOD_FILE_CREATE = "create"
 MOD_FILE_ADD_SRC = "add-src"
+MOD_FILE_OPEN = "open"
+MOD_FILE_OPEN_SRC = "open-src"
 MOD_FILE_RENAME = "rename"
 MOD_FILE_DELETE = "delete"
 MOD_FILE_KEEP = "keep"
@@ -1074,9 +1076,24 @@ def dispatch_command(
         else:
             raise InvalidActionError(type_included, action_included, valid_actions)
     elif type_included == MOD_TYPE_FILE:
-        valid_actions = [MOD_FILE_CREATE, MOD_FILE_ADD_SRC, MOD_FILE_RENAME, MOD_FILE_DELETE, MOD_FILE_KEEP]
+        valid_actions = [
+            MOD_FILE_CREATE,
+            MOD_FILE_ADD_SRC,
+            MOD_FILE_OPEN,
+            MOD_FILE_OPEN_SRC,
+            MOD_FILE_RENAME,
+            MOD_FILE_DELETE,
+            MOD_FILE_KEEP,
+        ]
         if action_included == MOD_FILE_CREATE:
             create_files_in_folder(remaining_args)
+        elif action_included in (MOD_FILE_OPEN, MOD_FILE_OPEN_SRC, "open-source"):
+            has_code_flag = any(a in ("-c", "--code") for a in remaining_args)
+            if has_code_flag:
+                open_path_in_ide(SOURCE_FILES_FOLDER, default_ide_prefix)
+            else:
+                open_source_files_folder()
+            sys.exit(0)
         elif action_included == MOD_FILE_ADD_SRC:
             add_source_file(remaining_args)
         elif action_included == MOD_FILE_RENAME:

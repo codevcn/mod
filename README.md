@@ -249,6 +249,8 @@ mod gist reset [gist_id]            # Reset toàn bộ Gist của tài khoản h
 ```bash
 mod file create                     # Mặc định chỉ tạo tệp đích tại thư mục hiện hành (không tạo thư mục cha)
 mod file create [--full-path|--full]# Tạo tệp giữ nguyên toàn bộ cấu trúc thư mục cha từ kho template
+mod file open [-c]                  # Mở thư mục kho template source-files trong Explorer (hoặc IDE với -c)
+mod file open-src [-c]              # Alias tương đương của 'mod file open' (hoặc 'mod open src-files')
 mod file add-src <file> [--folder]  # Thêm tệp vào kho template (hỗ trợ tạo đệ quy subfolder nhiều cấp)
 mod file rename <folder> [prefix]   # Đổi tên file hàng loạt thành <prefix>-1.ext, <prefix>-2.ext...
 mod file delete <folder> <exts>     # Xóa file cấp 1 theo danh sách đuôi (ví dụ: "tmp,log")
