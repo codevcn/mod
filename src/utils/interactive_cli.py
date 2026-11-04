@@ -66,7 +66,7 @@ TYPE_ACTION_MAP = {
     "proxy": ["test"],
     "py": ["env"],
     "run": ["gen-qr", "keep-awake", "keep-screen", "srt-count-line", "unikey"],
-    "skill": ["list", "list-project", "list-prj", "ls", "ls-prj", "ls-project", "off-invo", "off-invocation", "on-invo", "on-invocation", "remove", "rm", "set"],
+    "skill": ["list", "list-project", "list-prj", "ls", "ls-prj", "ls-project", "off-invo", "off-invocation", "on-invo", "on-invocation", "p", "prj", "project", "remove", "rm", "set"],
     "toast": ["--syntax"],
     "tunnel": [],
 }

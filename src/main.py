@@ -149,6 +149,7 @@ MOD_SKILL_OFF_INVO = "off-invocation"
 MOD_SKILL_ON_INVO = "on-invocation"
 MOD_SKILL_LIST = "list"
 MOD_SKILL_LIST_PROJECT = "list-project"
+MOD_SKILL_PROJECT = "project"
 # compress
 MOD_COMPRESS_FOLDER = "folder"
 MOD_COMPRESS_INIT_IGNORE = "init-ignore"
@@ -895,6 +896,7 @@ def dispatch_command(
             MOD_SKILL_ON_INVO,
             MOD_SKILL_LIST,
             MOD_SKILL_LIST_PROJECT,
+            MOD_SKILL_PROJECT,
         ]
         if action_included is None:
             raise MissingActionError(type_included, valid_actions)
@@ -909,6 +911,8 @@ def dispatch_command(
             clean_act = MOD_SKILL_LIST
         elif clean_act in ("list-prj", "ls-prj", "ls-project"):
             clean_act = MOD_SKILL_LIST_PROJECT
+        elif clean_act in ("prj", "p"):
+            clean_act = MOD_SKILL_PROJECT
         if clean_act not in valid_actions:
             raise InvalidActionError(type_included, action_included, valid_actions)
         cmd_skill(action_included, remaining_args)

@@ -253,7 +253,8 @@ Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--info]`
 | `print` | `dir` | | In đường dẫn thư mục `src` của mod. |
 | `print` | `note` | `[--notepad, -n] [--find, -f <text>]` | In hoặc tìm kiếm danh sách các lệnh hữu ích thường dùng kèm tô màu trực quan (hỗ trợ mở Notepad). |
 | `keep` | *(không có)* | | Giữ màn hình Windows luôn sáng (alias rút gọn của `mod run keep-screen`). |
-| `skill` | `set` | `[skill_name] [dest_path] [--ai, --llm, --agent <name>] [--filter <on|off>]` | Sao chép thư mục Skill AI từ kho `SKILLS_FOLDER_PATH` vào thư mục đích hoặc thư mục Global của AI Agent (agy, codex, claude, all). |
+| `skill` | `set` | `[skill_name] [dest_path] [--ai, --agent <name>] [--project, --prj, -p [root]] [--filter <on|off>]` | Sao chép thư mục Skill AI từ kho vào thư mục đích, AI Agent Global, hoặc thư mục chuẩn `.agents/skills` của project. |
+| `skill` | `project` / `prj` / `p` | `[skill_name] [project_root] [--filter <on|off>]` | Cài đặt skill trực tiếp vào thư mục chuẩn `.agents/skills` của project (mặc định CWD). |
 | `skill` | `remove` / `rm` | `[skill_name] [--ai, --agent <name>] [--include-agent <name>] [--filter <on|off>]` | Xóa Skill khỏi kho trung tâm, khỏi AI Agent, hoặc đồng thời cả hai (có xác nhận an toàn). |
 | `skill` | `off-invo` / `off-invocation` | `[skill_name] [--agent <name>] [--include-agent <name>] [--filter <on|off>]` | Tắt tự động gọi bằng cách thêm `disable-model-invocation: true` vào file `SKILL.md`. |
 | `skill` | `on-invo` / `on-invocation` | `[skill_name] [--agent <name>] [--include-agent <name>] [--filter <on|off>]` | Bật tự động gọi bằng cách xóa `disable-model-invocation: true` khỏi file `SKILL.md`. |

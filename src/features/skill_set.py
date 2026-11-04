@@ -192,11 +192,33 @@ def deploy_skill(src_path: str, dest_folder_path: str, agent_label: str = None, 
         return False, overwrite_all
 
 
+def resolve_project_agents_skills_dir(project_path: str) -> tuple[str, str]:
+    """
+    Xác định thư mục đặt skill theo chuẩn AI coding agent trong project:
+    - Nếu đã tồn tại thư mục `<project>/.agent/skills`: dùng `<project>/.agent/skills` (label: "Project (.agent/skills)")
+    - Ngược lại: dùng `<project>/.agents/skills` (label: "Project (.agents/skills)")
+    """
+    abs_project = os.path.abspath(project_path)
+    if not os.path.isdir(abs_project):
+        print(f"{Fore.RED}❌ Lỗi: Thư mục dự án không tồn tại: {abs_project}{Style.RESET_ALL}")
+        sys.exit(1)
+
+    agent_singular = os.path.join(abs_project, ".agent", "skills")
+    agents_plural = os.path.join(abs_project, ".agents", "skills")
+
+    if os.path.isdir(agent_singular) and not os.path.isdir(agents_plural):
+        return agent_singular, "Project (.agent/skills)"
+    return agents_plural, "Project (.agents/skills)"
+
+
 def main():
-    if len(sys.argv) < 2 or sys.argv[1] != "set":
+    if len(sys.argv) < 2 or sys.argv[1].lower() not in ("set", "project", "prj", "p"):
         print(f"{Fore.RED}>>> Lỗi: Lệnh không hợp lệ.{Style.RESET_ALL}")
         sys.exit(1)
 
+    action_raw = sys.argv[1].lower()
+    is_project_mode = action_raw in ("project", "prj", "p")
+    project_root = None
     ai_choice = None
     filter_choice = None
     positional_args = []
@@ -214,6 +236,18 @@ def main():
                 sys.exit(1)
         elif arg.startswith(("--ai=", "--llm=", "--agent=")):
             ai_choice = arg.split("=", 1)[1].strip().lower()
+            i += 1
+        elif arg in ("--project", "--prj", "-p"):
+            is_project_mode = True
+            if i + 1 < len(sys.argv) and not sys.argv[i + 1].startswith("-"):
+                project_root = sys.argv[i + 1]
+                i += 2
+            else:
+                project_root = "."
+                i += 1
+        elif arg.startswith(("--project=", "--prj=")):
+            is_project_mode = True
+            project_root = arg.split("=", 1)[1]
             i += 1
         elif arg in ("--filter", "-f"):
             if i + 1 < len(sys.argv):
@@ -249,7 +283,33 @@ def main():
 
     # Xác định danh sách target directories
     targets = []
-    if ai_choice is not None:
+    if is_project_mode:
+        if ai_choice is not None:
+            print(f"{Fore.RED}❌ Lỗi: Không thể dùng đồng thời cờ --agent (Global AI Agent) và --project (Project Local). Vui lòng chọn 1 trong 2.{Style.RESET_ALL}")
+            sys.exit(1)
+
+        if project_root is None:
+            if len(positional_args) >= 2:
+                skill_folder_name = positional_args[0]
+                project_root = positional_args[1]
+            elif len(positional_args) == 1:
+                cand = positional_args[0]
+                if cand.startswith((".", "/", "\\")) or ":" in cand:
+                    project_root = cand
+                    skill_folder_name = None
+                else:
+                    skill_folder_name = cand
+                    project_root = "."
+            else:
+                skill_folder_name = None
+                project_root = "."
+        else:
+            skill_folder_name = positional_args[0] if len(positional_args) > 0 else None
+
+        dest_dir, agent_label = resolve_project_agents_skills_dir(project_root)
+        targets = [(agent_label, dest_dir)]
+
+    elif ai_choice is not None:
         if ai_choice == "all":
             targets = [
                 ("Google Antigravity", ANTIGRAVITY_SKILLS_PATH),
