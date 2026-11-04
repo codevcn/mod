@@ -10,8 +10,12 @@ Tree view of: D:\D-Documents\TOOLs\mod
 │       │   │   └── architecture_checklist.md
 │       │   └── resources
 │       │       └── feature_template.yml
-│       └── mod-git-commit
-│           └── SKILL.md
+│       ├── mod-git-commit
+│       │   └── SKILL.md
+│       └── readme
+│           ├── SKILL.md
+│           └── references
+│               └── detailed-guide.md
 ├── .compressignore
 ├── .env
 ├── .gitignore
@@ -32,7 +36,6 @@ Tree view of: D:\D-Documents\TOOLs\mod
 ├── docs
 │   └── diagrams
 │       └── system-architecture.html
-├── mod-28-09-2026-18-16-05.zip
 ├── mod.cmd
 ├── note.md
 ├── print_project_tree.py
@@ -87,6 +90,7 @@ Tree view of: D:\D-Documents\TOOLs\mod
 │   │   ├── print_cURL.py
 │   │   ├── print_folder_tree.py
 │   │   ├── print_os_info.py
+│   │   ├── print_paths.py
 │   │   ├── print_pc_power.py
 │   │   ├── print_useful_commands.py
 │   │   ├── rename_files.py

@@ -196,8 +196,8 @@ mod skill find <keyword>            # Tìm kiếm skill trong kho theo tên ho�
 mod skill list                      # Liệt kê skill trong kho trung tâm (alias: mod skill ls)
 mod skill list-project              # Liệt kê skill đang có trong project hiện tại (alias: mod skill ls-prj)
 mod skill open [-c]                 # Mở thư mục kho AI Skills trong Explorer (hoặc IDE với -c)
-mod skill on-invo [skill_name]      # Bật tự động gọi skill bằng AI (xóa disable-model-invocation)
-mod skill off-invo [skill_name]     # Tắt tự động gọi skill bằng AI (thêm disable-model-invocation: true)
+mod skill on-invo [skill] [--prj]   # Bật tự động gọi skill bằng AI (trong kho, agent --agent, hoặc project --prj)
+mod skill off-invo [skill] [--prj]  # Tắt tự động gọi skill bằng AI (trong kho, agent --agent, hoặc project --prj)
 mod skill remove [skill_name]       # Xóa skill khỏi kho hoặc khỏi AI Agent (alias: mod skill rm)
 ```
 

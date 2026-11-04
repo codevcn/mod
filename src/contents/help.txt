@@ -261,15 +261,19 @@ paths             :to print all configured paths in paths.py (supports -k/--key/
                   // Example: mod skill rm --agent agy
                   // Example: mod skill rm --include-agent all
                   // Example: mod skill rm --filter on-invocation
-   off-invocation, off-invo [skill_name] [--ai, --llm, --agent <name>] [--include-agent <name>] [--filter, -f <on-invocation|off-invocation>]
+   off-invocation, off-invo [skill_name] [--project, --prj, -p [project_root]] [--ai, --llm, --agent <name>] [--include-agent <name>] [--filter, -f <on-invocation|off-invocation>]
                   :disable AI auto-invocation by adding 'disable-model-invocation: true' to SKILL.md.
                   // Example: mod skill off-invocation access-web-fresh-data
+                  // Example: mod skill off-invo taste-skill --prj
+                  // Example: mod skill off-invo --prj "D:/my-project"
                   // Example: mod skill off-invo --agent agy
                   // Example: mod skill off-invo --include-agent all
                   // Example: mod skill off-invo --filter on-invocation
-   on-invocation, on-invo [skill_name] [--ai, --llm, --agent <name>] [--include-agent <name>] [--filter, -f <on-invocation|off-invocation>]
+   on-invocation, on-invo [skill_name] [--project, --prj, -p [project_root]] [--ai, --llm, --agent <name>] [--include-agent <name>] [--filter, -f <on-invocation|off-invocation>]
                   :enable AI auto-invocation by removing 'disable-model-invocation: true' from SKILL.md.
                   // Example: mod skill on-invocation access-web-fresh-data
+                  // Example: mod skill on-invo taste-skill --prj
+                  // Example: mod skill on-invo --prj "D:/my-project"
                   // Example: mod skill on-invo --agent agy
                   // Example: mod skill on-invo --include-agent all
                   // Example: mod skill on-invo --filter off-invocation

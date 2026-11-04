@@ -5,6 +5,8 @@ skill_invocation.py - Quản lý trạng thái tự động gọi (Auto-Invocati
 - mod skill off-invocation [skill]                            : CHỈ tác động lên kho lưu trữ trung tâm.
 - mod skill off-invocation [skill] --agent <name|all>         : CHỈ tác động lên AI Agent chỉ định (không chạm kho gốc).
 - mod skill off-invocation [skill] --include-agent <name|all> : Tác động CẢ HAI (kho lưu trữ VÀ đồng bộ sang AI Agent).
+- mod skill off-invocation [skill] --project [dest_path]      : Tác động lên Skill bên trong dự án cục bộ (mặc định CWD).
+  Alias: '--prj', '-p'
 - mod skill on-invocation [...]                               : Tương tự, bật tự động gọi (xóa field).
 - Alias: 'off-invo' tương đương 'off-invocation', 'on-invo' tương đương 'on-invocation'.
 - Cờ lọc: --filter <on-invocation|off-invocation> (hoặc -f)  : Chỉ tác động & hiển thị các skill khớp với trạng thái chỉ định.
@@ -43,6 +45,7 @@ from features.skill_set import (
     parse_filter_arg,
 )
 from features.skill_remove import get_agent_skills
+from features.skill_list import find_project_skills
 
 
 def get_skill_md_path(folder_path: str) -> str | None:
@@ -181,12 +184,29 @@ def parse_cli_args():
     include_choice = None
     filter_choice = None
     force_overwrite = False
+    is_project_mode = False
+    project_root = None
     positional_args = []
 
     i = 2
     while i < len(sys.argv):
         arg = sys.argv[i]
-        if arg in ("--ai", "--llm", "--agent"):
+        if arg in ("--project", "--prj", "-p"):
+            is_project_mode = True
+            if i + 1 < len(sys.argv):
+                next_val = sys.argv[i + 1]
+                if not next_val.startswith("-"):
+                    # Nếu đã có positional_args (skill_name) trước đó, hoặc next_val là path/folder rõ ràng
+                    if positional_args or os.path.isdir(next_val) or any(c in next_val for c in "/\\") or next_val in (".", ".."):
+                        project_root = next_val
+                        i += 2
+                        continue
+            i += 1
+        elif arg.startswith(("--project=", "--prj=")):
+            is_project_mode = True
+            project_root = arg.split("=", 1)[1].strip()
+            i += 1
+        elif arg in ("--ai", "--llm", "--agent"):
             if i + 1 < len(sys.argv):
                 ai_choice = sys.argv[i + 1].strip().lower()
                 i += 2
@@ -231,12 +251,22 @@ def parse_cli_args():
             positional_args.append(arg)
             i += 1
 
+    if is_project_mode:
+        if ai_choice is not None:
+            print(f"{Fore.RED}❌ Lỗi: Không thể dùng đồng thời cờ dự án (--project/--prj) và cờ AI Agent (--agent/--ai/--llm). Vui lòng chỉ chọn 1 trong 2.{Style.RESET_ALL}")
+            sys.exit(1)
+        if include_choice is not None:
+            print(f"{Fore.RED}❌ Lỗi: Không thể dùng đồng thời cờ dự án (--project/--prj) và cờ đồng bộ (--include-agent/--include-ai/--include-llm). Vui lòng chỉ chọn 1 trong 2.{Style.RESET_ALL}")
+            sys.exit(1)
+        if not project_root:
+            project_root = "."
+
     if ai_choice is not None and include_choice is not None:
         print(f"{Fore.RED}❌ Lỗi: Không thể dùng đồng thời cờ độc lập (--agent/--ai/--llm) và cờ đồng bộ (--include-agent/--include-ai/--include-llm). Vui lòng chỉ chọn 1 trong 2.{Style.RESET_ALL}")
         sys.exit(1)
 
     skill_name = positional_args[0] if positional_args else None
-    return action, skill_name, ai_choice, include_choice, filter_choice, force_overwrite
+    return action, skill_name, ai_choice, include_choice, filter_choice, force_overwrite, is_project_mode, project_root
 
 
 def resolve_targets(agent_choice: str) -> list[tuple[str, str]]:
@@ -439,6 +469,134 @@ def execute_agent_only_mode(action: str, skill_name_input: str | None, ai_choice
     print(f"{Fore.CYAN}ℹ️ Kho lưu trữ trung tâm ({SKILLS_FOLDER_PATH}) không bị thay đổi.{Style.RESET_ALL}\n")
 
 
+def execute_project_mode(action: str, skill_name_input: str | None, project_root: str, filter_choice: str | None):
+    """
+    Mode D: Project mode (--project, --prj, -p).
+    Tác động trực tiếp lên Skill bên trong thư mục dự án cục bộ (.agents/skills, .agent/skills, hoặc chính dự án).
+    TUYỆT ĐỐI KHÔNG can thiệp vào kho lưu trữ trung tâm và Global AI Agents.
+    """
+    target_project = os.path.abspath(project_root)
+    if not os.path.exists(target_project):
+        print(f"{Fore.RED}❌ Lỗi: Thư mục dự án không tồn tại: {target_project}{Style.RESET_ALL}")
+        sys.exit(1)
+    if not os.path.isdir(target_project):
+        print(f"{Fore.RED}❌ Lỗi: Đường dẫn dự án không phải là thư mục: {target_project}{Style.RESET_ALL}")
+        sys.exit(1)
+
+    available_skills = find_project_skills(target_project)
+    if not available_skills:
+        print(f"\n{Fore.YELLOW}⚠️ Không tìm thấy Skill nào trong thư mục dự án:{Style.RESET_ALL}")
+        print(f"   {target_project}")
+        print(f"\n{Fore.LIGHTBLACK_EX}💡 Gợi ý:{Style.RESET_ALL}")
+        print(f"   - Thư mục skill hợp lệ phải chứa trực tiếp file 'SKILL.md' (hoặc 'skill.md').")
+        print(f"   - Dùng lệnh 'mod skill set <tên_skill> {target_project}' để cài đặt skill vào dự án.")
+        sys.exit(0)
+
+    # Áp dụng bộ lọc filter_choice nếu có
+    if filter_choice:
+        filtered_available = []
+        for s in available_skills:
+            full_dir = target_project if s == "." else os.path.normpath(os.path.join(target_project, s))
+            if get_skill_invocation_state(full_dir) == filter_choice:
+                filtered_available.append(s)
+        available_skills = filtered_available
+        if not available_skills:
+            lbl = "BẬT" if filter_choice == "on-invocation" else "TẮT"
+            print(f"\n{Fore.YELLOW}ℹ️ Không tìm thấy Skill nào trong dự án khớp với bộ lọc '--filter {filter_choice}' (không có skill nào đang {lbl}).{Style.RESET_ALL}")
+            sys.exit(0)
+
+    selected_skills = []
+
+    if skill_name_input:
+        if skill_name_input.lower() in ("all", "*"):
+            selected_skills = available_skills
+        else:
+            target_name_lower = skill_name_input.strip().lower()
+            matched = []
+            for s in available_skills:
+                full_dir = target_project if s == "." else os.path.normpath(os.path.join(target_project, s))
+                base_name = os.path.basename(full_dir).lower()
+                rel_path = s.replace("\\", "/").lower()
+                if target_name_lower in (base_name, rel_path, s.lower()):
+                    matched.append(s)
+
+            if not matched:
+                print(f"{Fore.RED}❌ Lỗi: Không tìm thấy Skill '{skill_name_input}' trong dự án {target_project}.{Style.RESET_ALL}")
+                sys.exit(1)
+
+            selected_skills = matched
+    else:
+        action_title = "TẮT TỰ ĐỘNG GỌI (OFF-INVOCATION) [DỰ ÁN]" if action == "off-invocation" else "BẬT TỰ ĐỘNG GỌI (ON-INVOCATION) [DỰ ÁN]"
+        filter_tag = f" {Fore.CYAN}[Đã lọc: --filter {filter_choice}]{Style.RESET_ALL}" if filter_choice else ""
+        print(f"\n{Fore.GREEN}=== {action_title}{filter_tag} ==={Style.RESET_ALL}")
+        print(f"📂 Thư mục dự án: {Fore.WHITE}{target_project}{Style.RESET_ALL}")
+        print(f">>> Đang quét danh sách Skill trong dự án ({len(available_skills)} skills):")
+        print()
+
+        for idx, s in enumerate(available_skills, 1):
+            full_p = target_project if s == "." else os.path.normpath(os.path.join(target_project, s))
+            stts = get_invocation_status(full_p)
+            display_name = s if s != "." else os.path.basename(target_project)
+            print(f"  [{idx:2d}] {display_name:<44} {stts}")
+
+        print(f"  [ a] Áp dụng cho TẤT CẢ các Skill trên ({len(available_skills)} skills)")
+        print()
+
+        user_choice = input("Nhập số thứ tự (vd: 1 hoặc 1 2 4), tên Skill, hoặc 'a' ('q' để hủy): ").strip()
+        if not user_choice or user_choice.lower() in ("q", "quit", "exit"):
+            print(">>> Đã hủy thao tác an toàn.")
+            sys.exit(0)
+        elif user_choice.lower() in ("a", "all", "*"):
+            selected_skills = available_skills
+        else:
+            num_tokens = re.findall(r"\d+", user_choice)
+            if num_tokens and not re.sub(r"[\d\s,]", "", user_choice):
+                for n in num_tokens:
+                    idx = int(n)
+                    if 1 <= idx <= len(available_skills):
+                        s = available_skills[idx - 1]
+                        if s not in selected_skills:
+                            selected_skills.append(s)
+                    else:
+                        print(f"{Fore.YELLOW}⚠️ Bỏ qua số thứ tự ngoài phạm vi: {idx}{Style.RESET_ALL}")
+                if not selected_skills:
+                    print(f"{Fore.RED}❌ Lỗi: Không có số thứ tự nào hợp lệ.{Style.RESET_ALL}")
+                    sys.exit(1)
+            else:
+                target_lower = user_choice.lower()
+                matched = []
+                for s in available_skills:
+                    full_dir = target_project if s == "." else os.path.normpath(os.path.join(target_project, s))
+                    if target_lower in (os.path.basename(full_dir).lower(), s.lower(), s.replace("\\", "/").lower()):
+                        matched.append(s)
+                if not matched:
+                    print(f"{Fore.RED}❌ Lỗi: Không tìm thấy Skill '{user_choice}' trong danh sách.{Style.RESET_ALL}")
+                    sys.exit(1)
+                selected_skills = matched
+
+    print(f"\n🔄 Bắt đầu xử lý {len(selected_skills)} Skill trong dự án...")
+    success_count = 0
+    error_count = 0
+
+    for s in selected_skills:
+        full_dir = target_project if s == "." else os.path.normpath(os.path.join(target_project, s))
+        skill_md = get_skill_md_path(full_dir)
+        display_name = s if s != "." else os.path.basename(target_project)
+        if not skill_md:
+            print(f"\n{Fore.RED}❌ [THIẾU FILE] Không tìm thấy file SKILL.md trong: {full_dir}{Style.RESET_ALL}")
+            error_count += 1
+            continue
+
+        ok = apply_action_to_file(action, skill_md, f"Dự án / {display_name}")
+        if ok:
+            success_count += 1
+        else:
+            error_count += 1
+
+    print(f"\n{Fore.GREEN}🎉 Hoàn tất: Đã cập nhật thành công {success_count}/{len(selected_skills)} Skill trong dự án.{Style.RESET_ALL}")
+    print(f"{Fore.CYAN}ℹ️ Kho lưu trữ trung tâm ({SKILLS_FOLDER_PATH}) và Global AI Agents không bị thay đổi.{Style.RESET_ALL}\n")
+
+
 def execute_repo_mode(action: str, skill_name_input: str | None, include_choice: str | None, force_overwrite: bool, filter_choice: str | None):
     """
     Mode B & C: Tác động lên kho lưu trữ trung tâm.
@@ -578,9 +736,12 @@ def execute_repo_mode(action: str, skill_name_input: str | None, include_choice:
 
 def main():
     try:
-        action, skill_name_input, ai_choice, include_choice, filter_choice, force_overwrite = parse_cli_args()
+        action, skill_name_input, ai_choice, include_choice, filter_choice, force_overwrite, is_project_mode, project_root = parse_cli_args()
 
-        if ai_choice is not None:
+        if is_project_mode:
+            # Case 4: Project mode (--project / --prj / -p)
+            execute_project_mode(action, skill_name_input, project_root, filter_choice)
+        elif ai_choice is not None:
             # Case 1: Agent-Only mode
             execute_agent_only_mode(action, skill_name_input, ai_choice, filter_choice)
         else:
