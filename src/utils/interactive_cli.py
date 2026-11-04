@@ -65,6 +65,7 @@ TYPE_ACTION_MAP = {
     "print": ["curl", "dir", "note", "os", "pc-power", "stts", "ws"],
     "proxy": ["test"],
     "py": ["env"],
+    "paths": [],
     "run": ["gen-qr", "keep-awake", "keep-screen", "srt-count-line", "unikey"],
     "skill": ["find", "list", "list-project", "list-prj", "ls", "ls-prj", "ls-project", "off-invo", "off-invocation", "on-invo", "on-invocation", "open", "p", "prj", "project", "remove", "rm", "search", "set"],
     "toast": ["--syntax"],
@@ -93,6 +94,7 @@ TYPE_DESCRIPTIONS = {
     "py": "Thiết lập môi trường ảo Python (venv) cho dự án",
     "init": "Dọn dẹp các tiến trình Windows chạy ngầm và khởi động Unikey",
     "keep": "Giữ màn hình Windows luôn sáng (alias rút gọn của 'run keep-screen')",
+    "paths": "In danh sách các đường dẫn cấu hình tập trung trong paths.py",
 }
 
 SORTED_TYPES = sorted(TYPE_ACTION_MAP.keys())

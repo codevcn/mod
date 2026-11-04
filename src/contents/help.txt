@@ -45,6 +45,7 @@ skill             :to run SKILL related tools.
 toast             :to send Windows desktop toast notification.
 compress          :to compress project into a zip file.
 notify            :to send multi-channel notifications (ntfy, telegram, toast).
+paths             :to print all configured paths in paths.py (supports -k/--key/--keyword).
 
 
 # Available actions:
@@ -309,6 +310,13 @@ notify            :to send multi-channel notifications (ntfy, telegram, toast).
                     // Example: mod notify channels
      config         :display environment configuration guide for notification channels (.env).
                     // Example: mod notify config
+
+## paths:
+   (no action)    :print all configured paths in paths.py (supports keyword filtering).
+                  // Example: mod paths
+                  // Example: mod paths -k skill
+                  // Example: mod paths --key "Program Files"
+                  // Example: mod paths --keyword "me-mod"
 
 
 # Example:

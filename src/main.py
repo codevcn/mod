@@ -64,6 +64,7 @@ MOD_TYPE_TOAST = "toast"
 MOD_TYPE_COMPRESS = "compress"
 MOD_TYPE_GIST = "gist"
 MOD_TYPE_NOTIFY = "notify"
+MOD_TYPE_PATHS = "paths"
 
 
 # --- Actions ---
@@ -792,6 +793,19 @@ def cmd_skill(action, remaining_args, default_ide_prefix="code"):
     sys.exit(result.returncode)
 
 
+def cmd_paths(args: list[str]):
+    cmd_args = [
+        "python",
+        get_feature_path("print_paths.py"),
+    ]
+    cmd_args.extend(args)
+    result = subprocess.run(
+        cmd_args,
+        check=False,
+    )
+    sys.exit(result.returncode)
+
+
 def cmd_toast(title, remaining_args):
     cmd_args = [
         "python",
@@ -971,6 +985,8 @@ def dispatch_command(
         if clean_act not in valid_actions:
             raise InvalidActionError(type_included, action_included, valid_actions)
         cmd_skill(action_included, remaining_args, default_ide_prefix)
+    elif type_included in (MOD_TYPE_PATHS, "path"):
+        cmd_paths(feature_args[1:])
     elif type_included == MOD_TYPE_TOAST:
         cmd_toast(action_included, remaining_args)
     elif type_included == MOD_TYPE_NOTIFY:

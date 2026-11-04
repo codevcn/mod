@@ -736,6 +736,16 @@ mod_tool:
           details: "Sử dụng `os.scandir` kết hợp DFS Stack không đệ quy và cơ chế cắt tỉa (pruning) bỏ qua hơn 15 loại thư mục rác. Tự động lấy thư mục hiện tại (cwd) nếu không truyền `project_path`. Mặc định tìm kiếm theo kiểu chứa từ khóa (substring match) và tự động xếp các kết quả khớp chính xác 100% lên vị trí đầu tiên. Dùng cờ `--exact` (hoặc `-e`) nếu chỉ muốn lấy folder khớp chính xác 100%. Hỗ trợ wildcard '*' và '?'. Dùng cờ `--all` để quét cả thư mục ẩn/rác, cờ `--depth` để giới hạn độ sâu và `--limit` để giới hạn số kết quả."
           conditions: "Cờ `--name` là bắt buộc. `project_path` (nếu truyền) phải là thư mục hợp lệ."
 
+    - name: "paths"
+      description: "Xem và tìm kiếm các đường dẫn cấu hình tập trung"
+      actions:
+        - id: "ACTION 65"
+          title: "In Danh Sách Đường Dẫn Cấu Hình (Paths)"
+          command: "mod paths [--keyword, --key, -k <keyword>]"
+          summary: "In ra toàn bộ danh sách đường dẫn cấu hình tập trung trong paths.py hoặc lọc theo từ khóa."
+          details: "Tự động đọc toàn bộ các biến cấu hình trong `src/configs/paths.py`. Hiển thị tên biến, đường dẫn thực tế và trạng thái tồn tại [TỒN TẠI]/[CHƯA TẠO]. Hỗ trợ cờ `--keyword` (hoặc `--key`, `-k`) để lọc kết quả theo từ khóa không phân biệt hoa thường (case-insensitive)."
+          conditions: "File configs/paths.py phải tồn tại."
+
 config:
 
   ROOT_FOLDER_PATH: "Đường dẫn gốc của mod project."
