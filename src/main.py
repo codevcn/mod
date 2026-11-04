@@ -65,6 +65,7 @@ MOD_TYPE_COMPRESS = "compress"
 MOD_TYPE_GIST = "gist"
 MOD_TYPE_NOTIFY = "notify"
 MOD_TYPE_PATHS = "paths"
+MOD_TYPE_KEEP = "keep"
 
 
 # --- Actions ---
@@ -994,6 +995,8 @@ def dispatch_command(
         cmd_skill(action_included, remaining_args, default_ide_prefix)
     elif type_included in (MOD_TYPE_PATHS, "path"):
         cmd_paths(feature_args[1:])
+    elif type_included == MOD_TYPE_KEEP:
+        keep_screen()
     elif type_included == MOD_TYPE_TOAST:
         cmd_toast(action_included, remaining_args)
     elif type_included == MOD_TYPE_NOTIFY:
