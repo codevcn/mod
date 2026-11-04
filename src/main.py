@@ -511,9 +511,14 @@ def open_testing_python_folder_in_vscode(ide_prefix):
     sys.exit(0)
 
 
-def create_files_in_folder():
+def create_files_in_folder(remaining_args: list[str]):
+    cmd_args = [
+        "py",
+        get_feature_path("create_files_in_folder.py"),
+    ]
+    cmd_args.extend(remaining_args)
     subprocess.run(
-        ["py", get_feature_path("create_files_in_folder.py")],
+        cmd_args,
         shell=True,
     )
     sys.exit(0)
@@ -1071,7 +1076,7 @@ def dispatch_command(
     elif type_included == MOD_TYPE_FILE:
         valid_actions = [MOD_FILE_CREATE, MOD_FILE_ADD_SRC, MOD_FILE_RENAME, MOD_FILE_DELETE, MOD_FILE_KEEP]
         if action_included == MOD_FILE_CREATE:
-            create_files_in_folder()
+            create_files_in_folder(remaining_args)
         elif action_included == MOD_FILE_ADD_SRC:
             add_source_file(remaining_args)
         elif action_included == MOD_FILE_RENAME:

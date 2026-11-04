@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 create_files_in_folder.py - Khởi tạo các tệp mã nguồn mẫu từ kho template:
-- mod file create
+- mod file create                   : Mặc định chỉ tạo tệp đích tại thư mục hiện hành (không tạo folder cha).
+- mod file create --full-path       : Tạo tệp giữ nguyên toàn bộ cấu trúc đường dẫn thư mục cha.
+- mod file create --full            : Alias tương đương của --full-path.
 Kho template được cấu hình tại SOURCE_FILES_FOLDER trong configs/paths.py.
 """
 
@@ -47,6 +49,15 @@ def list_template_files(base_folder: str) -> list[str]:
 
 
 def main():
+    # Phân tích cờ dòng lệnh
+    is_full_path = False
+    cli_tokens = []
+    for arg in sys.argv[1:]:
+        if arg.lower() in ("--full-path", "--full"):
+            is_full_path = True
+        else:
+            cli_tokens.append(arg)
+
     if not os.path.exists(SOURCE_FILES_FOLDER):
         print(f"{Fore.RED}❌ Lỗi: Thư mục kho template không tồn tại: {SOURCE_FILES_FOLDER}{Style.RESET_ALL}")
         sys.exit(1)
@@ -56,23 +67,36 @@ def main():
         print(f"{Fore.YELLOW}⚠️ Kho template đang rỗng: Chưa có tệp nào trong {SOURCE_FILES_FOLDER}.{Style.RESET_ALL}")
         sys.exit(0)
 
-    print(f"\n{Fore.CYAN}=== KHỞI TẠO TỆP TỪ KHO TEMPLATE (MOD FILE CREATE) ==={Style.RESET_ALL}")
-    print(f"{Fore.LIGHTBLACK_EX}Kho template: {SOURCE_FILES_FOLDER}{Style.RESET_ALL}\n")
-    print(f"Danh sách các tệp mẫu có sẵn ({len(template_files)} tệp):")
-    print(f"  [ 0] Thoát (quit / 'q')")
-    for idx, f in enumerate(template_files, 1):
-        print(f"  [{idx:2d}] {f}")
-    if len(template_files) > 1:
-        print(f"  [ a] Tạo TẤT CẢ các tệp trên ({len(template_files)} tệp)")
-    print()
+    mode_label = (
+        f"{Fore.CYAN}[Chế độ: Đầy đủ đường dẫn (--full-path)]{Style.RESET_ALL}"
+        if is_full_path
+        else f"{Fore.LIGHTBLACK_EX}[Mặc định: Chỉ tạo tệp tại thư mục hiện hành - Dùng --full-path để giữ thư mục]{Style.RESET_ALL}"
+    )
 
-    try:
-        user_input = input(
-            "Nhập số thứ tự (vd: 1 hoặc 1 2), tên tệp, hoặc 'a' để tạo tất cả ('q' hoặc '0' để hủy): "
-        ).strip()
-    except (KeyboardInterrupt, EOFError):
-        print("\n>>> Hủy thao tác.")
-        sys.exit(0)
+    print(f"\n{Fore.CYAN}=== KHỞI TẠO TỆP TỪ KHO TEMPLATE (MOD FILE CREATE) ==={Style.RESET_ALL}")
+    print(f"{Fore.LIGHTBLACK_EX}Kho template: {SOURCE_FILES_FOLDER}{Style.RESET_ALL}")
+    print(f"{mode_label}\n")
+
+    user_input = ""
+    if cli_tokens:
+        user_input = " ".join(cli_tokens).strip()
+        print(f"Nhận diện đối số từ dòng lệnh: {Fore.YELLOW}{user_input}{Style.RESET_ALL}")
+    else:
+        print(f"Danh sách các tệp mẫu có sẵn ({len(template_files)} tệp):")
+        print(f"  [ 0] Thoát (quit / 'q')")
+        for idx, f in enumerate(template_files, 1):
+            print(f"  [{idx:2d}] {f}")
+        if len(template_files) > 1:
+            print(f"  [ a] Tạo TẤT CẢ các tệp trên ({len(template_files)} tệp)")
+        print()
+
+        try:
+            user_input = input(
+                "Nhập số thứ tự (vd: 1 hoặc 1 2), tên tệp, hoặc 'a' để tạo tất cả ('q' hoặc '0' để hủy): "
+            ).strip()
+        except (KeyboardInterrupt, EOFError):
+            print("\n>>> Hủy thao tác.")
+            sys.exit(0)
 
     if not user_input or user_input.lower() in ("0", "q", "quit", "exit"):
         print(">>> Hủy thao tác an toàn.")
@@ -100,16 +124,42 @@ def main():
                 print(f"{Fore.RED}❌ Lỗi: Không có số thứ tự nào hợp lệ.{Style.RESET_ALL}")
                 sys.exit(1)
         else:
-            # Tìm kiếm theo tên file
+            # Tìm kiếm theo tên file hoặc đường dẫn tương đối
             matched_file = None
+            clean_search = user_input.replace("\\", "/").strip().lower()
             for f in template_files:
-                if f.lower() == user_input.lower() or os.path.basename(f).lower() == user_input.lower():
+                if f.lower() == clean_search or os.path.basename(f).lower() == clean_search:
                     matched_file = f
                     break
             if not matched_file:
                 print(f"{Fore.RED}❌ Lỗi: Không tìm thấy tệp '{user_input}' trong kho template.{Style.RESET_ALL}")
                 sys.exit(1)
             chosen_files.append(matched_file)
+
+    # Cảnh báo xung đột tên tệp ở chế độ mặc định (Flat mode) nếu có nhiều tệp cùng basename
+    if not is_full_path and len(chosen_files) > 1:
+        seen_names = {}
+        duplicates = []
+        for f in chosen_files:
+            bname = os.path.basename(f).lower()
+            if bname in seen_names:
+                duplicates.append((seen_names[bname], f))
+            else:
+                seen_names[bname] = f
+        if duplicates:
+            print(f"\n{Fore.YELLOW}⚠️ CẢNH BÁO TRÙNG TÊN TỆP ĐÍCH:{Style.RESET_ALL}")
+            print("Ở chế độ mặc định (tạo phẳng), các tệp sau sẽ ghi đè lên nhau vì có cùng tên:")
+            for orig, dup in duplicates:
+                print(f"  - {orig}  <==>  {dup}  -> {os.path.basename(dup)}")
+            print(f"{Fore.CYAN}💡 Gợi ý: Dùng cờ '--full-path' hoặc '--full' để giữ nguyên cấu trúc thư mục riêng.{Style.RESET_ALL}")
+            try:
+                ans = input("Bạn có muốn tiếp tục không? (y: Tiếp tục / n: Hủy): ").strip().lower()
+                if ans != "y":
+                    print(">>> Hủy thao tác.")
+                    sys.exit(0)
+            except (KeyboardInterrupt, EOFError):
+                print("\n>>> Hủy thao tác.")
+                sys.exit(0)
 
     current_dir = os.getcwd()
     print(f"\n📂 Thư mục đích: {current_dir}")
@@ -120,7 +170,13 @@ def main():
 
     for rel_name in chosen_files:
         src_path = os.path.normpath(os.path.join(SOURCE_FILES_FOLDER, rel_name))
-        dest_path = os.path.normpath(os.path.join(current_dir, rel_name))
+
+        if is_full_path:
+            dest_rel = rel_name
+            dest_path = os.path.normpath(os.path.join(current_dir, rel_name))
+        else:
+            dest_rel = os.path.basename(rel_name)
+            dest_path = os.path.normpath(os.path.join(current_dir, dest_rel))
 
         # Kiểm tra nếu file đã tồn tại tại nơi đứng
         if os.path.exists(dest_path) and not overwrite_all:
@@ -134,7 +190,7 @@ def main():
             if ans == "a":
                 overwrite_all = True
             elif ans != "y":
-                print(f"   {Fore.LIGHTBLACK_EX}⏩ Đã bỏ qua tệp: {rel_name}{Style.RESET_ALL}")
+                print(f"   {Fore.LIGHTBLACK_EX}⏩ Đã bỏ qua tệp: {dest_rel}{Style.RESET_ALL}")
                 continue
 
         dest_parent = os.path.dirname(dest_path)
@@ -143,10 +199,10 @@ def main():
 
         try:
             shutil.copy2(src_path, dest_path)
-            print(f"  {Fore.GREEN}✔ Đã tạo thành công:{Style.RESET_ALL} {rel_name}")
+            print(f"  {Fore.GREEN}✔ Đã tạo thành công:{Style.RESET_ALL} {dest_rel}")
             created_count += 1
         except Exception as e:
-            print(f"  {Fore.RED}❌ Lỗi khi tạo tệp '{rel_name}':{Style.RESET_ALL} {e}")
+            print(f"  {Fore.RED}❌ Lỗi khi tạo tệp '{dest_rel}':{Style.RESET_ALL} {e}")
 
     print(f"\n{Fore.GREEN}🎉 Hoàn tất: Đã tạo thành công {created_count}/{len(chosen_files)} tệp tại thư mục hiện hành.{Style.RESET_ALL}\n")
 
