@@ -571,6 +571,12 @@ mod_tool:
           summary: "Liệt kê tất cả các AI Skill hiện có trong thư mục dự án chỉ định hoặc thư mục hiện tại."
           details: "Quét và phát hiện tất cả các thư mục chứa trực tiếp file SKILL.md trong `dest_folder_path` (mặc định lấy thư mục làm việc hiện tại CWD nếu không truyền). Hiển thị tên skill, đường dẫn tương đối, trạng thái tự động gọi và mô tả. Nếu không tìm thấy skill nào, in thông báo rõ ràng kèm gợi ý cài đặt."
           conditions: "Thư mục chỉ định (nếu truyền) phải tồn tại."
+        - id: "ACTION 48g"
+          title: "Tìm Kiếm Skill Theo Từ Khóa (Find/Search)"
+          command: "mod skill find <keyword> | mod skill search <keyword>"
+          summary: "Tìm kiếm tất cả các AI Skill có chứa từ khóa trong đường dẫn hoặc tên skill trong kho lưu trữ."
+          details: "Quét kho SKILLS_FOLDER_PATH và lọc ra tất cả các skill có đường dẫn tương đối hoặc tên chứa từ khóa chỉ định (không phân biệt hoa thường). Hiển thị danh sách kết quả trực quan kèm trạng thái tự động gọi [BẬT]/[TẮT] và mô tả tóm tắt."
+          conditions: "Yêu cầu truyền từ khóa tìm kiếm (keyword)."
 
     - name: "toast"
       description: "Thông báo Desktop Windows"

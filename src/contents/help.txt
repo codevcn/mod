@@ -272,6 +272,10 @@ notify            :to send multi-channel notifications (ntfy, telegram, toast).
                   // Example: mod skill list-project
                   // Example: mod skill list-project "D:/my-project"
                   // Example: mod skill list-prj .
+   find, search <keyword>
+                  :search all skills in central repo matching keyword in skill path.
+                  // Example: mod skill find ssr
+                  // Example: mod skill search outside
 
 ## toast:
    <title> [msg...] [--audio <path>]

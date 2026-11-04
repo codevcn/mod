@@ -127,6 +127,10 @@ MOD_EDIT_TO_COMMAND = "to"
 MOD_EDIT_NOTE = "note"
 # git
 MOD_GIT_COMMIT_AND_PUSH = "commit"
+MOD_GIT_DL_FOLDER = "dl-folder"
+MOD_GIT_DL_FILE = "dl-file"
+MOD_GIT_STASH = "stash"
+MOD_GIT_DROP = "drop"
 # print
 MOD_PRINT_OS_INFO = "os"
 MOD_PRINT_STATUSES_INFO = "stts"
@@ -150,6 +154,7 @@ MOD_SKILL_ON_INVO = "on-invocation"
 MOD_SKILL_LIST = "list"
 MOD_SKILL_LIST_PROJECT = "list-project"
 MOD_SKILL_PROJECT = "project"
+MOD_SKILL_FIND = "find"
 # compress
 MOD_COMPRESS_FOLDER = "folder"
 MOD_COMPRESS_INIT_IGNORE = "init-ignore"
@@ -261,6 +266,28 @@ def print_useful_commands(remaining_args: list[str]):
     ]
     cmd_args.extend(remaining_args)
     result = subprocess.run(cmd_args, shell=True)
+    sys.exit(result.returncode)
+
+
+def cmd_git_download(action: str, remaining_args: list[str]):
+    cmd_args = [
+        "python",
+        get_feature_path("git_download.py"),
+        action,
+    ]
+    cmd_args.extend(remaining_args)
+    result = subprocess.run(cmd_args, check=False)
+    sys.exit(result.returncode)
+
+
+def cmd_git_stash(action: str, remaining_args: list[str]):
+    cmd_args = [
+        "python",
+        get_feature_path("git_stash.py"),
+        action,
+    ]
+    cmd_args.extend(remaining_args)
+    result = subprocess.run(cmd_args, check=False)
     sys.exit(result.returncode)
 
 
@@ -722,7 +749,7 @@ def cmd_skill(action, remaining_args):
         feature_file = "skill_remove.py"
     elif act_lower in ("off-invocation", "off-invo", "on-invocation", "on-invo"):
         feature_file = "skill_invocation.py"
-    elif act_lower in ("list", "ls", "list-project", "list-prj", "ls-prj", "ls-project"):
+    elif act_lower in ("list", "ls", "list-project", "list-prj", "ls-prj", "ls-project", "find", "search"):
         feature_file = "skill_list.py"
     else:
         feature_file = "skill_set.py"
@@ -897,6 +924,7 @@ def dispatch_command(
             MOD_SKILL_LIST,
             MOD_SKILL_LIST_PROJECT,
             MOD_SKILL_PROJECT,
+            MOD_SKILL_FIND,
         ]
         if action_included is None:
             raise MissingActionError(type_included, valid_actions)
@@ -913,6 +941,8 @@ def dispatch_command(
             clean_act = MOD_SKILL_LIST_PROJECT
         elif clean_act in ("prj", "p"):
             clean_act = MOD_SKILL_PROJECT
+        elif clean_act in ("search",):
+            clean_act = MOD_SKILL_FIND
         if clean_act not in valid_actions:
             raise InvalidActionError(type_included, action_included, valid_actions)
         cmd_skill(action_included, remaining_args)
@@ -955,10 +985,29 @@ def dispatch_command(
         else:
             raise InvalidActionError(type_included, action_included, valid_actions)
     elif type_included == MOD_TYPE_GIT:
-        valid_actions = ["commit", "remote"]
+        valid_actions = [
+            MOD_GIT_COMMIT_AND_PUSH,
+            "remote",
+            MOD_GIT_DL_FOLDER,
+            MOD_GIT_DL_FILE,
+            MOD_GIT_STASH,
+            MOD_GIT_DROP,
+        ]
         if not action_included:
             raise MissingActionError(type_included, valid_actions)
-        run_git_command(action_included, remaining_args)
+        clean_act = action_included.lower()
+        if clean_act in (MOD_GIT_DL_FOLDER, "dld-folder", "download-folder"):
+            cmd_git_download(action_included, remaining_args)
+        elif clean_act in (MOD_GIT_DL_FILE, "dld-file", "download-file"):
+            cmd_git_download(action_included, remaining_args)
+        elif clean_act in (MOD_GIT_STASH, "stashes"):
+            cmd_git_stash(action_included, remaining_args)
+        elif clean_act in (MOD_GIT_DROP, "drop-stash"):
+            cmd_git_stash(action_included, remaining_args)
+        elif clean_act in ("commit", "remote"):
+            run_git_command(action_included, remaining_args)
+        else:
+            raise InvalidActionError(type_included, action_included, valid_actions)
     elif type_included == MOD_TYPE_RUN:
         valid_actions = [
             MOD_RUN_UNIKEY_APP, MOD_GEN_QR_IMAGE, MOD_KEEP_AWAKE,

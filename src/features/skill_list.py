@@ -7,6 +7,8 @@ skill_list.py - Liệt kê các AI Skill trong kho lưu trữ, trong AI Agent Gl
 - mod skill list --include-agent <name|all>  : Liệt kê CẢ HAI (kho lưu trữ trung tâm VÀ các AI Agent).
 - mod skill list-project [dest_folder_path]  : Liệt kê các skill trong thư mục dự án (mặc định CWD).
   Alias: 'mod skill list-prj', 'mod skill ls-prj', 'mod skill ls-project'.
+- mod skill find <keyword>                   : Tìm kiếm các skill có chứa keyword trong skill path.
+  Alias: 'mod skill search <keyword>'.
 """
 
 import os
@@ -226,6 +228,52 @@ def handle_list_action(ai_choice: str | None, include_choice: str | None):
     print()
 
 
+def handle_find_action(keyword: str | None):
+    """
+    Xử lý lệnh 'mod skill find <keyword>' / 'mod skill search <keyword>'.
+    Tìm tất cả các skill có chứa keyword trong skill path (kho SKILLS_FOLDER_PATH).
+    """
+    if not keyword:
+        print(f"{Fore.RED}❌ Lỗi: Thiếu từ khóa tìm kiếm.{Style.RESET_ALL}")
+        print("Cú pháp: mod skill find <keyword>")
+        print("Ví dụ  : mod skill find ssr")
+        print("         mod skill find outside")
+        sys.exit(1)
+
+    if not os.path.exists(SKILLS_FOLDER_PATH):
+        print(f"{Fore.RED}❌ Lỗi: Thư mục kho SKILLs không tồn tại: {SKILLS_FOLDER_PATH}{Style.RESET_ALL}")
+        sys.exit(1)
+
+    all_skills = list_skill_folders(SKILLS_FOLDER_PATH)
+    kw_lower = keyword.strip().lower()
+    matched = [s for s in all_skills if kw_lower in s.lower()]
+
+    if not matched:
+        print(f"\n{Fore.YELLOW}ℹ️ Không tìm thấy Skill nào trong kho chứa từ khóa '{keyword}' trong đường dẫn.{Style.RESET_ALL}")
+        print(f"   Kho lưu trữ: {SKILLS_FOLDER_PATH}\n")
+        sys.exit(0)
+
+    norm_base = os.path.normpath(SKILLS_FOLDER_PATH)
+    print(f"\n{Fore.CYAN}🔍 KẾT QUẢ TÌM KIẾM SKILL VỚI TỪ KHÓA '{keyword}' ({len(matched)} skills):{Style.RESET_ALL}")
+    print(f"   Kho lưu trữ: {norm_base}")
+    print("─" * 76)
+
+    for idx, s in enumerate(matched, 1):
+        full_dir = os.path.normpath(os.path.join(norm_base, s))
+        info = get_skill_info(full_dir)
+        print(f"  [{idx:2d}] {Fore.WHITE}{Style.BRIGHT}{s:<44}{Style.RESET_ALL} {info['invocation_label']}")
+        if info["description"]:
+            max_len = 85
+            desc = info["description"]
+            if len(desc) > max_len:
+                desc = desc[:max_len] + "..."
+            print(f"       └─ {Fore.LIGHTBLACK_EX}{desc}{Style.RESET_ALL}")
+    print("─" * 76)
+    print(f"{Fore.LIGHTBLACK_EX}💡 Gợi ý:")
+    print(f"   - Cài đặt vào Project : mod skill set {matched[0]} --prj")
+    print(f"   - Cài đặt vào Agent   : mod skill set {matched[0]} --agent agy{Style.RESET_ALL}\n")
+
+
 def handle_list_project_action(target_dir_input: str | None):
     """Xử lý lệnh 'mod skill list-project' / 'mod skill list-prj' / 'mod skill ls-prj' / 'mod skill ls-project'."""
     if target_dir_input:
@@ -318,6 +366,9 @@ def main():
     elif action in ("list-project", "list-prj", "ls-prj", "ls-project"):
         target_dir_input = positional_args[0] if positional_args else None
         handle_list_project_action(target_dir_input)
+    elif action in ("find", "search"):
+        kw_input = positional_args[0] if positional_args else None
+        handle_find_action(kw_input)
     else:
         print(f"{Fore.RED}❌ Lỗi: Action '{action}' không hợp lệ.{Style.RESET_ALL}")
         sys.exit(1)
