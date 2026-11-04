@@ -82,10 +82,10 @@ Khi nhận yêu cầu thêm lệnh mới (ví dụ: `mod <type> <action>`):
   - Thêm `type: [actions...]` vào `TYPE_ACTION_MAP` (sắp xếp danh sách action theo thứ tự A-Z).
   - Thêm mô tả tiếng Việt vào `TYPE_DESCRIPTIONS`.
 
-### Bước 4: Đồng bộ tài liệu 3 lớp
-- [`src/contents/help.txt`](file:///d:/D-Documents/TOOLs/mod/src/contents/help.txt): Bổ sung mục type, action và ví dụ chạy lệnh.
-- [`src/contents/app_features.yml`](file:///d:/D-Documents/TOOLs/mod/src/contents/app_features.yml): Bổ sung action ID, title, command, summary, details, conditions để phục vụ cờ `--info`.
-- [`PROJECT_CONTEXT.md`](file:///d:/D-Documents/TOOLs/mod/PROJECT_CONTEXT.md): Cập nhật cây thư mục và Bảng tra cứu lệnh tại Mục 4.2.
+### Bước 4: Đồng bộ tài liệu tính năng
+- [`src/contents/help.txt`](file:///d:/D-Documents/TOOLs/mod/src/contents/help.txt): Bổ sung mục type, action và ví dụ chạy lệnh (phục vụ `mod --help`).
+- [`src/contents/app_features.yml`](file:///d:/D-Documents/TOOLs/mod/src/contents/app_features.yml): Bổ sung action ID, title, command, summary, details, conditions để phục vụ cờ `--info` và làm Single Source of Truth cho AI Agent tra cứu.
+- *(Lưu ý: [`PROJECT_CONTEXT.md`](file:///d:/D-Documents/TOOLs/mod/PROJECT_CONTEXT.md) đóng vai trò là tài liệu kiến trúc tổng quan dành cho AI Agent, KHÔNG cần bổ sung từng lệnh/action vào đó để tránh phình file theo thời gian; chỉ cập nhật file này khi có thay đổi về kiến trúc hệ thống, cấu hình runtime hoặc cơ chế nền tảng).*
 
 ### Bước 5: Kiểm thử bắt buộc (Verification)
 - `python src/main.py <type> <action> --info` → Phải in ra đúng mô tả YAML.

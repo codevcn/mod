@@ -1,15 +1,18 @@
-# MOD CLI - TÀI LIỆU BỐI CẢNH & TOÀN BỘ KIẾN TRÚC DỰ ÁN (PROJECT CONTEXT)
+# MOD CLI - TÀI LIỆU BỐI CẢNH & KIẾN TRÚC HỆ THỐNG (PROJECT CONTEXT)
 
-> **Mục đích tài liệu:** Tài liệu này đóng vai trò là "Single Source of Truth" cung cấp toàn bộ bối cảnh hệ thống, kiến trúc luồng dữ liệu, danh mục source code, bảng tra cứu lệnh và các lưu ý kỹ thuật quan trọng của project **Mod CLI**. AI Agent hoặc Developer có thể đọc file này để nắm trọn vẹn dự án mà không cần phải duyệt qua từng file mã nguồn.
+> **Mục đích tài liệu:** Tài liệu này đóng vai trò là **Architecture & Technical Context** dành riêng cho **AI Coding Agent** khi làm việc trên project **Mod CLI**. 
+> - **Đối tượng đọc:** AI Agent (nhằm nắm bắt kiến trúc, luồng điều phối, quy chuẩn kỹ thuật, cấu hình runtime và quy trình phát triển).
+> - **Người dùng cuối (Human Developer):** Tra cứu hướng dẫn sử dụng tại [`README.md`](file:///d:/D-Documents/TOOLs/mod/README.md) hoặc gõ `mod --help`.
+> - **Chi tiết tính năng & tra cứu lệnh:** Danh mục lệnh đầy đủ, cú pháp chi tiết, tham số và điều kiện được lưu tập trung tại [`src/contents/app_features.yml`](file:///d:/D-Documents/TOOLs/mod/src/contents/app_features.yml) và [`src/contents/help.txt`](file:///d:/D-Documents/TOOLs/mod/src/contents/help.txt). File này **không liệt kê chi tiết từng lệnh** để tránh phình to và luôn giữ tính ổn định (evergreen).
 
 ---
 
-## 1. Tổng Quan Dự Án (Overview)
+## 1. Tổng Quan Dự Án (Project Overview)
 
 - **Tên dự án:** Mod CLI (`mod`)
 - **Nền tảng mục tiêu:** Windows (Windows 10/11, PowerShell, Windows Terminal, CMD).
-- **Yêu cầu môi trường:** Python >= 3.12, Git, rclone, cloudflared (tùy chọn), module PowerShell BurntToast (tùy chọn).
-- **Mục tiêu cốt lõi:** Gom toàn bộ các tác vụ tự động hóa, thao tác file, quản lý workspace IDE, đồng bộ Google Drive, kiểm tra proxy, keep-alive server, phát thông báo... vào một lệnh duy nhất: `mod <type> <action> [args...]`.
+- **Yêu cầu môi trường:** Python >= 3.12, Git, rclone (tùy chọn cho Google Drive), module PowerShell BurntToast (tùy chọn cho Windows Toast).
+- **Mục tiêu cốt lõi:** Gom toàn bộ các tác vụ tự động hóa cá nhân, thao tác file, quản lý workspace lập trình, đồng bộ Google Drive, quản lý GitHub Gist, kiểm tra proxy, keep-alive server, quản lý AI Skills / MCP Servers... vào một câu lệnh duy nhất: `mod <type> <action> [args...]`.
 
 ---
 
@@ -25,380 +28,185 @@ mod.cmd  (Wrapper cực mỏng: @py "%~dp0src\main.py" %*)
     │
     ▼
 src/main.py (Central Dispatcher)
-    ├── Manual parsing sys.argv (Không dùng argparse ở dispatcher)
+    ├── Tự parse sys.argv (Tuyệt đối KHÔNG dùng argparse ở dispatcher)
     ├── Tách Dispatcher Flags (--version / -v, --info / --des, -a / --antigravity-IDE)
-    ├── Xác định type & action
-    ├── Gom toàn bộ tham số còn lại (remaining_args)
+    ├── Nếu không có tham số: Khởi chạy Interactive REPL (src/utils/interactive_cli.py)
+    ├── Xác định type & action hợp lệ
+    ├── Forward nguyên vẹn toàn bộ tham số còn lại (remaining_args)
     └── Gọi Handler tương ứng
             │
-            ├── Gọi nội bộ / subprocess.run
+            ├── Gọi module nội bộ / subprocess.run
             ▼
-    src/features/<script>.py hoặc src/features/system/<_script>.py
+    src/features/<script>.py hoặc src/features/<domain>/<script>.py
     (Tự chịu trách nhiệm parse remaining_args, validate logic nghiệp vụ & thực thi)
 ```
 
-### Nguyên tắc thiết kế (Design Principles):
-1. **Dispatcher mỏng:** `src/main.py` chỉ làm nhiệm vụ định tuyến (routing), không ôm logic nghiệp vụ nặng.
-2. **Feature độc lập:** Mỗi script trong `src/features/` là một đơn vị độc lập, có thể chạy trực tiếp bằng `python <script>.py [args]` nếu truyền đủ tham số.
-3. **Arg forwarding:** Toàn bộ tham số và cờ sau `<action>` được chuyển tiếp nguyên vẹn cho feature script tự xử lý.
-4. **Quản lý đường dẫn động & tập trung:** Dùng `src/configs/paths.py` để tính toán root path tự động, hạn chế tối đa việc hardcode đường dẫn tương đối.
-5. **Đồng bộ tài liệu 3 lớp:** Khi thêm/sửa lệnh, luôn đồng bộ: `src/main.py` (code) + `src/contents/help.txt` (tóm tắt nhanh) + `src/contents/app_features.yml` (catalog chi tiết).
+### 4 Nguyên Tắc Thiết Kế Cốt Lõi (Core Design Principles):
+1. **Dispatcher mỏng (Thin Dispatcher):** `src/main.py` chỉ làm nhiệm vụ định tuyến (routing) và kiểm tra tính hợp lệ của `type`/`action`. Toàn bộ logic nghiệp vụ thuộc về các feature script độc lập.
+2. **Feature Script độc lập (Self-Contained Features):** Mỗi file trong `src/features/` là một đơn vị độc lập, có thể chạy trực tiếp bằng `python src/features/<script>.py [args]` nếu truyền đủ tham số.
+3. **Arg Forwarding nguyên vẹn:** Toàn bộ tham số và cờ sau `<action>` được chuyển tiếp nguyên vẹn cho feature script tự xử lý (cho phép các cờ phức tạp như regex, commit message có khoảng trắng, cờ boolean tùy ý).
+4. **Quản lý đường dẫn tập trung:** Mọi đường dẫn thư mục, tài nguyên, kho lưu trữ đều được định nghĩa tại [`src/configs/paths.py`](file:///d:/D-Documents/TOOLs/mod/src/configs/paths.py). Tuyệt đối không hardcode đường dẫn tương đối trong các feature script.
 
 ---
 
-## 3. Cấu Trúc Thư Mục & Danh Mục File (Source Code Catalog)
+## 3. Cấu Trúc Thư Mục & Vai Trò Các Tầng (Directory Structure)
 
 ```text
 d:\D-Documents\TOOLs\mod\
-├── mod.cmd                             # File thực thi CLI cho Windows (gọi Python vào src/main.py)
-├── compress.cmd                        # Shortcut thực thi nhanh lệnh mod compress
-├── .compressignore                     # Cấu hình danh sách tệp/thư mục bỏ qua khi nén dự án
-├── requirements.txt                    # Danh sách thư viện Python (PyYAML, requests, python-dotenv, qrcode)
+├── mod.cmd                             # Wrapper Windows CLI (gọi Python vào src/main.py)
+├── compress.cmd                        # Shortcut thực thi nhanh lệnh nén dự án
+├── .compressignore                     # Cấu hình danh sách tệp/thư mục bỏ qua khi nén
+├── requirements.txt                    # Thư viện Python phụ thuộc (PyYAML, requests, python-dotenv, qrcode...)
 ├── ARCHITECTURE.md                     # Tài liệu thiết kế kiến trúc chuẩn
 ├── README.md                           # Hướng dẫn sử dụng tổng quan cho người dùng
-├── PROJECT_CONTEXT.md                  # File này - Tài liệu bối cảnh toàn diện cho AI Agent
-├── note.md                             # Ghi chú cá nhân
-├── print_project_tree.py               # Tiện ích in cây thư mục ra file project_tree.txt
-├── project_tree.txt                    # Output cây thư mục
-├── .agent/                             # Cấu hình & Kỹ năng chuẩn cho AI Agent (Antigravity/Agentic Framework)
-│   └── skills/
-│       ├── mod-cli-developer/          # Skill hướng dẫn AI Agent phát triển và bảo trì Mod CLI
-│       │   ├── SKILL.md                # Tài liệu kỹ năng chính kèm YAML frontmatter
-│       │   ├── examples/               # Mã nguồn mẫu (feature script template)
-│       │   ├── references/             # Checklist và tài liệu tham khảo kiến trúc
-│       │   └── resources/              # Template YAML khai báo tính năng
-│       └── mod-git-commit/             # Skill chuẩn hóa quy trình review thay đổi, commit & push bằng Mod CLI
-│           └── SKILL.md                # Hướng dẫn quy trình 5 bước kiểm tra, dọn dẹp và mod git commit
-├── data/
-│   ├── credentials/
-│   │   └── .mod_history                # Lịch sử câu lệnh nhập trong interactive CLI
-│   └── media/audio/
-│       └── burnttoast-notification-sound.mp3 # File âm thanh thông báo mặc định cho Toast Notifier
-├── doc/
-│   ├── add-sound-notifier.md          # Tài liệu hướng dẫn cấu hình âm thanh BurntToast
-│   ├── autocomplete.md                # Tài liệu mô tả chi tiết tính năng Auto-complete & REPL
-│   └── info-flag-guide.md             # Hướng dẫn toàn diện kiến trúc và triển khai cờ --info
-├── docs/
-│   └── diagrams/                      # Thư mục sơ đồ kiến trúc và luồng dữ liệu
-├── todo/
-│   └── todo.md                        # Kế hoạch phát triển tính năng và backlog
-├── warehouse/
-│   └── runner_main_ws.txt             # Script runner phục vụ mở workspace lập trình
-
+├── PROJECT_CONTEXT.md                  # File này - Bối cảnh & kiến trúc hệ thống cho AI Agent
+├── .agent/skills/                      # Kỹ năng chuẩn cho AI Coding Agent (Open Agent Skills standard)
+│   ├── mod-cli-developer/              # SOP chuẩn phát triển, thêm, sửa, xóa tính năng Mod CLI
+│   └── mod-git-commit/                 # SOP review thay đổi, dọn dẹp file tạm, commit & push
+├── data/                               # Dữ liệu runtime nội bộ của công cụ
+│   ├── credentials/.mod_history        # Lịch sử câu lệnh nhập trong interactive REPL
+│   └── media/audio/                    # Âm thanh thông báo mặc định (burnttoast sound MP3)
+├── doc/ / docs/                        # Tài liệu kỹ thuật chi tiết theo chuyên đề và sơ đồ hệ thống
 └── src/
-    ├── main.py                         # Central Dispatcher (Định tuyến lệnh trung tâm)
-    ├── cmd/
-    │   └── init.cmd                    # Batch script dọn dẹp task thừa trên Windows & bật Unikey
-    ├── configs/
-    │   ├── __init__.py
-    │   ├── paths.py                    # Cấu hình đường dẫn nội bộ (dynamic) & bên ngoài (appdata, template...)
-    │   └── version.py                  # Quản lý phiên bản chuẩn hóa (v0.1.0) & metadata của Mod CLI
-    ├── utils/
+    ├── main.py                         # Central Dispatcher (Bộ điều phối trung tâm)
+    ├── cmd/                            # Batch script tiện ích hệ điều hành (init.cmd...)
+    ├── configs/                        # Cấu hình hệ thống
+    │   ├── paths.py                    # Quản lý tập trung toàn bộ đường dẫn nội bộ và ngoài máy
+    │   └── version.py                  # Metadata phiên bản chuẩn hóa của Mod CLI
+    ├── utils/                          # Bộ công cụ dùng chung
     │   ├── errors.py                   # Hệ thống Exception & xử lý lỗi tập trung ANSI color
-    │   ├── interactive_cli.py          # Giao diện tổng quan Types và xử lý Tab Autocomplete cho Type/Action
-    │   └── notifications/              # Module gửi thông báo đa nền tảng
-    │       ├── __init__.py             # Factory function `get_notifier(platform)`
-    │       ├── base.py                 # Abstract Base Class: `BaseNotifier`
-    │       ├── ntfy_notifier.py        # Gửi thông báo tới app ntfy (Android/iOS/Web) qua REST API
-    │       ├── toast_notifier.py       # Gửi Windows Toast qua BurntToast & phát âm thanh qua winmm API
-    │       └── telegram_notifier.py    # Gửi tin nhắn qua Telegram Bot API (đọc token từ .env)
-    ├── contents/                       # Dữ liệu tĩnh và tài liệu định dạng
-    │   ├── app_features.yml            # Catalog chi tiết cho lệnh `mod <type> <action> --info`
-    │   ├── help.txt                    # Nội dung help khi chạy `mod` hoặc `mod -h`
-    │   ├── note.txt                    # Ghi chú các câu lệnh hệ điều hành / server hay dùng
-    │   ├── statuses.txt                # Bảng giải thích các mã trạng thái mod-status
-    │   └── cURL.txt                    # Snippet mẫu các thao tác cURL CRUD
-    └── features/                       # Toàn bộ script tính năng
-        ├── system/                     # Script nội bộ phục vụ CLI framework
-        │   ├── _git.py                 # Tự động add, commit và push lên remote repo
-        │   ├── _print_content.py       # Đọc và in file trong src/contents/
-        │   ├── _print_feature_description.py # Parse app_features.yml khi có cờ --info
-        │   ├── _print_root_folder.py   # In danh sách file/folder cấp 1 của một đường dẫn
-        │   └── _statuses.py            # In nội dung statuses.txt
-        ├── notify/                     # Module gửi thông báo đa kênh (ntfy, telegram, toast...)
-        │   ├── __init__.py
-        │   └── notify_cli.py           # CLI wrapper xử lý mod notify send/test/channels/config
-        ├── cloudflare/
-
-        │   └── cloudflared_wrapper.py  # Mở quick tunnel Cloudflare, hiển thị public URL & mã QR ASCII
-        ├── gist/                       # Module quản lý CRUD & kiểm toán dung lượng GitHub Gist
-        │   ├── __init__.py             # Export GistManager, GistStorageAuditor
-        │   ├── README.md               # Tài liệu hướng dẫn sử dụng chi tiết (in qua mod gist --info)
-        │   ├── gist_manager.py         # Thực thi CRUD Gist qua GitHub REST API v3
-        │   ├── gist_auditor.py         # Kiểm toán dung lượng, phát hiện file lớn & rate limit
-        │   └── gist_cli.py             # CLI wrapper cho toàn bộ thao tác mod gist
-
-        ├── sync-to-gdrive/             # Module tương tác với Google Drive qua rclone & gdown
-
-        │   ├── configs.json            # Lưu tên remote rclone đang active
-        │   ├── AUTH_GUIDE.txt          # Hướng dẫn chi tiết cách tạo Google Cloud OAuth credentials
-        │   └── sync_to_gdrive.py       # Script thực thi sync, list, remote info, del-fd, link, dl (download)
-        ├── compress_project.py         # Nén toàn bộ mã nguồn dự án thành file zip (lọc qua .compressignore)
-        ├── create_files_in_folder.py   # Chọn và sao chép template từ kho SOURCE_FILES_FOLDER (interactive)
-        ├── create_folders_in_path.py   # Tạo folder tự động theo pattern và tự tăng index
-        ├── create_linear_path.py       # Tạo folder hoặc file theo path với cơ chế linear cha-con và bảo vệ không ghi đè
-        ├── delete_files.py             # Xóa file cấp 1 theo danh sách extension (vd: "tmp,log")
-        ├── edit_to_command.py          # Mở PowerShell Profile ($PROFILE) trong Notepad
-        ├── add_source_file.py          # Thêm tệp vào kho lưu trữ template tiện ích (mod file add-src)
-        ├── find_items.py               # Tìm kiếm tập tin/thư mục tối ưu DFS không đệ quy (mod find file/folder)
-        ├── gen_qr_image.py             # Sinh file ảnh QR Code từ text nhập vào và lưu vào APPDATA_FOLDER
-        ├── git_download.py             # Tải folder/file trực tiếp từ GitHub repo (mod git dl-folder / dl-file)
-        ├── git_stash.py                # Quản lý danh sách Git Stash và xóa tương tác (mod git stash list / drop)
-        ├── keep_files_with_ext.py      # Xóa toàn bộ file khác đuôi chỉ định (chỉ giữ 1 extension)
-        ├── keep_screen.py              # Giữ màn hình Windows luôn bật qua SetThreadExecutionState Win32 API
-        ├── keep_server_awake.py        # Ping HTTP GET định kỳ để giữ sống server miễn phí (Render/Kaggle)
-        ├── manage_open_aliases.py      # Quản lý alias mở thư mục: add, list, rm (lưu tại open_aliases.json)
-        ├── mcp_open_config.py          # Mở file cấu hình MCP của AI Agent (Antigravity, Codex, Claude) bằng Notepad
-        ├── mcp_set.py                  # Copy thư mục MCP từ kho LOCAL_ABSOLUTE_FOLDER_PATH vào project đích
-        ├── merge_folders.py            # Merge thư mục có kiểm tra độ tương đồng/giao nhau của cây thư mục
-        ├── open_main_ws.py             # Mở workspace lập trình trong Windows Terminal + VSCode/Anti + Browser
-        ├── print_cURL.py               # In snippet cURL
-        ├── print_folder_tree.py        # In cây thư mục có tính năng auto-collapse khi vượt quá số lượng max
-        ├── print_os_info.py            # In cấu hình phần cứng, OS, CPU, RAM, Network (systeminfo, wmic, ipconfig)
-        ├── print_pc_power.py           # In thông số phần cứng chi tiết CPU, RAM, Disk, Wi-Fi, GPU (Task Manager format)
-        ├── print_useful_commands.py    # In hoặc tìm kiếm lệnh hữu ích trong note.txt kèm tô màu cú pháp (mod print note)
-        ├── rename_files.py             # Đổi tên file hàng loạt có auto-detect prefix hoặc đặt prefix tùy ý
-        ├── send_toast.py               # CLI wrapper gửi Toast notification qua `ToastNotifier`
-        ├── set_download_path_in_chrome.py # Sửa file Preferences của tất cả Google Chrome profiles
-        ├── setup_venv_in_project.py    # Setup toàn diện venv Python: tạo venv, nâng cấp pip, ins.cmd, venv.cmd
-        ├── skill_invocation.py         # Bật/tắt tự động gọi AI Skill (mod skill on-invo / off-invo)
-        ├── skill_list.py               # Liệt kê danh sách Skill trong kho hoặc dự án (mod skill list / list-project)
-        ├── skill_remove.py             # Xóa Skill khỏi kho hoặc AI Agent an toàn (mod skill remove / rm)
-        ├── skill_set.py                # Copy thư mục Skill AI từ kho SKILLS_FOLDER_PATH vào project đích
-        ├── srt_count_line.py           # Phân tích file phụ đề SRT và thống kê theo số lượng dòng thoại
-        └── test_proxy.py               # Kiểm tra kết nối proxy (Python requests, cURL header, ipify IP check)
+    │   ├── interactive_cli.py          # REPL Interactive CLI & Tab Autocomplete Engine
+    │   └── notifications/              # Kiến trúc gửi thông báo đa kênh (ntfy, telegram, toast...)
+    ├── contents/                       # Dữ liệu tĩnh và Catalogs tính năng
+    │   ├── app_features.yml            # Single Source of Truth chứa catalog mô tả chi tiết (--info)
+    │   ├── help.txt                    # Nội dung tóm tắt cú pháp nhanh (mod --help)
+    │   ├── statuses.txt                # Bảng giải thích các mã trạng thái Mod CLI
+    │   └── note.txt                    # Sổ tay ghi chép các lệnh hệ điều hành / server hay dùng
+    └── features/                       # Toàn bộ script nghiệp vụ (chia theo domain chuyên trách)
+        ├── system/                     # Script nội bộ framework (_git.py, _statuses.py, _print_*.py)
+        ├── notify/                     # Module CLI gửi thông báo đa kênh
+        ├── gist/                       # Quản lý CRUD và kiểm toán dung lượng GitHub Gist
+        ├── sync-to-gdrive/             # Tương tác với Google Drive qua rclone & gdown
+        ├── cloudflare/                 # Cloudflare quick tunnel wrapper
+        └── <feature_scripts>.py        # Các script tính năng đơn lẻ (file, folder, git, mcp, skill, run...)
 ```
 
 ---
 
-## 4. Bảng Tra Cứu Toàn Bộ Lệnh (CLI Reference Table)
+## 4. Cơ Chế Tra Cứu Tính Năng & Danh Mục Lệnh (Feature Discovery for AI)
 
-Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--info]`
+> [!IMPORTANT]
+> **Hướng dẫn dành cho AI Agent:** Để tránh file bị phình to và lỗi thời theo thời gian, **file này KHÔNG lưu bảng tra cứu toàn bộ lệnh chi tiết**. Khi cần tìm hiểu hoặc kiểm tra tính năng của Mod CLI, AI Agent hãy tra cứu theo các nguồn chuẩn hóa sau:
 
-### 4.1. Dispatcher Flags
-- `-v` hoặc `--version`: In thông tin phiên bản chính thức (v0.1.0) và mô tả ngắn bằng tiếng Anh.
-- `--info` (hoặc `--des`): In mô tả chi tiết của lệnh lấy từ `src/contents/app_features.yml`.
-- `-a` hoặc `--antigravity-IDE`: Dùng IDE command `anti` thay vì `code` (VSCode).
-
-### 4.2. Danh Sách Lệnh Chi Tiết Theo `type`
-
-| Type | Action | Tham số / Flag đi kèm | Mô tả chức năng |
-| :--- | :--- | :--- | :--- |
-| *(root)* | `version` / `-v` / `--version` | | In thông tin phiên bản (v0.1.0) và mô tả công cụ bằng tiếng Anh. |
-| `open` | *(không có)* | `[path] [-c]` | Mở thư mục gốc project hoặc đường dẫn chỉ định trong File Explorer. Dùng `-c` để mở trong IDE. |
-| `open` | `ws` | | Mở thư mục chứa các workspace (`VSCODE_WORKSPACES_FOLDER`). |
-| `open` | `env` | | Mở bảng quản lý biến môi trường Windows (`rundll32 sysdm.cpl`). |
-| `open` | `proms` | | Mở thư mục Prompts của Template Replacer Extension. |
-| `open` | `appdata` | | Mở thư mục AppData của me-mod (`APPDATA_FOLDER`). |
-| `open` | `mcp` | | Mở thư mục chứa các MCP servers (`LOCAL_ABSOLUTE_FOLDER_PATH`). |
-| `open` | `skills` | | Mở thư mục chứa các AI Skills (`SKILLS_FOLDER_PATH`). |
-| `open` | `src-files` | `[-c, --code]` | Mở thư mục kho lưu trữ source-files trong File Explorer (hoặc IDE với `-c`). |
-| `open` | `agy-mcp-conf` | | Mở file MCP config của Google Antigravity (`~/.gemini/config/mcp_config.json`). |
-| `open` | `codex-mcp-conf` | | Mở file MCP config của OpenAI Codex (`~/.codex/config.toml`). |
-| `open` | `clau-mcp-conf` | | Mở file MCP config của Claude Code (`~/.claude.json`). |
-| `open` | `ssh-conf` | | Mở file cấu hình SSH của người dùng (`~/.ssh/config`). |
-| `open` | `agy-skills` | | Mở thư mục chứa các skill của Google Antigravity (`~/.gemini/config/skills`). |
-| `open` | `codex-skills` | | Mở thư mục chứa các skill của OpenAI Codex (`~/.codex/skills`). |
-| `open` | `clau-skills` | | Mở thư mục chứa các skill của Claude Code (`~/.claude/skills`). |
-| `open` | `<alias>` | `[-c, --code]` | Mở thư mục theo alias đã đăng ký trong File Explorer (hoặc IDE nếu có `-c`). |
-| `open` | `add` | `<alias> <path>` | Đăng ký alias mở nhanh thư mục (chỉ gồm chữ cái, số, `_`, `-`). |
-| `open` | `list` / `ls` | | Liệt kê danh sách các alias đã đăng ký và trạng thái tồn tại. |
-| `open` | `rm` / `remove` | `<alias>` | Xóa alias mở thư mục đã đăng ký khỏi danh sách. |
-| `code` | *(không có)* | | Mở project trong IDE (`code` hoặc `anti`). |
-| `code` | `ws` | `<value> [-p]` | Mở workspace thiết lập sẵn (`ptb` hoặc `tool`). `-p` chỉ mở Windows Terminal. |
-| `code` | `test` / `js` / `ts` / `py` / `nestjs` / `ext` / `ts-template` | | Mở nhanh các thư mục template hoặc thư mục testing tương ứng trong IDE. |
-| `file` | `create` | | Menu tương tác chọn và sao chép template file từ kho `SOURCE_FILES_FOLDER` vào thư mục hiện tại. |
-| `file` | `add-src` | `<file_path> [--folder <name>]` | Thêm tệp vào kho template `SOURCE_FILES_FOLDER` (hỗ trợ tạo đệ quy thư mục nhiều cấp). |
-| `file` | `rename` | `<folder_path> [prefix]` | Đổi tên file hàng loạt thành `<prefix>-1.ext`, `<prefix>-2.ext`... |
-| `file` | `delete` | `<folder_path> <ext1,ext2,...>` | Xóa toàn bộ file có extension nằm trong danh sách chỉ định. |
-| `file` | `keep` | `<folder_path> <ext>` | Chỉ giữ lại file có extension chỉ định, xóa tất cả các file khác. |
-| `folder` | `cr-linear` | `<path> [--content, -c <text>] [--file, -f] [--folder, -d]` | Tạo folder hoặc file linear theo path, tự tạo chuỗi thư mục cha còn thiếu và không ghi đè file có sẵn (hỗ trợ nội dung khởi tạo). |
-| `folder` | `create` | `<folder_path> [pattern] [start_idx] [count]` | Tạo hàng loạt folder con tự tăng index. |
-| `folder` | `dld-path` | `[folder_name]` | Đặt lại đường dẫn download cho toàn bộ Chrome profiles. |
-| `folder` | `merge` | `<from_folder> <to_folder> [-y] [--dry-run]` | Kiểm tra giao nhau của cây thư mục nguồn/đích và merge nội dung (ghi đè/tạo mới). |
-| `folder` | `tree` | `[folder_path] [--level <N|deep>] [--max N]` | In cây thư mục có tự động thu gọn thư mục quá lớn (> max) và giới hạn độ sâu hiển thị theo level. |
-| `run` | `unikey` | | Khởi động UniKey. |
-| `run` | `gen-qr` | | Nhập text tương tác và tạo ảnh mã QR lưu vào thư mục AppData. |
-| `run` | `keep-awake` | `[url] [-i interval]` | Gửi HTTP GET định kỳ giữ server không bị sleep (khoảng random hoặc fixed). |
-| `run` | `keep-screen` | | Giữ màn hình Windows luôn sáng (bấm `q` hoặc `Ctrl+C` để dừng). |
-| `run` | `srt-count-line` | `<file_path>` | Đếm số dòng thoại trong file SRT và sắp xếp giảm dần. |
-| `git` | `commit` | `-m "<commit_message>"` | Tự động thực hiện: `git add .` -> `git commit -m` -> `git push origin main`. |
-| `git` | `dl-folder` | `<git_folder_url> [dest_path]` | Tải toàn bộ thư mục và nội dung con từ GitHub repo về máy mà không kèm file .git. |
-| `git` | `dl-file` | `<git_file_url> [dest_path]` | Tải một tệp đơn lẻ từ GitHub repo về máy tính. |
-| `git` | `stash` | `[list, ls]` | Liệt kê các Git Stash hiện có trong kho lưu trữ mod tool (`mod git stash list` / `ls` / `mod git stash`). |
-| `git` | `drop` / `stash drop` | `[stash_index] [-y, --yes]` | Xóa 1 stash khỏi kho lưu trữ (menu tương tác chọn số thứ tự hoặc truyền trực tiếp index/ref `stash@{N}`). |
-| `git` | `remote` | | In danh sách remote URL (`git remote -v`). |
-| `gdrive` | `sync` | `"<source>" "<dest>" [--noti [platform]]` | Đồng bộ thư mục lên Google Drive bằng rclone. |
-| `gdrive` | `list` | `[target_path] [-d] [--file]` | Liệt kê folder/file trên GDrive (`-d`: đệ quy sâu, `--file`: chỉ liệt kê file). |
-| `gdrive` | `dl` | `<url> [--dest <path>] [--folder <name>]` | Tải file/folder từ URL về máy qua rclone hoặc fallback sang `gdown`. |
-| `gdrive` | `remote` | | Xem cấu hình và dung lượng còn trống của remote GDrive đang chọn. |
-| `gdrive` | `del-fd` | `<remote_folder>` | Xóa một thư mục trên remote GDrive (có bước hỏi xác nhận). |
-| `gdrive` | `url` / `link` | `<remote_path>` | Lấy link truy cập web trực tiếp cho thư mục trên Google Drive. |
-| `gdrive` | `reset` | | Xóa cấu hình remote rclone hiện tại hoặc xóa toàn bộ file config. |
-| `gdrive` | `guide` | | Mở file tài liệu hướng dẫn cấu hình OAuth Client ID cho Google Drive. |
-| `gist` | `create` | `[files...] [--desc <text>] [--public]` | Tạo Gist mới từ file cục bộ hoặc nhập tương tác trực tiếp. |
-| `gist` | `list` | `[--page N] [--limit N] [--all] [--public-only] [--secret-only]` | Liệt kê danh sách Gist của tài khoản dạng bảng trực quan. |
-| `gist` | `get` | `<gist_id> [--raw <file>] [--save <dir>]` | Xem metadata Gist, in raw file hoặc lưu toàn bộ file về máy. |
-| `gist` | `update` | `<gist_id> [--add <name> <path>] [--delete <name>] [--desc <desc>]` | Cập nhật file và mô tả trong Gist đã có. |
-| `gist` | `delete` | `<gist_id> [-y]` | Xóa vĩnh viễn Gist (có bước hỏi xác nhận an toàn). |
-| `gist` | `reset` | `[gist_id] [--placeholder <name>] [--file <path>] [-y]` | Reset Gist: Xóa sạch toàn bộ Gist của tài khoản (nếu không truyền gist_id) hoặc reset 1 Gist cụ thể. |
-
-| `gist` | `audit` | | Quét toàn bộ Gist, tính tổng dung lượng, phân loại đuôi file, cảnh báo file $\ge 8\text{MB}$ và kiểm tra Rate Limit. |
-
-| `gist` | `rate` | | Kiểm tra hạn mức và số lượt request GitHub API còn lại. |
-| `tunnel` | *(không có)* | `[port]` | Mở Cloudflare Quick Tunnel trỏ tới localhost (mặc định port 3000) + QR code. |
-
-| `proxy` | `test` | `<ip>:<port>[:<user>:<pass>] [--protocol ...]` | Test proxy qua requests, cURL và lấy IP thật qua API ipify. |
-| `mcp` | `set` | `[mcp_folder_name] [dest_folder_path]` | Copy thư mục MCP từ kho chung sang thư mục dự án đích (chỉ nhận folder chứa trực tiếp `README.md`). |
-| `mcp` | `open-config` | `<agent alias>` | Mở file cấu hình MCP của AI Agent (`anti`, `codex`, `claude`) bằng Notepad. |
-| `toast` | *(không có)* | `<title> [msg...] [--audio <path>]` | Bắn Windows Toast Notification kèm âm thanh MP3/WAV tùy chỉnh. |
-| `toast` | `--syntax` | | In cú pháp 1 dòng của lệnh toast để tiện copy. |
-| `print` | `os` | | In cấu hình OS, CPU, RAM, Network adapter. |
-| `print` | `pc-power` | `[--notepad, -n]` | In chi tiết thông số phần cứng CPU, RAM, Disk, Wi-Fi, GPU theo chuẩn Task Manager (hỗ trợ xuất ra Notepad). |
-| `print` | `stts` | | In giải thích các mã trạng thái Mod CLI. |
-| `print` | `ws` | | In danh sách các file trong thư mục VSCode-Workspaces. |
-| `print` | `curl` | | In snippet mẫu cURL CRUD. |
-| `print` | `dir` | | In đường dẫn thư mục `src` của mod. |
-| `print` | `note` | `[--notepad, -n] [--find, -f <text>]` | In hoặc tìm kiếm danh sách các lệnh hữu ích thường dùng kèm tô màu trực quan (hỗ trợ mở Notepad). |
-| `keep` | *(không có)* | | Giữ màn hình Windows luôn sáng (alias rút gọn của `mod run keep-screen`). |
-| `skill` | `set` | `[skill_name] [dest_path] [--ai, --agent <name>] [--project, --prj, -p [root]] [--keyword, --key, -k <kw>] [--filter <on|off>]` | Sao chép thư mục Skill AI từ kho vào thư mục đích, AI Agent Global, hoặc thư mục chuẩn `.agents/skills` của project (hỗ trợ lọc keyword & filter). |
-| `skill` | `project` / `prj` / `p` | `[skill_name] [project_root] [--keyword, --key, -k <kw>] [--filter <on|off>]` | Cài đặt skill trực tiếp vào thư mục chuẩn `.agents/skills` của project (mặc định CWD). |
-| `skill` | `remove` / `rm` | `[skill_name] [--ai, --agent <name>] [--include-agent <name>] [--filter <on|off>]` | Xóa Skill khỏi kho trung tâm, khỏi AI Agent, hoặc đồng thời cả hai (có xác nhận an toàn). |
-| `skill` | `off-invo` / `off-invocation` | `[skill_name] [--agent <name>] [--include-agent <name>] [--filter <on|off>]` | Tắt tự động gọi bằng cách thêm `disable-model-invocation: true` vào file `SKILL.md`. |
-| `skill` | `on-invo` / `on-invocation` | `[skill_name] [--agent <name>] [--include-agent <name>] [--filter <on|off>]` | Bật tự động gọi bằng cách xóa `disable-model-invocation: true` khỏi file `SKILL.md`. |
-| `skill` | `list` / `ls` | `[--ai, --agent <name>] [--include-agent <name>]` | Liệt kê các skill trong kho trung tâm, trong AI Agent, hoặc cả hai. |
-| `skill` | `list-project` / `list-prj` / `ls-prj` / `ls-project` | `[dest_folder_path]` | Liệt kê toàn bộ các skill có trong thư mục dự án hoặc CWD. |
-| `skill` | `find` / `search` | `<keyword>` | Tìm kiếm các skill có chứa từ khóa trong đường dẫn hoặc tên skill trong kho SKILLS_FOLDER_PATH. |
-| `find` | `file` | `[project_path] --name <pattern> [--exact, -e] [--all, -a] [--depth, -d <N>] [--limit, -l <N>]` | Tìm kiếm tập tin theo tên/wildcard trong dự án với DFS cắt tỉa thư mục rác. |
-| `find` | `folder` | `[project_path] --name <pattern> [--exact, -e] [--all, -a] [--depth, -d <N>] [--limit, -l <N>]` | Tìm kiếm thư mục theo tên/wildcard trong dự án với DFS cắt tỉa thư mục rác. |
-| `compress` | *(không có)* | `[output_path]` | Nén toàn bộ dự án thành file `mod-{dd}-{mm}-{yyyy}-{hh}-{mm}-{ss}.zip` tại thư mục gốc dự án (hoặc output_path), áp dụng bộ lọc `.compressignore`. |
-| `compress` | `folder` | `<path> [--config-file C] [--ignore-file I]` | Nén thư mục cục bộ tự động đọc `.compressignore` hoặc theo JSON config. |
-| `compress` | `init-ignore` | `<path> ["rules..."]` | Khởi tạo file `.compressignore` mẫu tại đường dẫn chỉ định với các rule tùy chỉnh. |
-| `notify` | `send` | `"<msg>" [--title T] [--channel C] [--topic TP] [--priority P] [--tags TG] [--url U]` | Gửi thông báo đa kênh (mặc định ntfy app, topic: `any-mod-automation-N3RT8P2L`). |
-| `notify` | `test` | `[--channel C] [--topic TP]` | Gửi thông báo test ping để xác nhận kết nối kênh. |
-| `notify` | `channels` | | Liệt kê các kênh thông báo hỗ trợ và trạng thái cấu hình. |
-| `notify` | `config` | | Xem hướng dẫn cấu hình thiết bị / app ntfy và file `.env`. |
-
-
-
-| `edit` | `proms` | | Mở thư mục prompts của extension trong Notepad. |
-| `edit` | `to` | | Mở PowerShell Profile trong Notepad. |
-| `edit` | `note` | | Mở file `note.txt` trong Notepad để chỉnh sửa. |
-| `py` | `env` | `[--path P] [--name N] [--skip-dotenv]` | Khởi tạo venv chuẩn cho project Python hiện tại. |
-| `init` | *(không có)* | | Chạy script `init.cmd` để dọn dẹp các tiến trình Windows chạy ngầm thừa thãi. |
+1. **Tra cứu tóm tắt cú pháp và danh mục lệnh:**
+   - Đọc file [`src/contents/help.txt`](file:///d:/D-Documents/TOOLs/mod/src/contents/help.txt) hoặc chạy `python src/main.py --help`.
+2. **Tra cứu chi tiết cờ, tham số, logic và điều kiện của một lệnh:**
+   - Đọc file [`src/contents/app_features.yml`](file:///d:/D-Documents/TOOLs/mod/src/contents/app_features.yml) hoặc chạy `python src/main.py <type> <action> --info`.
+3. **Tra cứu danh sách Type & Action hợp lệ của hệ thống:**
+   - Đọc biến `TYPE_ACTION_MAP` trong [`src/utils/interactive_cli.py`](file:///d:/D-Documents/TOOLs/mod/src/utils/interactive_cli.py).
 
 ---
 
-## 5. Cấu Hình & Quản Lý Môi Trường (Config & Environment)
+## 5. Cài Đặt, Thiết Lập & Cấu Hình Runtime (Setup & Environment)
 
-### 5.1. Quản lý đường dẫn (`src/configs/paths.py`)
-File này tập trung toàn bộ cấu hình đường dẫn của hệ thống:
-- **Tự động suy ra từ codebase:**
-  - `PROJECT_ROOT`: Thư mục gốc dự án (`get_project_root()`).
-  - `SRC_FOLDER`: `<PROJECT_ROOT>/src`.
-  - `FEATURES_FOLDER`: `<PROJECT_ROOT>/src/features`.
-  - `CONTENTS_FOLDER`: `<PROJECT_ROOT>/src/contents`.
-  - `TOAST_SOUND_AUDIO_FILE_PATH`: `<PROJECT_ROOT>/data/media/audio/burnttoast-notification-sound.mp3`.
-  - `MOD_HISTORY_FILE_PATH`: `<PROJECT_ROOT>/data/credentials/.mod_history`.
-- **Cấu hình môi trường máy cục bộ (Sửa khi chuyển máy):**
-  - `APPDATA_FOLDER`: `D:/D-AppData/me-mod` (Nơi lưu QR Code sinh ra, file `open_aliases.json`).
-  - `OPEN_ALIASES_FILE_PATH`: `<APPDATA_FOLDER>/open_aliases.json` (Lưu alias mở thư mục nhanh).
-  - `TEMPLATE_REPLACER_FOLDER`: Đường dẫn đến extension Template Replacer.
-  - `LOCAL_ABSOLUTE_FOLDER_PATH` / `MCP_FOLDER_PATH`: `D:/D-Documents/MCP` (Kho chứa MCP templates).
-  - `SKILLS_FOLDER_PATH`: `D:/D-Documents/SKILLs` (Kho chứa các thư mục AI Skill).
-  - `VSCODE_WORKSPACES_FOLDER`: `D:/D-Documents/VSCode-Workspaces` (Kho chứa các file `.code-workspace`).
-  - `SOURCE_FILES_FOLDER`: `D:/D-Documents/Souce-Files` (Kho chứa các tệp mã nguồn mẫu/template).
-  - `SOURCE_FILES_UTILITY_FOLDER`: `D:/D-Documents/Souce-Files/utilty`.
-- **Đường dẫn cấu hình & Skills của AI Coding Agent (Tự động theo User Home):**
-  - `ANTIGRAVITY_MCP_CONFIG_PATH`: `~/.gemini/config/mcp_config.json`
-  - `CODEX_MCP_CONFIG_PATH`: `~/.codex/config.toml`
-  - `CLAUDE_MCP_CONFIG_PATH`: `~/.claude.json`
-  - `SSH_CONFIG_PATH`: `~/.ssh/config`
-  - `ANTIGRAVITY_SKILLS_PATH`: `~/.gemini/config/skills`
-  - `CODEX_SKILLS_PATH`: `~/.codex/skills`
-  - `CLAUDE_SKILLS_PATH`: `~/.claude/skills`
+### 5.1. Thiết lập ban đầu (Initial Setup)
+1. Cài đặt Python 3.12+ trên Windows.
+2. Cài đặt dependencies:
+   ```powershell
+   pip install -r requirements.txt
+   ```
+3. Đăng ký biến môi trường `PATH`:
+   - Thêm đường dẫn thư mục gốc `d:\D-Documents\TOOLs\mod` vào biến `PATH` của người dùng để có thể gọi lệnh `mod` từ bất kỳ thư mục/terminal nào trong hệ điều hành Windows.
 
-### 5.2. File `.env` tại thư mục gốc
-Dùng cho các thông tin bảo mật và cấu hình runtime:
+### 5.2. Quản lý đường dẫn tập trung ([`src/configs/paths.py`](file:///d:/D-Documents/TOOLs/mod/src/configs/paths.py))
+Hệ thống phân định rõ ràng 3 nhóm đường dẫn:
+1. **Đường dẫn nội bộ (Tự động suy ra từ codebase, không bao giờ cần sửa):**
+   - `PROJECT_ROOT`, `SRC_FOLDER`, `FEATURES_FOLDER`, `CONTENTS_FOLDER`, `TOAST_SOUND_AUDIO_FILE_PATH`, `MOD_HISTORY_FILE_PATH`.
+2. **Đường dẫn ngoài máy cục bộ (Cần kiểm tra/cập nhật khi chuyển sang máy khác):**
+   - `APPDATA_FOLDER`: `D:/D-AppData/me-mod` (lưu QR code, alias mở nhanh thư mục).
+   - `OPEN_ALIASES_FILE_PATH`: `<APPDATA_FOLDER>/open_aliases.json`.
+   - `LOCAL_ABSOLUTE_FOLDER_PATH` / `MCP_FOLDER_PATH`: Kho chứa MCP Server templates.
+   - `SKILLS_FOLDER_PATH`: Kho chứa các AI Skills tập trung.
+   - `VSCODE_WORKSPACES_FOLDER`: Thư mục lưu các file `.code-workspace`.
+   - `SOURCE_FILES_FOLDER`: Kho chứa các tệp mã nguồn mẫu/template tái sử dụng.
+   - `TEMPLATE_REPLACER_FOLDER`: Thư mục extension Template Replacer.
+3. **Đường dẫn AI Agent & Cấu hình người dùng (Tự động theo User Home `~`):**
+   - Antigravity: `~/.gemini/config/mcp_config.json`, `~/.gemini/config/skills`.
+   - OpenAI Codex: `~/.codex/config.toml`, `~/.codex/skills`.
+   - Claude Code: `~/.claude.json`, `~/.claude/skills`.
+   - SSH Config: `~/.ssh/config`.
+
+### 5.3. Cấu hình biến môi trường (`.env`)
+Dùng cho các thông tin xác thực runtime và tích hợp bên ngoài (nằm tại thư mục gốc, không commit lên Git):
 ```env
+# Telegram Notification Bot
 TELEGRAM_BOT_TOKEN=123456789:ABCdefGHIjklMNOpqrsTUVwxyz
 TELEGRAM_CHAT_ID=987654321
+
+# GitHub Gist API (Personal Access Token có quyền gists)
+GITHUB_GIST_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
 ```
 
 ---
 
-## 6. Các Cơ Chế Kỹ Thuật Đáng Chú Ý (Important Technical Mechanisms)
+## 6. Các Cơ Chế Kỹ Thuật Nền Tảng (Core Technical Mechanisms)
 
-### 6.1. Xử lý Toast Audio trên Windows
-- **Vấn đề:** Windows Action Center chạy trong môi trường sandbox UWP nên lệnh `New-BurntToastNotification -Audio (New-BTAudio -Path "file:///...")` thường bị chặn không cho load file âm thanh từ ổ cứng ngoài.
-- **Giải pháp:** Trong [`toast_notifier.py`](file:///d:/D-Documents/TOOLs/mod/src/utils/notifications/toast_notifier.py):
-  1. Gửi Toast ở chế độ câm (`-Silent`).
-  2. Đồng thời gọi trực tiếp Windows Multimedia API (`ctypes.windll.winmm.mciSendStringW`) để phát file `.mp3` / `.wav` cá nhân một cách mượt mà và không bị sandbox chặn.
+### 6.1. Xử lý UTF-8 trên Windows Console
+Để tránh lỗi vỡ font tiếng Việt hoặc crash khi in bảng ASCII / QR code trên Windows PowerShell và CMD, mọi entrypoint và script đều thiết lập:
+```python
+os.environ.setdefault("PYTHONIOENCODING", "utf-8")
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+```
 
-### 6.2. Cơ chế Keep-Screen (Giữ sáng màn hình)
-- Trong [`keep_screen.py`](file:///d:/D-Documents/TOOLs/mod/src/features/keep_screen.py), sử dụng API `SetThreadExecutionState` với cờ `ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED` để thông báo cho Windows không tắt màn hình và không vào trạng thái Sleep. Khi người dùng bấm `q` hoặc `Ctrl+C`, reset lại về `ES_CONTINUOUS`.
+### 6.2. Cơ chế Không Dùng `argparse` ở Dispatcher
+- `src/main.py` cố tình **không dùng `argparse`** mà parse thủ công danh sách `sys.argv`.
+- **Lý do:** Cho phép chuyển tiếp nguyên vẹn (`forward verbatim`) toàn bộ đối số còn lại (`remaining_args`) sang các script con. Các script con tự quyết định cách parse riêng (dùng `sys.argv`, regex, hoặc thư viện chuyên biệt) mà không bị xung đột cú pháp ở tầng Dispatcher.
 
-### 6.3. Tự động đồng bộ Google Drive & Lấy Link Web
-- Trong [`sync_to_gdrive.py`](file:///d:/D-Documents/TOOLs/mod/src/features/sync-to-gdrive/sync_to_gdrive.py), sau khi lệnh `rclone sync` hoàn tất, script sẽ tự động gọi `rclone link` để sinh ngay URL truy cập web của folder đích và gửi thông báo kèm link qua Telegram/Toast.
+### 6.3. Interactive REPL & Tab Autocomplete Engine ([`src/utils/interactive_cli.py`](file:///d:/D-Documents/TOOLs/mod/src/utils/interactive_cli.py))
+- Khi người dùng gõ `mod` không có tham số: Hệ thống chuyển sang chế độ Interactive REPL.
+- Sử dụng API `msvcrt.getwch()` trên Windows để bắt từng phím bấm thời gian thực:
+  - **Tab xoay vòng Type:** Quét toàn bộ `type` khớp với tiền tố đang gõ theo thứ tự A-Z.
+  - **Tab xoay vòng Action:** Sau khi có type hợp lệ, tiếp tục Tab để hoàn thành `action` tương ứng.
+  - **Lịch sử lệnh:** Điều hướng mũi tên lên/xuống đọc và ghi vào file `.mod_history`.
 
-### 6.4. Xử lý UTF-8 Encoding trên Windows Console
-- Ngay đầu `src/main.py` và `src/utils/interactive_cli.py`, hệ thống tự thiết lập:
-  ```python
-  os.environ.setdefault("PYTHONIOENCODING", "utf-8")
-  sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-  sys.stderr.reconfigure(encoding="utf-8", errors="replace")
-  ```
-  Điều này đảm bảo output tiếng Việt và mã ASCII QR code không bị vỡ font/crash trên CMD/PowerShell Windows.
+### 6.4. Kiến trúc Thông báo Đa Kênh (Multi-Channel Notifications)
+- Nằm tại `src/utils/notifications/` áp dụng Factory Pattern:
+  - `BaseNotifier`: Abstract Base Class định nghĩa phương thức `send(...)`.
+  - `ToastNotifier`: Gửi Windows Toast qua PowerShell BurntToast ở chế độ câm (`-Silent`), đồng thời dùng trực tiếp Windows Multimedia API (`ctypes.windll.winmm.mciSendStringW`) để phát file âm thanh `.mp3`/`.wav` nhằm tránh sandbox UWP chặn file từ ổ đĩa ngoài.
+  - `TelegramNotifier`: Gửi tin nhắn và cảnh báo qua Telegram Bot REST API.
+  - `NtfyNotifier`: Gửi thông báo đẩy tức thì tới ứng dụng di động ntfy (Android/iOS/Web).
 
-### 6.5. Chế độ Tương tác & Tab Autocomplete
-- Khi người dùng chạy lệnh `mod` không có tham số:
-  1. [`interactive_cli.py`](file:///d:/D-Documents/TOOLs/mod/src/utils/interactive_cli.py) sẽ in danh sách toàn bộ các nhóm lệnh (`type`) hiện có kèm theo danh sách action tương ứng và dòng gợi ý ở cuối.
-  2. Mở dấu nhắc `mod > ` sử dụng `msvcrt.getwch()` trên Windows để bắt từng phím bấm mà không cần nhấn Enter.
-  3. **Tab Autocomplete cho Type:** Quét toàn bộ type khớp với tiền tố đang gõ theo thứ tự A-Z. Bấm Tab liên tiếp để xoay vòng các candidate. Con trỏ dừng ngay sau ký tự cuối cùng của từ khóa hoàn thành (không tự động chèn dấu cách thừa).
-  4. **Tab Autocomplete cho Action:** Sau khi có type hợp lệ, gõ tiếp tiền tố action và bấm Tab để hoàn thành action của type đó (xoay vòng A-Z, con trỏ dừng ngay sau ký tự cuối cùng). Nếu type không có action, bỏ qua.
-  5. Bấm `Enter` để thực thi trực tiếp lệnh vừa nhập mà không cần thoát CLI; gõ `h` hoặc `help` để xem help chi tiết; gõ `q` hoặc `exit` để thoát.
-
-### 6.6. Cơ chế Lọc Thư Mục Skill AI & MCP Server
-- **`mod skill set` ([`skill_set.py`](file:///d:/D-Documents/TOOLs/mod/src/features/skill_set.py)):** Quét đệ quy kho `SKILLS_FOLDER_PATH` nhưng **chỉ lọc các folder có chứa trực tiếp file `SKILL.md`**, tự động bỏ qua thư mục cha phân loại và các thư mục con nội bộ (`agents`, `assets`, `references`...). Hỗ trợ nhập `q` để hủy thao tác tại prompt. Chuẩn hóa UTF-8 console output.
-- **`mod mcp set` ([`mcp_set.py`](file:///d:/D-Documents/TOOLs/mod/src/features/mcp_set.py)):** Quét đệ quy kho `LOCAL_ABSOLUTE_FOLDER_PATH` nhưng **chỉ lọc các folder có chứa trực tiếp file `README.md`**, tự động bỏ qua thư mục cha phân loại và các thư mục con bên trong MCP (`src`, `assets`...). Hỗ trợ nhập `q` để hủy thao tác tại prompt. Chuẩn hóa UTF-8 console output.
-
-### 6.7. Quản lý Kho Template Source Files (`SOURCE_FILES_FOLDER`)
-- **`mod file create` ([`create_files_in_folder.py`](file:///d:/D-Documents/TOOLs/mod/src/features/create_files_in_folder.py)):** Quét kho `SOURCE_FILES_FOLDER` (`D:/D-Documents/Souce-Files`), hiển thị menu tương tác đánh số, hỗ trợ người dùng nhập số thứ tự các tệp cần sao chép (ví dụ `1 3 5` hoặc `a` để chọn tất cả), kiểm tra bảo vệ tránh ghi đè tệp có sẵn tại thư mục hiện hành [y/N/a], hỗ trợ `q` để hủy.
-- **`mod file add-src` ([`add_source_file.py`](file:///d:/D-Documents/TOOLs/mod/src/features/add_source_file.py)):** Thêm tệp mã nguồn mẫu từ máy tính vào kho `SOURCE_FILES_FOLDER`. Hỗ trợ cờ `--folder` / `-d` để đặt vào thư mục con đệ quy nhiều cấp (ví dụ `--folder "coding/farm"`), tự tạo toàn bộ chuỗi thư mục cha nếu chưa có và hỏi xác nhận an toàn trước khi ghi đè.
-
-### 6.8. Cơ chế Đăng ký & Mở Nhanh Thư Mục qua Alias (`open_aliases.json`)
-- Quản lý qua [`manage_open_aliases.py`](file:///d:/D-Documents/TOOLs/mod/src/features/manage_open_aliases.py), lưu trữ tập trung tại `open_aliases.json` trong `APPDATA_FOLDER`.
-- Hỗ trợ các lệnh: `mod open add <alias> <path>`, `mod open list` (hoặc `ls`), `mod open rm <alias>`.
-- Khi thực thi `mod open <alias>`, hệ thống tự động kiểm tra alias trong file JSON và mở thư mục tương ứng trong File Explorer (hoặc mở trực tiếp bằng IDE nếu có cờ `-c` / `--code`).
-
-### 6.9. Cơ chế Chuẩn hóa Vị trí Cài đặt AI Skill (`.agents/skills`)
-- Trong [`skill_set.py`](file:///d:/D-Documents/TOOLs/mod/src/features/skill_set.py):
-  - **Cài đặt vào Project:** Khi sử dụng cờ `--project [root]` (hoặc `--prj`, `-p`) hoặc action độc lập `mod skill project / prj / p`, hệ thống ưu tiên cài đặt skill vào thư mục chuẩn `.agents/skills` (fallback `.agent/skills` nếu thư mục này đã tồn tại trước đó) theo chuẩn Open Agent Skills phổ biến hiện nay.
-  - **Cài đặt vào Global AI Agent:** Khi sử dụng cờ `--ai`, `--llm`, `--agent <name>` (hỗ trợ `agy`, `codex`, `claude`, `all`), hệ thống sao chép skill trực tiếp vào thư mục Global Skills của AI Coding Agent tương ứng (`~/.gemini/config/skills`, `~/.codex/skills`, `~/.claude/skills`).
+### 6.5. Hệ thống Xử lý Lỗi Tập Trung ([`src/utils/errors.py`](file:///d:/D-Documents/TOOLs/mod/src/utils/errors.py))
+- Định nghĩa các Exception chuẩn hóa kế thừa từ `ModCLIError`:
+  - `MissingActionError`: Báo lỗi khi người dùng chỉ gõ `mod <type>` mà thiếu action, tự động in danh sách các action hợp lệ.
+  - `InvalidActionError`: Báo lỗi khi action không nằm trong danh mục hỗ trợ, hiển thị gợi ý cú pháp.
+  - `InvalidTypeError`: Báo lỗi khi gõ sai nhóm lệnh `type`.
 
 ---
 
-## 7. Hướng Dẫn Mở Rộng & Thêm Tính Năng Mới (How to Add a Feature)
+## 7. Quy Chuẩn Dành Cho AI Agent (AI Agent Standard Operating Procedures)
 
-Khi cần bổ sung một lệnh mới vào `mod CLI`, làm theo đúng 5 bước:
+Khi AI Agent thực hiện thêm, sửa hoặc tối ưu tính năng trên Mod CLI, bắt buộc tuân thủ SOP trong [`.agent/skills/mod-cli-developer/SKILL.md`](file:///d:/D-Documents/TOOLs/mod/.agent/skills/mod-cli-developer/SKILL.md):
 
-1. **Tạo script tính năng trong `src/features/<tên_tính_năng>.py`:**
-   - Script tự nhận `sys.argv` để lấy tham số, validate input và in thông báo rõ ràng.
-2. **Khai báo hằng số trong `src/main.py`:**
-   - Khai báo hằng số `MOD_TYPE_<NAME>` và `MOD_<TYPE>_<ACTION>`.
-3. **Thêm Handler & Route trong `src/main.py`:**
-   - Tạo hàm `def run_my_feature(remaining_args): ...` sử dụng `subprocess.run`.
-   - Bổ sung nhánh `elif type_included == ...` và `elif action_included == ...`.
-4. **Cập nhật tài liệu tóm tắt trong `src/contents/help.txt`:**
-   - Thêm action vào nhóm tương ứng kèm ví dụ lệnh.
-5. **Cập nhật catalog chi tiết trong `src/contents/app_features.yml`:**
-   - Thêm block `id`, `title`, `command`, `summary`, `details`, `conditions` để hỗ trợ cờ `--info`.
+1. **Nguyên tắc an toàn mã nguồn:** Nếu có thay đổi chưa commit, luôn chạy `git stash push -u -m "<mô_tả>"` trước khi sửa file.
+2. **Quy trình 5 bước phát triển tính năng:**
+   - **Bước 1:** Tạo hoặc chỉnh sửa feature script tại `src/features/`.
+   - **Bước 2:** Khai báo hằng số và định tuyến trong `src/main.py`.
+   - **Bước 3:** Đăng ký autocomplete trong `TYPE_ACTION_MAP` tại `src/utils/interactive_cli.py`.
+   - **Bước 4:** Cập nhật tài liệu 2 lớp:
+     - `src/contents/help.txt` (tóm tắt lệnh).
+     - `src/contents/app_features.yml` (catalog chi tiết cho `--info`).
+     - *(Chỉ cập nhật `PROJECT_CONTEXT.md` khi có thay đổi về kiến trúc hệ thống, cấu hình runtime hoặc cơ chế nền tảng).*
+   - **Bước 5:** Kiểm thử thực thi (`mod <type> <action> --info` và chạy thử lệnh thực tế).
+3. **Quy trình commit & push:** Tuân thủ [`.agent/skills/mod-git-commit/SKILL.md`](file:///d:/D-Documents/TOOLs/mod/.agent/skills/mod-git-commit/SKILL.md) và chạy `mod git commit -m "<conventional_commit_msg>"`.
 
 ---
 
-## 8. Các Lưu Ý Quan Trọng Cho AI Agent & Developer (Crucial Notes & Caveats)
+## 8. Các Lưu Ý Kỹ Thuật Quan Trọng (Crucial Caveats)
 
-1. **Không can thiệp vào cách parse của Dispatcher:** Dispatcher cố tình parse thủ công bằng mảng `sys.argv` để đảm bảo mọi argument phức tạp (như commit message có dấu cách, regex, danh sách extension) được forward nguyên vẹn cho script con. Không tự ý chuyển `main.py` sang dùng `argparse`.
-2. **Kiểm tra đường dẫn khi chạy trên máy mới:** Nếu clone project sang máy tính khác, hãy kiểm tra lại các biến đường dẫn ngoài project trong [`src/configs/paths.py`](file:///d:/D-Documents/TOOLs/mod/src/configs/paths.py) (`APPDATA_FOLDER`, `TEMPLATE_REPLACER_FOLDER`, `LOCAL_ABSOLUTE_FOLDER_PATH`, `SKILLS_FOLDER_PATH`, `VSCODE_WORKSPACES_FOLDER`, `SOURCE_FILES_FOLDER`).
-3. **Các thao tác file nhạy cảm:** Các lệnh `file delete`, `file keep`, `gdrive del-fd`, `gdrive reset` có tính chất xóa dữ liệu vĩnh viễn. Đảm bảo script luôn có validate hoặc xác nhận trước khi thực thi.
-4. **Bảo mật:** Không bao giờ commit file `.env`, file cấu hình chứa token/OAuth secret thật lên git repository công khai.
+1. **Tuyệt đối không chuyển Dispatcher sang `argparse`:** Phải giữ nguyên cơ chế manual parsing để bảo toàn tính linh hoạt của argument forwarding.
+2. **Bảo mật:** Không bao giờ commit file `.env`, API key, token cá nhân hoặc thông tin nhạy cảm lên Git repository công khai.
+3. **Thao tác dữ liệu nhạy cảm:** Các lệnh có tác vụ xóa file hàng loạt (`file delete`, `file keep`, `gdrive del-fd`, `gdrive reset`, `gist delete`) luôn phải có kiểm tra an toàn hoặc bước xác nhận trước khi thực thi.
