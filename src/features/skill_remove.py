@@ -86,8 +86,9 @@ def is_safe_to_delete(path_to_delete: str, base_root: str) -> bool:
         rel = os.path.relpath(abs_target, abs_base)
         if rel.startswith(".."):
             return False
-        parts = rel.replace("\\", "/").split("/")
-        if any(p == ".git" or p.startswith(".") for p in parts):
+        parts = [p.lower() for p in rel.replace("\\", "/").split("/") if p]
+        ignore_dirs = {".git", ".github", ".vscode", ".idea", "node_modules", ".venv", "venv", "__pycache__"}
+        if any(p in ignore_dirs for p in parts):
             return False
         return True
     except Exception:
