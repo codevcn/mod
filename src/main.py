@@ -16,6 +16,13 @@ from configs.paths import (
     CLAUDE_SKILLS_PATH,
     OPEN_ALIASES_FILE_PATH,
     SOURCE_FILES_FOLDER,
+    BROWSER_EXTENSIONS_FOLDER,
+    TESTING_FOLDER,
+    TESTING_JS_TS_FOLDER,
+    TESTING_PY_FOLDER,
+    NESTJS_TEMPLATE_FOLDER,
+    EXPRESS_TS_TEMPLATE_FOLDER,
+    UNIKEY_PATH,
 )
 from configs.version import get_version_info
 from utils.errors import (
@@ -247,12 +254,12 @@ def print_cURL():
 
 
 def open_vscode_extensions_in_vscode(ide_prefix):
-    subprocess.run([ide_prefix, "D:/D-Documents/Browser-Extensions"], shell=True)
+    subprocess.run([ide_prefix, BROWSER_EXTENSIONS_FOLDER], shell=True)
     sys.exit(0)
 
 
 def open_testing_folder_in_vscode(ide_prefix):
-    subprocess.run([ide_prefix, "D:/D-Documents/Testing"], shell=True)
+    subprocess.run([ide_prefix, TESTING_FOLDER], shell=True)
     sys.exit(0)
 
 
@@ -460,7 +467,7 @@ def open_mod_files_in_vscode(ide_prefix):
 
 
 def open_template_nestjs_folder_in_vscode(ide_prefix):
-    subprocess.run([ide_prefix, "D:/D-Documents/Code_VCN/nestjs"], shell=True)
+    subprocess.run([ide_prefix, NESTJS_TEMPLATE_FOLDER], shell=True)
     sys.exit(0)
 
 
@@ -484,24 +491,22 @@ def print_pc_power(remaining_args: list[str]):
 
 
 def run_Unikey_app():
-    subprocess.run(["start", "C:/Users/dell/Downloads/UniKeyNT.exe"], shell=True)
+    subprocess.run(["start", UNIKEY_PATH], shell=True)
     sys.exit(0)
 
 
 def open_typescript_template_in_cursor(ide_prefix):
-    subprocess.run(
-        [ide_prefix, "D:/D-Documents/Templates/standard-express-server-ts"], shell=True
-    )
+    subprocess.run([ide_prefix, EXPRESS_TS_TEMPLATE_FOLDER], shell=True)
     sys.exit(0)
 
 
 def open_testing_javascript_typescript_folder_in_vscode(ide_prefix):
-    subprocess.run([ide_prefix, "D:/D-Documents/Testing/js-ts"], shell=True)
+    subprocess.run([ide_prefix, TESTING_JS_TS_FOLDER], shell=True)
     sys.exit(0)
 
 
 def open_testing_python_folder_in_vscode(ide_prefix):
-    subprocess.run([ide_prefix, "D:/D-Documents/Testing/py"], shell=True)
+    subprocess.run([ide_prefix, TESTING_PY_FOLDER], shell=True)
     sys.exit(0)
 
 

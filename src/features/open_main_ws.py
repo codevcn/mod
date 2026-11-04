@@ -1,12 +1,23 @@
 import subprocess
 import time
 import argparse
+import sys
+from pathlib import Path
+
+# Thêm project root vào sys.path để import configs
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from configs.paths import (
+    CHROME_EXE_PATH,
+    WS_PHOTOBOOTH_PTM,
+    WS_PHOTOBOOTH_RECOVER,
+    WS_GDRIVE_TOOL,
+)
 
 
 def open_working_workspace_photobooth(ide_prefix, powershell_only=False) -> None:
     folders: list[str] = [
-        "D:/D-Documents/Code_VCN/Photobooth/code/ptm",
-        "D:/D-Documents/Code_VCN/Photobooth/recover-image",
+        WS_PHOTOBOOTH_PTM,
+        WS_PHOTOBOOTH_RECOVER,
     ]
 
     # Nếu dùng flag -p, chỉ mở 3 thư mục chính trong terminal
@@ -50,7 +61,7 @@ def open_working_workspace_photobooth(ide_prefix, powershell_only=False) -> None
         ["Profile 23", "https://chatgpt.com", "https://gemini.google.com/app"],
     ]
 
-    chrome_path = "C:/Program Files/Google/Chrome/Application/chrome.exe"
+    chrome_path = CHROME_EXE_PATH
     for profile in destinations_for_browser:
         profile_name = profile[0]
         for url in profile[1:]:
@@ -60,7 +71,7 @@ def open_working_workspace_photobooth(ide_prefix, powershell_only=False) -> None
 
 def open_working_workspace_rclone_tool(ide_prefix, powershell_only=False) -> None:
     folders: list[str] = [
-        "D:/D-Documents/TOOLs/gdrive-tool/sync-with-gdrive",
+        WS_GDRIVE_TOOL,
     ]
 
     # Nếu dùng flag -p, chỉ mở 3 thư mục chính trong terminal
@@ -98,7 +109,7 @@ def open_working_workspace_rclone_tool(ide_prefix, powershell_only=False) -> Non
         ["Profile 23", "https://chatgpt.com", "https://gemini.google.com/app"],
     ]
 
-    chrome_path = "C:/Program Files/Google/Chrome/Application/chrome.exe"
+    chrome_path = CHROME_EXE_PATH
     for profile in destinations_for_browser:
         profile_name = profile[0]
         for url in profile[1:]:

@@ -7,8 +7,12 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-USER_DATA_DIR = r"C:\Users\dell\AppData\Local\Google\Chrome\User Data"
-DOWNLOAD_DIRECTORIES_DIR = r"D:\D-Downloads"
+# Thêm project root vào sys.path để import configs
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from configs.paths import CHROME_USER_DATA_DIR, DEFAULT_DOWNLOAD_DIR
+
+USER_DATA_DIR = CHROME_USER_DATA_DIR
+DOWNLOAD_DIRECTORIES_DIR = DEFAULT_DOWNLOAD_DIR
 PROFILE_DIR_RE = re.compile(r"^(Default|Profile \d+)$")
 
 
