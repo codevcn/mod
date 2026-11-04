@@ -148,6 +148,7 @@ MOD_PROXY_TEST = "test"
 MOD_MCP_SET = "set"
 MOD_MCP_OPEN_CONFIG = "open-config"
 # skill
+MOD_SKILL_OPEN = "open"
 MOD_SKILL_SET = "set"
 MOD_SKILL_REMOVE = "remove"
 MOD_SKILL_OFF_INVO = "off-invocation"
@@ -754,9 +755,16 @@ def cmd_mcp(action, remaining_args):
     sys.exit(result.returncode)
 
 
-def cmd_skill(action, remaining_args):
+def cmd_skill(action, remaining_args, default_ide_prefix="code"):
     act_lower = action.lower() if action else ""
-    if act_lower in ("remove", "rm"):
+    if act_lower == "open":
+        has_code_flag = any(a in ("-c", "--code") for a in remaining_args)
+        if has_code_flag:
+            open_path_in_ide(SKILLS_FOLDER_PATH, default_ide_prefix)
+        else:
+            open_skills_folder()
+        sys.exit(0)
+    elif act_lower in ("remove", "rm"):
         feature_file = "skill_remove.py"
     elif act_lower in ("off-invocation", "off-invo", "on-invocation", "on-invo"):
         feature_file = "skill_invocation.py"
@@ -928,6 +936,7 @@ def dispatch_command(
         cmd_mcp(action_included, remaining_args)
     elif type_included == MOD_TYPE_SKILL:
         valid_actions = [
+            MOD_SKILL_OPEN,
             MOD_SKILL_SET,
             MOD_SKILL_REMOVE,
             MOD_SKILL_OFF_INVO,
@@ -956,7 +965,7 @@ def dispatch_command(
             clean_act = MOD_SKILL_FIND
         if clean_act not in valid_actions:
             raise InvalidActionError(type_included, action_included, valid_actions)
-        cmd_skill(action_included, remaining_args)
+        cmd_skill(action_included, remaining_args, default_ide_prefix)
     elif type_included == MOD_TYPE_TOAST:
         cmd_toast(action_included, remaining_args)
     elif type_included == MOD_TYPE_NOTIFY:
@@ -1135,7 +1144,10 @@ def dispatch_command(
         elif clean_action in (MOD_OPEN_MCP, "mcps"):
             open_mcp_folder()
         elif clean_action in (MOD_OPEN_SKILLS, "skill"):
-            open_skills_folder()
+            if has_code_flag:
+                open_path_in_ide(SKILLS_FOLDER_PATH, default_ide_prefix)
+            else:
+                open_skills_folder()
         elif clean_action in (MOD_OPEN_SRC_FILES, "src-file", "source-files", "source-file"):
             if has_code_flag:
                 open_path_in_ide(SOURCE_FILES_FOLDER, default_ide_prefix)

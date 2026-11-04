@@ -276,6 +276,9 @@ notify            :to send multi-channel notifications (ntfy, telegram, toast).
                   :search all skills in central repo matching keyword in skill path.
                   // Example: mod skill find ssr
                   // Example: mod skill search outside
+   open [-c]      :open AI Skills folder in File Explorer (or IDE with -c/--code). (Alias of 'mod open skills')
+                  // Example: mod skill open
+                  // Example: mod skill open -c
 
 ## toast:
    <title> [msg...] [--audio <path>]
