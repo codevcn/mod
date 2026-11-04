@@ -69,11 +69,29 @@ def get_agent_skills(agent_path: str) -> list[str]:
         skills = [
             item.name
             for item in p.iterdir()
-            if item.is_dir() and not item.name.startswith(".")
+            if item.is_dir() and not item.name.startswith(".") and item.name != ".git"
         ]
         return sorted(skills, key=lambda s: s.lower())
     except Exception:
         return []
+
+
+def is_safe_to_delete(path_to_delete: str, base_root: str) -> bool:
+    """Đảm bảo thư mục cần xóa là thư mục con hợp lệ của base_root, không phải root hay .git."""
+    try:
+        abs_target = os.path.abspath(path_to_delete)
+        abs_base = os.path.abspath(base_root)
+        if abs_target == abs_base:
+            return False
+        rel = os.path.relpath(abs_target, abs_base)
+        if rel.startswith(".."):
+            return False
+        parts = rel.replace("\\", "/").split("/")
+        if any(p == ".git" or p.startswith(".") for p in parts):
+            return False
+        return True
+    except Exception:
+        return False
 
 
 def handle_remove_for_single_agent(
@@ -171,6 +189,9 @@ def handle_remove_for_single_agent(
             sys.exit(0)
 
         try:
+            if not is_safe_to_delete(skill_dir, agent_path):
+                print(f"{Fore.RED}❌ Lỗi: Đường dẫn không an toàn hoặc là thư mục cấm xóa (.git/root): {skill_dir}{Style.RESET_ALL}")
+                sys.exit(1)
             if os.path.exists(skill_dir):
                 shutil.rmtree(skill_dir)
                 print(f"{Fore.GREEN}✅ Đã xóa thành công Skill '{skill_name}' khỏi {agent_label}!{Style.RESET_ALL}")
@@ -194,6 +215,9 @@ def handle_remove_for_single_agent(
         for s in chosen_skills:
             skill_dir = os.path.join(agent_path, s)
             try:
+                if not is_safe_to_delete(skill_dir, agent_path):
+                    print(f"{Fore.RED}❌ Bỏ qua vì đường dẫn không an toàn (.git/root): {skill_dir}{Style.RESET_ALL}")
+                    continue
                 if os.path.exists(skill_dir):
                     shutil.rmtree(skill_dir)
                     print(f"{Fore.GREEN}✅ Đã xóa '{s}' khỏi {agent_label}!{Style.RESET_ALL}")
@@ -343,6 +367,9 @@ def handle_remove_for_all_agents(preselected_skill: str | None = None, filter_ch
         for lbl, p in target_agents:
             skill_dir = os.path.join(p, chosen_item["name"])
             try:
+                if not is_safe_to_delete(skill_dir, p):
+                    print(f"{Fore.RED}❌ Bỏ qua vì đường dẫn không an toàn (.git/root): {skill_dir}{Style.RESET_ALL}")
+                    continue
                 if os.path.exists(skill_dir):
                     shutil.rmtree(skill_dir)
                     print(f"{Fore.GREEN}✅ Đã xóa '{chosen_item['name']}' khỏi {lbl}!{Style.RESET_ALL}")
@@ -371,6 +398,9 @@ def handle_remove_for_all_agents(preselected_skill: str | None = None, filter_ch
             for lbl, p in item["agents"]:
                 skill_dir = os.path.join(p, item["name"])
                 try:
+                    if not is_safe_to_delete(skill_dir, p):
+                        print(f"{Fore.RED}❌ Bỏ qua vì đường dẫn không an toàn (.git/root): {skill_dir}{Style.RESET_ALL}")
+                        continue
                     if os.path.exists(skill_dir):
                         shutil.rmtree(skill_dir)
                         print(f"{Fore.GREEN}✅ Đã xóa '{item['name']}' khỏi {lbl}!{Style.RESET_ALL}")
@@ -476,6 +506,9 @@ def handle_remove_for_central_repo(preselected_skill: str | None = None, filter_
     deleted_count = 0
     for p in chosen_paths:
         try:
+            if not is_safe_to_delete(p, SKILLS_FOLDER_PATH):
+                print(f"{Fore.RED}❌ Bỏ qua vì đường dẫn không an toàn (.git/root): {p}{Style.RESET_ALL}")
+                continue
             if os.path.exists(p):
                 shutil.rmtree(p)
                 print(f"{Fore.GREEN}✅ Đã xóa vĩnh viễn: {p}{Style.RESET_ALL}")
@@ -604,7 +637,9 @@ def handle_remove_include_agents(include_agent_choice: str, preselected_skill: s
     for item in deletion_plan:
         # Xóa khỏi kho
         try:
-            if os.path.exists(item["central_path"]):
+            if not is_safe_to_delete(item["central_path"], SKILLS_FOLDER_PATH):
+                print(f"{Fore.RED}❌ Bỏ qua vì đường dẫn không an toàn (.git/root): {item['central_path']}{Style.RESET_ALL}")
+            elif os.path.exists(item["central_path"]):
                 shutil.rmtree(item["central_path"])
                 print(f"{Fore.GREEN}✅ Đã xóa khỏi kho gốc: {item['name']}{Style.RESET_ALL}")
                 total_repo_deleted += 1
@@ -614,7 +649,9 @@ def handle_remove_include_agents(include_agent_choice: str, preselected_skill: s
         # Xóa khỏi agent
         for lbl, adir in item["agent_dirs"]:
             try:
-                if os.path.exists(adir):
+                if not any(is_safe_to_delete(adir, ap) for _, ap in targets):
+                    print(f"{Fore.RED}❌ Bỏ qua vì đường dẫn không an toàn (.git/root): {adir}{Style.RESET_ALL}")
+                elif os.path.exists(adir):
                     shutil.rmtree(adir)
                     print(f"{Fore.GREEN}✅ Đã xóa khỏi {lbl}: {item['name']}{Style.RESET_ALL}")
                     total_agent_deleted += 1

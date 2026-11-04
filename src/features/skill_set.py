@@ -42,6 +42,9 @@ def has_direct_skill_file(folder_path: str) -> bool:
     """Kiểm tra một thư mục có chứa file con trực tiếp là SKILL.md không."""
     if not os.path.isdir(folder_path):
         return False
+    # Không nhận nếu tên thư mục là .git hoặc folder ẩn
+    if os.path.basename(os.path.normpath(folder_path)).startswith("."):
+        return False
     try:
         return any(
             f.lower() == "skill.md" and os.path.isfile(os.path.join(folder_path, f))
@@ -90,18 +93,23 @@ def list_skill_folders(base_path: str) -> list[str]:
     """
     Chỉ liệt kê các folder nào có file con trực tiếp là SKILL.md.
     Các folder cha phân loại hoặc folder con bên trong skill sẽ không được liệt kê.
+    Tự động né bỏ qua các thư mục quản lý mã nguồn (.git, .github...), môi trường ảo, cache.
     """
     skill_folders = []
-    ignore_dirs = {".git", "node_modules", ".venv", "venv", "__pycache__", ".vscode", "dist", "build"}
+    ignore_dirs = {".git", ".github", ".vscode", ".idea", "node_modules", ".venv", "venv", "__pycache__", "dist", "build"}
     base_path = os.path.abspath(base_path)
     for root, dirs, files in os.walk(base_path):
-        dirs[:] = [d for d in dirs if d not in ignore_dirs]
+        dirs[:] = [d for d in dirs if d not in ignore_dirs and not d.startswith(".")]
         if root == base_path:
+            continue
+        # Bỏ qua nếu bất kỳ thành phần nào trong đường dẫn tương đối là folder ẩn / ignore
+        rel_parts = os.path.relpath(root, base_path).replace("\\", "/").split("/")
+        if any(p.startswith(".") or p in ignore_dirs for p in rel_parts):
             continue
         # Chỉ nhận folder có file con trực tiếp là SKILL.md
         if any(f.lower() == "skill.md" and os.path.isfile(os.path.join(root, f)) for f in files):
-            rel_path = os.path.relpath(root, base_path)
-            skill_folders.append(rel_path.replace("\\", "/"))
+            rel_path = "/".join(rel_parts)
+            skill_folders.append(rel_path)
             # Khi đã xác định là 1 skill, không duyệt sâu vào các thư mục con bên trong nó
             dirs[:] = []
     return sorted(skill_folders)
@@ -115,6 +123,11 @@ def find_skill_folder(base_path: str, target_name: str) -> str | None:
     2. Tên thư mục skill (basename, vd: chatgpt-web-interaction)
     """
     target_clean = target_name.strip().replace("\\", "/").strip("/")
+    # Bỏ qua nếu target trỏ vào folder ẩn hoặc .git
+    parts = [p for p in target_clean.split("/") if p]
+    if any(p.startswith(".") or p == ".git" for p in parts):
+        return None
+
     base_path = os.path.abspath(base_path)
 
     # 1. Thử tìm trực tiếp nếu target_name là đường dẫn tương đối
