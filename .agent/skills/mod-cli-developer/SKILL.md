@@ -11,6 +11,15 @@ Tài liệu này là **Quy chuẩn tác nghiệp chuẩn (SOP)** dành cho AI Ag
 
 ---
 
+> [!CAUTION]
+> ### NGUYÊN TẮC BẢO VỆ MÃ NGUỒN TUYỆT ĐỐI (ZERO DATA LOSS)
+> 1. **Trước mỗi lần bắt tay vào code bất kỳ tính năng nào:** AI Agent **BẮT BUỘC** phải kiểm tra `git status --porcelain`. Nếu có bất kỳ thay đổi nào (tracked hoặc untracked), **PHẢI** chạy `git stash push -u -m "<message_chi_tiết>"` để cất toàn bộ thay đổi an toàn vào Git stash trước khi sửa file.
+> 2. **Bắt buộc dùng cờ `-u` (`--include-untracked`):** Không có cờ này, Git sẽ bỏ sót toàn bộ file mới tạo (untracked files), dẫn đến nguy cơ mất code tính năng mới.
+> 3. **Message Git Stash phải rõ nghĩa, chi tiết:** Nêu rõ bối cảnh đang lưu những gì và chuẩn bị bắt tay vào làm tính năng nào kèm thời gian (ví dụ: `checkpoint: cất toàn bộ thay đổi trước khi triển khai mod git dl-folder - 2026-11-04 16:20`).
+> 4. **Tuyệt đối không tự ý hoàn tác:** Không bao giờ chạy `git checkout <file>` hay `git restore <file>` nếu chưa chắc chắn 100% các thay đổi đã được commit hoặc đã nằm an toàn trong Git stash.
+
+---
+
 ## 1. Kiến Trúc & Các Nguyên Tắc Bất Di Bất Dịch
 
 ```text
@@ -28,18 +37,32 @@ User: mod <type> <action> [args...] [-a] [--info]
                                                             (Thực thi nghiệp vụ)
 ```
 
-### 3 Nguyên Tắc Cốt Lõi:
-1. **Phân định cờ (Flag Separation):** 
+### 4 Nguyên Tắc Cốt Lõi:
+1. **Bảo Toàn Mã Nguồn & Git Stash Checkpoint BẮT BUỘC Trước Khi Code:**
+   - Luôn chạy `git stash push -u -m "checkpoint: <mô_tả_chi_tiết>"` trước khi can thiệp vào codebase nếu có uncommitted changes.
+   - Tuyệt đối không để xảy ra tình trạng checkout/restore làm mất công sức chưa commit của người dùng hoặc phiên làm việc trước.
+2. **Phân định cờ (Flag Separation):** 
    - Central Dispatcher (`src/main.py`) **CHỈ xử lý 2 cờ toàn cục**: `--info` (in mô tả YAML) và `-a` / `--antigravity-IDE` (chọn IDE).
    - Mọi cờ tính năng khác (`-m`, `-p`, `-d`, `-f`, `--audio`, `--protocol`...) **BẮT BUỘC** do script trong `src/features/` tự parse từ `remaining_args`.
-2. **Không hardcode đường dẫn:** Mọi đường dẫn thư mục/tập tin phải lấy từ [`src/configs/paths.py`](file:///d:/D-Documents/TOOLs/mod/src/configs/paths.py).
-3. **Mã hóa UTF-8 Console:** Luôn đặt `PYTHONIOENCODING=utf-8` và `sys.stdout.reconfigure(encoding='utf-8')` ở đầu các script để tránh lỗi vỡ font tiếng Việt trên Windows.
+3. **Không hardcode đường dẫn:** Mọi đường dẫn thư mục/tập tin phải lấy từ [`src/configs/paths.py`](file:///d:/D-Documents/TOOLs/mod/src/configs/paths.py).
+4. **Mã hóa UTF-8 Console:** Luôn đặt `PYTHONIOENCODING=utf-8` và `sys.stdout.reconfigure(encoding='utf-8')` ở đầu các script để tránh lỗi vỡ font tiếng Việt trên Windows.
 
 ---
 
 ## 2. SOP 1: Quy Trình THÊM Tính Năng Mới (Add Feature)
 
 Khi nhận yêu cầu thêm lệnh mới (ví dụ: `mod <type> <action>`):
+
+### Bước 0: Tạo Git Stash Checkpoint (-u) Lưu Toàn Bộ Thay Đổi Hiện Tại (BẮT BUỘC)
+- Kiểm tra trạng thái: `git status --porcelain`
+- Nếu phát hiện có file modified hoặc untracked (`??`), thực hiện ngay lệnh cất tạm:
+  ```bash
+  git stash push -u -m "checkpoint: cất toàn bộ thay đổi chưa commit trước khi thêm tính năng mod <type> <action> - <YYYY-MM-DD HH:MM>"
+  ```
+- **Yêu cầu đối với Message của Git Stash:**
+  - Message PHẢI rõ nghĩa, chi tiết: mô tả đang lưu công việc gì, chuẩn bị code tính năng gì.
+  - **Bắt buộc có cờ `-u`** để gom cả file untracked.
+  - Sau khi cất thành công mới bắt đầu thực hiện Bước 1.
 
 ### Bước 1: Tạo Feature Script (`src/features/<tên_tính_năng>.py`)
 - Import `sys.path.insert(0, str(Path(__file__).resolve().parents[1]))` và các cấu hình từ `configs.paths`.
@@ -65,7 +88,7 @@ Khi nhận yêu cầu thêm lệnh mới (ví dụ: `mod <type> <action>`):
 - [`PROJECT_CONTEXT.md`](file:///d:/D-Documents/TOOLs/mod/PROJECT_CONTEXT.md): Cập nhật cây thư mục và Bảng tra cứu lệnh tại Mục 4.2.
 
 ### Bước 5: Kiểm thử bắt buộc (Verification)
-- `python src/main.py <type> <action> --info` $\rightarrow$ Phải in ra đúng mô tả YAML.
+- `python src/main.py <type> <action> --info` → Phải in ra đúng mô tả YAML.
 - Test Tab Autocomplete qua Python runtime.
 - Test thực thi lệnh trực tiếp.
 
@@ -75,6 +98,12 @@ Khi nhận yêu cầu thêm lệnh mới (ví dụ: `mod <type> <action>`):
 
 Khi chỉnh sửa một tính năng đã tồn tại:
 
+0. **Checkpoint an toàn trước khi sửa (BẮT BUỘC):**
+   - Chạy `git status --porcelain`.
+   - Nếu có thay đổi chưa commit, chạy:
+     ```bash
+     git stash push -u -m "checkpoint: cất thay đổi trước khi chỉnh sửa tính năng <tên_tính_năng> - <YYYY-MM-DD HH:MM>"
+     ```
 1. **Trường hợp sửa logic nội bộ:** Chỉ sửa file script tương ứng trong `src/features/`.
 2. **Trường hợp thay đổi cú pháp / tham số / cờ:**
    - Cập nhật script trong `src/features/`.
@@ -90,6 +119,8 @@ Khi chỉnh sửa một tính năng đã tồn tại:
 
 Khi xóa bỏ hoàn toàn một lệnh hoặc một nhóm lệnh:
 
+0. **Checkpoint an toàn trước khi xóa (BẮT BUỘC):**
+   - Chạy `git stash push -u -m "checkpoint: cất toàn bộ thay đổi trước khi xóa tính năng <tên_tính_năng> - <YYYY-MM-DD HH:MM>"`.
 1. **Xóa Script:** Xóa file script liên quan trong `src/features/` (nếu không còn action nào khác dùng chung).
 2. **Dọn dẹp `src/main.py`:**
    - Xóa hằng số `MOD_*` của type/action bị xóa.

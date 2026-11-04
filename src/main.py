@@ -15,6 +15,7 @@ from configs.paths import (
     CODEX_SKILLS_PATH,
     CLAUDE_SKILLS_PATH,
     OPEN_ALIASES_FILE_PATH,
+    SOURCE_FILES_FOLDER,
 )
 from configs.version import get_version_info
 from utils.errors import (
@@ -91,6 +92,7 @@ MOD_OPEN_ENV = "env"
 MOD_OPEN_MCP = "mcp"
 MOD_OPEN_PROMPTS_FOLDER = "proms"
 MOD_OPEN_SKILLS = "skills"
+MOD_OPEN_SRC_FILES = "src-files"
 MOD_OPEN_SSH_CONF = "ssh-conf"
 MOD_OPEN_VSCODE_WORKSPACE = "ws"
 # code
@@ -271,7 +273,7 @@ def run_git_command(git_type, remaining_args):
 
 
 def open_in_file_explorer(target_path: str):
-    """Mở an toàn thư mục hoặc tệp trong Windows File Explorer bằng os.startfile."""
+    """Mở an toàn thư mục hoặc tệp trong Windows File Explorer."""
     resolved = Path(target_path).resolve()
     if not resolved.exists():
         raise ModCLIError(
@@ -281,10 +283,14 @@ def open_in_file_explorer(target_path: str):
         )
 
     folder_str = str(resolved)
-    if hasattr(os, "startfile"):
-        os.startfile(folder_str)
-    else:
-        subprocess.run(["explorer", os.path.normpath(folder_str)])
+    print(f"\033[92m>>> Đang mở trong File Explorer:\033[0m \033[96m{folder_str}\033[0m")
+    try:
+        subprocess.Popen(["explorer.exe", folder_str])
+    except Exception:
+        if hasattr(os, "startfile"):
+            os.startfile(folder_str)
+        else:
+            subprocess.run(["explorer", os.path.normpath(folder_str)])
 
     sys.exit(0)
 
@@ -328,6 +334,10 @@ def open_prompts_folder():
 
 def open_vscode_workspaces_in_system_folder():
     open_in_file_explorer(VSCODE_WORKSPACES_FOLDER)
+
+
+def open_source_files_folder():
+    open_in_file_explorer(SOURCE_FILES_FOLDER)
 
 
 def open_environment_variables_panel():
@@ -391,7 +401,9 @@ def print_vscode_workspaces(workspace_path):
 
 
 def open_path_in_ide(target_path: str, ide_prefix: str):
-    subprocess.run([ide_prefix, target_path], shell=True)
+    resolved = Path(target_path).resolve()
+    print(f"\033[92m>>> Đang mở trong IDE ({ide_prefix}):\033[0m \033[96m{resolved}\033[0m")
+    subprocess.run([ide_prefix, str(resolved)], shell=True)
     sys.exit(0)
 
 
@@ -407,6 +419,7 @@ def manage_open_aliases(subaction: str, remaining_args: list[str]):
 
 
 def open_mod_files_in_vscode(ide_prefix):
+    print(f"\033[92m>>> Đang mở trong IDE ({ide_prefix}):\033[0m \033[96m{MOD_ROOT_FOLDER}\033[0m")
     subprocess.run([ide_prefix, f"{MOD_ROOT_FOLDER}"], shell=True)
     sys.exit(0)
 
@@ -981,6 +994,7 @@ def dispatch_command(
             MOD_OPEN_MCP,
             MOD_OPEN_PROMPTS_FOLDER,
             MOD_OPEN_SKILLS,
+            MOD_OPEN_SRC_FILES,
             MOD_OPEN_SSH_CONF,
             MOD_OPEN_VSCODE_WORKSPACE,
         ]
@@ -1024,6 +1038,11 @@ def dispatch_command(
             open_mcp_folder()
         elif clean_action in (MOD_OPEN_SKILLS, "skill"):
             open_skills_folder()
+        elif clean_action in (MOD_OPEN_SRC_FILES, "src-file", "source-files", "source-file"):
+            if has_code_flag:
+                open_path_in_ide(SOURCE_FILES_FOLDER, default_ide_prefix)
+            else:
+                open_source_files_folder()
         elif clean_action == MOD_OPEN_ADD:
             manage_open_aliases("add", remaining_args)
         elif clean_action in (MOD_OPEN_LIST, "ls", "aliases"):

@@ -1,7 +1,15 @@
+import os
+import sys
 import ctypes
 import msvcrt
 import time
-import sys
+
+# Cấu hình UTF-8 cho Windows Console
+os.environ.setdefault("PYTHONIOENCODING", "utf-8")
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 # Các hằng số cho SetThreadExecutionState của Windows API
 ES_CONTINUOUS = 0x80000000

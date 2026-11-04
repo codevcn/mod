@@ -107,6 +107,7 @@ def main():
 
     parser.add_argument(
         "--level",
+        "--lv",
         "-l",
         type=str,
         default="deep",

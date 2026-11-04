@@ -132,7 +132,11 @@ d:\D-Documents\TOOLs\mod\
         ├── create_linear_path.py       # Tạo folder hoặc file theo path với cơ chế linear cha-con và bảo vệ không ghi đè
         ├── delete_files.py             # Xóa file cấp 1 theo danh sách extension (vd: "tmp,log")
         ├── edit_to_command.py          # Mở PowerShell Profile ($PROFILE) trong Notepad
+        ├── add_source_file.py          # Thêm tệp vào kho lưu trữ template tiện ích (mod file add-src)
+        ├── find_items.py               # Tìm kiếm tập tin/thư mục tối ưu DFS không đệ quy (mod find file/folder)
         ├── gen_qr_image.py             # Sinh file ảnh QR Code từ text nhập vào và lưu vào APPDATA_FOLDER
+        ├── git_download.py             # Tải folder/file trực tiếp từ GitHub repo (mod git dl-folder / dl-file)
+        ├── git_stash.py                # Quản lý danh sách Git Stash và xóa tương tác (mod git stash list / drop)
         ├── keep_files_with_ext.py      # Xóa toàn bộ file khác đuôi chỉ định (chỉ giữ 1 extension)
         ├── keep_screen.py              # Giữ màn hình Windows luôn bật qua SetThreadExecutionState Win32 API
         ├── keep_server_awake.py        # Ping HTTP GET định kỳ để giữ sống server miễn phí (Render/Kaggle)
@@ -149,6 +153,9 @@ d:\D-Documents\TOOLs\mod\
         ├── send_toast.py               # CLI wrapper gửi Toast notification qua `ToastNotifier`
         ├── set_download_path_in_chrome.py # Sửa file Preferences của tất cả Google Chrome profiles
         ├── setup_venv_in_project.py    # Setup toàn diện venv Python: tạo venv, nâng cấp pip, ins.cmd, venv.cmd
+        ├── skill_invocation.py         # Bật/tắt tự động gọi AI Skill (mod skill on-invo / off-invo)
+        ├── skill_list.py               # Liệt kê danh sách Skill trong kho hoặc dự án (mod skill list / list-project)
+        ├── skill_remove.py             # Xóa Skill khỏi kho hoặc AI Agent an toàn (mod skill remove / rm)
         ├── skill_set.py                # Copy thư mục Skill AI từ kho SKILLS_FOLDER_PATH vào project đích
         ├── srt_count_line.py           # Phân tích file phụ đề SRT và thống kê theo số lượng dòng thoại
         └── test_proxy.py               # Kiểm tra kết nối proxy (Python requests, cURL header, ipify IP check)
@@ -177,6 +184,7 @@ Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--info]`
 | `open` | `appdata` | | Mở thư mục AppData của me-mod (`APPDATA_FOLDER`). |
 | `open` | `mcp` | | Mở thư mục chứa các MCP servers (`LOCAL_ABSOLUTE_FOLDER_PATH`). |
 | `open` | `skills` | | Mở thư mục chứa các AI Skills (`SKILLS_FOLDER_PATH`). |
+| `open` | `src-files` | `[-c, --code]` | Mở thư mục kho lưu trữ source-files trong File Explorer (hoặc IDE với `-c`). |
 | `open` | `agy-mcp-conf` | | Mở file MCP config của Google Antigravity (`~/.gemini/config/mcp_config.json`). |
 | `open` | `codex-mcp-conf` | | Mở file MCP config của OpenAI Codex (`~/.codex/config.toml`). |
 | `open` | `clau-mcp-conf` | | Mở file MCP config của Claude Code (`~/.claude.json`). |
@@ -192,6 +200,7 @@ Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--info]`
 | `code` | `ws` | `<value> [-p]` | Mở workspace thiết lập sẵn (`ptb` hoặc `tool`). `-p` chỉ mở Windows Terminal. |
 | `code` | `test` / `js` / `ts` / `py` / `nestjs` / `ext` / `ts-template` | | Mở nhanh các thư mục template hoặc thư mục testing tương ứng trong IDE. |
 | `file` | `create` | | Menu tương tác tạo file từ template `files_source.txt`. |
+| `file` | `add-src` | `<file_path> [--folder <name>]` | Thêm tệp vào kho template `SOURCE_FILES_FOLDER` (hỗ trợ tạo đệ quy thư mục nhiều cấp). |
 | `file` | `rename` | `<folder_path> [prefix]` | Đổi tên file hàng loạt thành `<prefix>-1.ext`, `<prefix>-2.ext`... |
 | `file` | `delete` | `<folder_path> <ext1,ext2,...>` | Xóa toàn bộ file có extension nằm trong danh sách chỉ định. |
 | `file` | `keep` | `<folder_path> <ext>` | Chỉ giữ lại file có extension chỉ định, xóa tất cả các file khác. |
@@ -206,6 +215,10 @@ Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--info]`
 | `run` | `keep-screen` | | Giữ màn hình Windows luôn sáng (bấm `q` hoặc `Ctrl+C` để dừng). |
 | `run` | `srt-count-line` | `<file_path>` | Đếm số dòng thoại trong file SRT và sắp xếp giảm dần. |
 | `git` | `commit` | `-m "<commit_message>"` | Tự động thực hiện: `git add .` -> `git commit -m` -> `git push origin main`. |
+| `git` | `dl-folder` | `<git_folder_url> [dest_path]` | Tải toàn bộ thư mục và nội dung con từ GitHub repo về máy mà không kèm file .git. |
+| `git` | `dl-file` | `<git_file_url> [dest_path]` | Tải một tệp đơn lẻ từ GitHub repo về máy tính. |
+| `git` | `stash` | `[list \| ls]` | Liệt kê các Git Stash hiện có trong kho lưu trữ mod tool. |
+| `git` | `drop` | `[stash_index]` | Xóa 1 stash khỏi kho lưu trữ (chọn qua bảng câu hỏi tương tác hoặc nhập trực tiếp). |
 | `git` | `remote` | | In danh sách remote URL (`git remote -v`). |
 | `gdrive` | `sync` | `"<source>" "<dest>" [--noti [platform]]` | Đồng bộ thư mục lên Google Drive bằng rclone. |
 | `gdrive` | `list` | `[target_path] [-d] [--file]` | Liệt kê folder/file trên GDrive (`-d`: đệ quy sâu, `--file`: chỉ liệt kê file). |
@@ -239,7 +252,15 @@ Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--info]`
 | `print` | `curl` | | In snippet mẫu cURL CRUD. |
 | `print` | `dir` | | In đường dẫn thư mục `src` của mod. |
 | `print` | `note` | `[--notepad, -n] [--find, -f <text>]` | In hoặc tìm kiếm danh sách các lệnh hữu ích thường dùng kèm tô màu trực quan (hỗ trợ mở Notepad). |
-| `skill` | `set` | `[skill_name] [dest_path] [--ai, --llm, --agent <name>]` | Sao chép thư mục Skill AI từ kho `SKILLS_FOLDER_PATH` vào thư mục đích hoặc thư mục Global của AI Agent (agy, codex, claude, all). |
+| `keep` | *(không có)* | | Giữ màn hình Windows luôn sáng (alias rút gọn của `mod run keep-screen`). |
+| `skill` | `set` | `[skill_name] [dest_path] [--ai, --llm, --agent <name>] [--filter <on|off>]` | Sao chép thư mục Skill AI từ kho `SKILLS_FOLDER_PATH` vào thư mục đích hoặc thư mục Global của AI Agent (agy, codex, claude, all). |
+| `skill` | `remove` / `rm` | `[skill_name] [--ai, --agent <name>] [--include-agent <name>] [--filter <on|off>]` | Xóa Skill khỏi kho trung tâm, khỏi AI Agent, hoặc đồng thời cả hai (có xác nhận an toàn). |
+| `skill` | `off-invo` / `off-invocation` | `[skill_name] [--agent <name>] [--include-agent <name>] [--filter <on|off>]` | Tắt tự động gọi bằng cách thêm `disable-model-invocation: true` vào file `SKILL.md`. |
+| `skill` | `on-invo` / `on-invocation` | `[skill_name] [--agent <name>] [--include-agent <name>] [--filter <on|off>]` | Bật tự động gọi bằng cách xóa `disable-model-invocation: true` khỏi file `SKILL.md`. |
+| `skill` | `list` / `ls` | `[--ai, --agent <name>] [--include-agent <name>]` | Liệt kê các skill trong kho trung tâm, trong AI Agent, hoặc cả hai. |
+| `skill` | `list-project` / `list-prj` | `[dest_folder_path]` | Liệt kê toàn bộ các skill có trong thư mục dự án hoặc CWD. |
+| `find` | `file` | `[project_path] --name <pattern> [--exact, -e] [--all, -a] [--depth, -d <N>] [--limit, -l <N>]` | Tìm kiếm tập tin theo tên/wildcard trong dự án với DFS cắt tỉa thư mục rác. |
+| `find` | `folder` | `[project_path] --name <pattern> [--exact, -e] [--all, -a] [--depth, -d <N>] [--limit, -l <N>]` | Tìm kiếm thư mục theo tên/wildcard trong dự án với DFS cắt tỉa thư mục rác. |
 | `compress` | *(không có)* | `[output_path]` | Nén toàn bộ dự án thành file `mod-{dd}-{mm}-{yyyy}-{hh}-{mm}-{ss}.zip` tại thư mục gốc dự án (hoặc output_path), áp dụng bộ lọc `.compressignore`. |
 | `compress` | `folder` | `<path> [--config-file C] [--ignore-file I]` | Nén thư mục cục bộ tự động đọc `.compressignore` hoặc theo JSON config. |
 | `compress` | `init-ignore` | `<path> ["rules..."]` | Khởi tạo file `.compressignore` mẫu tại đường dẫn chỉ định với các rule tùy chỉnh. |

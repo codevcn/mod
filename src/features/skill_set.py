@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+import yaml
 import shutil
 from pathlib import Path
 from colorama import init, Fore, Style
@@ -48,6 +49,41 @@ def has_direct_skill_file(folder_path: str) -> bool:
         )
     except Exception:
         return False
+
+
+def get_skill_invocation_state(skill_dir: str) -> str:
+    """
+    Trả về 'off-invocation' nếu có disable-model-invocation: true trong YAML frontmatter,
+    ngược lại trả về 'on-invocation'.
+    """
+    if not os.path.isdir(skill_dir):
+        return "on-invocation"
+    try:
+        for fname in os.listdir(skill_dir):
+            if fname.lower() == "skill.md":
+                cand = os.path.join(skill_dir, fname)
+                if os.path.isfile(cand):
+                    with open(cand, "r", encoding="utf-8") as f:
+                        raw = f.read().lstrip("\ufeff")
+                    m = re.match(r"^---\r?\n(.*?)\r?\n---\r?\n?(.*)$", raw, re.DOTALL)
+                    if m:
+                        data = yaml.safe_load(m.group(1))
+                        if isinstance(data, dict) and data.get("disable-model-invocation") is True:
+                            return "off-invocation"
+                    break
+    except Exception:
+        pass
+    return "on-invocation"
+
+
+def parse_filter_arg(val: str) -> str | None:
+    """Chuẩn hóa giá trị filter thành 'on-invocation' hoặc 'off-invocation'."""
+    clean = val.strip().lower()
+    if clean in ("on-invocation", "on"):
+        return "on-invocation"
+    if clean in ("off-invocation", "off"):
+        return "off-invocation"
+    return None
 
 
 def list_skill_folders(base_path: str) -> list[str]:
@@ -162,9 +198,10 @@ def main():
         sys.exit(1)
 
     ai_choice = None
+    filter_choice = None
     positional_args = []
 
-    # Parse arguments: hỗ trợ --ai <name>, --llm <name>, --agent <name> (hoặc --ai=..., --llm=..., --agent=...)
+    # Parse arguments
     i = 2
     while i < len(sys.argv):
         arg = sys.argv[i]
@@ -177,6 +214,24 @@ def main():
                 sys.exit(1)
         elif arg.startswith(("--ai=", "--llm=", "--agent=")):
             ai_choice = arg.split("=", 1)[1].strip().lower()
+            i += 1
+        elif arg in ("--filter", "-f"):
+            if i + 1 < len(sys.argv):
+                raw_filter = sys.argv[i + 1]
+                filter_choice = parse_filter_arg(raw_filter)
+                if not filter_choice:
+                    print(f"{Fore.RED}❌ Lỗi: Giá trị filter '{raw_filter}' không hợp lệ. Chỉ chấp nhận 'on-invocation' (hoặc 'on') và 'off-invocation' (hoặc 'off').{Style.RESET_ALL}")
+                    sys.exit(1)
+                i += 2
+            else:
+                print(f"{Fore.RED}❌ Lỗi: Thiếu giá trị sau cờ {arg}. (Ví dụ: --filter on-invocation hoặc --filter off-invocation){Style.RESET_ALL}")
+                sys.exit(1)
+        elif arg.startswith(("--filter=", "-f=")):
+            raw_filter = arg.split("=", 1)[1]
+            filter_choice = parse_filter_arg(raw_filter)
+            if not filter_choice:
+                print(f"{Fore.RED}❌ Lỗi: Giá trị filter '{raw_filter}' không hợp lệ. Chỉ chấp nhận 'on-invocation' (hoặc 'on') và 'off-invocation' (hoặc 'off').{Style.RESET_ALL}")
+                sys.exit(1)
             i += 1
         else:
             positional_args.append(arg)
@@ -231,6 +286,15 @@ def main():
         print(f"{Fore.YELLOW}>>> Không tìm thấy thư mục SKILL nào có chứa file SKILL.md trong {SKILLS_FOLDER_PATH}.{Style.RESET_ALL}")
         sys.exit(0)
 
+    # Áp dụng bộ lọc --filter nếu có
+    if filter_choice:
+        filtered_folders = [f for f in folders if get_skill_invocation_state(os.path.join(SKILLS_FOLDER_PATH, f)) == filter_choice]
+        if not filtered_folders:
+            lbl = "BẬT" if filter_choice == "on-invocation" else "TẮT"
+            print(f"\n{Fore.YELLOW}ℹ️ Không tìm thấy Skill nào trong kho khớp với bộ lọc '--filter {filter_choice}' (không có skill nào đang {lbl}).{Style.RESET_ALL}")
+            sys.exit(0)
+        folders = filtered_folders
+
     selected_src_paths = []
 
     # Xác định danh sách skill cần cài đặt
@@ -242,14 +306,25 @@ def main():
             if not src_path:
                 print(f"{Fore.RED}>>> Lỗi: Không tìm thấy Skill '{skill_folder_name}' hợp lệ (chứa SKILL.md) trong {SKILLS_FOLDER_PATH}{Style.RESET_ALL}")
                 sys.exit(1)
+            # Kiểm tra xem skill này có thỏa mãn filter không
+            if filter_choice:
+                state = get_skill_invocation_state(src_path)
+                if state != filter_choice:
+                    lbl_cur = "TẮT" if state == "off-invocation" else "BẬT"
+                    lbl_req = "BẬT" if filter_choice == "on-invocation" else "TẮT"
+                    print(f"\n{Fore.YELLOW}⚠️ Bỏ qua Skill '{skill_folder_name}' vì trạng thái hiện tại ({lbl_cur}) không khớp với bộ lọc (--filter {filter_choice} - yêu cầu {lbl_req}).{Style.RESET_ALL}")
+                    sys.exit(0)
             selected_src_paths = [src_path]
     else:
         # Chế độ tương tác: Hiển thị danh sách đánh số trực quan
-        print(">>> Đang quét thư mục SKILLs...")
+        filter_tag = f" {Fore.CYAN}[Đã lọc: --filter {filter_choice}]{Style.RESET_ALL}" if filter_choice else ""
+        print(f">>> Đang quét thư mục SKILLs...{filter_tag}")
         print("\nDanh sách các thư mục SKILL có sẵn:")
         for idx, f in enumerate(folders, 1):
-            print(f"  [{idx}] {f}")
-        print(f"  [a] Cài đặt TẤT CẢ các Skill trên ({len(folders)} skills)")
+            st = get_skill_invocation_state(os.path.join(SKILLS_FOLDER_PATH, f))
+            st_lbl = f"{Fore.GREEN}[BẬT]{Style.RESET_ALL}" if st == "on-invocation" else f"{Fore.YELLOW}[TẮT]{Style.RESET_ALL}"
+            print(f"  [{idx:2d}] {f:<42} {st_lbl}")
+        print(f"  [ a] Cài đặt TẤT CẢ các Skill trên ({len(folders)} skills)")
         print()
 
         prompt_msg = (
@@ -257,16 +332,14 @@ def main():
         )
         user_choice = input(prompt_msg).strip()
 
-        # Mặc định: Nếu người dùng không nhập gì (Enter) hoặc nhập 'q'/'quit'/'exit' -> Không cài cho agent nào hết và hủy an toàn
         if not user_choice or user_choice.lower() in ("q", "quit", "exit"):
             print(">>> Hủy thao tác.")
             sys.exit(0)
         elif user_choice.lower() in ("a", "all", "*"):
             selected_src_paths = [os.path.normpath(os.path.join(SKILLS_FOLDER_PATH, f)) for f in folders]
         else:
-            # Kiểm tra xem người dùng có nhập số thứ tự không (vd: '1', '1 2 4')
             num_tokens = re.findall(r"\d+", user_choice)
-            if num_tokens:
+            if num_tokens and not re.sub(r"[\d\s,]", "", user_choice):
                 chosen_indices = [int(n) for n in num_tokens]
                 for idx in chosen_indices:
                     if 1 <= idx <= len(folders):
@@ -284,6 +357,13 @@ def main():
                 if not src_path:
                     print(f"{Fore.RED}>>> Lỗi: Không tìm thấy Skill '{user_choice}' hợp lệ trong {SKILLS_FOLDER_PATH}{Style.RESET_ALL}")
                     sys.exit(1)
+                if filter_choice:
+                    state = get_skill_invocation_state(src_path)
+                    if state != filter_choice:
+                        lbl_cur = "TẮT" if state == "off-invocation" else "BẬT"
+                        lbl_req = "BẬT" if filter_choice == "on-invocation" else "TẮT"
+                        print(f"\n{Fore.YELLOW}⚠️ Bỏ qua Skill '{user_choice}' vì trạng thái hiện tại ({lbl_cur}) không khớp với bộ lọc (--filter {filter_choice} - yêu cầu {lbl_req}).{Style.RESET_ALL}")
+                        sys.exit(0)
                 selected_src_paths = [src_path]
 
     # Thực hiện cài đặt

@@ -33,12 +33,14 @@ TYPE_ACTION_MAP = {
     "code": ["ext", "js", "nestjs", "py", "test", "ts", "ts-template", "ws"],
     "compress": ["folder", "init-ignore"],
     "edit": ["note", "proms", "to"],
-    "file": ["create", "delete", "keep", "rename"],
+    "file": ["add-src", "create", "delete", "keep", "rename"],
+    "find": ["file", "folder"],
     "folder": ["cr-linear", "create", "dld-path", "merge", "tree"],
     "gdrive": ["del-fd", "dl", "guide", "link", "list", "remote", "reset", "sync", "url"],
     "gist": ["audit", "create", "delete", "get", "list", "rate", "reset", "update"],
-    "git": ["commit", "remote"],
+    "git": ["commit", "dl-file", "dl-folder", "drop", "remote", "stash"],
     "init": [],
+    "keep": [],
     "mcp": ["open-config", "set"],
     "notify": ["channels", "config", "send", "test"],
     "open": [
@@ -56,6 +58,7 @@ TYPE_ACTION_MAP = {
         "proms",
         "rm",
         "skills",
+        "src-files",
         "ssh-conf",
         "ws",
     ],
@@ -63,7 +66,7 @@ TYPE_ACTION_MAP = {
     "proxy": ["test"],
     "py": ["env"],
     "run": ["gen-qr", "keep-awake", "keep-screen", "srt-count-line", "unikey"],
-    "skill": ["set"],
+    "skill": ["list", "list-project", "list-prj", "ls", "off-invo", "off-invocation", "on-invo", "on-invocation", "remove", "rm", "set"],
     "toast": ["--syntax"],
     "tunnel": [],
 }
@@ -73,9 +76,10 @@ TYPE_DESCRIPTIONS = {
     "code": "Mở các dự án, template, workspace trong IDE",
     "compress": "Nén toàn bộ dự án hoặc nén thư mục theo cấu hình JSON",
     "file": "Thao tác xử lý file hàng loạt (create, rename, delete, keep)",
+    "find": "Tìm kiếm file hoặc folder trong project theo tên tối ưu",
     "folder": "Thao tác xử lý folder (create, dld-path, merge, tree)",
     "run": "Thực thi các script tiện ích (unikey, gen-qr, keep-awake...)",
-    "git": "Tự động hóa các thao tác Git (commit & push, remote)",
+    "git": "Tự động hóa các thao tác Git (commit & push, download, stash, drop, remote)",
     "gdrive": "Quản lý và đồng bộ Google Drive qua rclone",
     "gist": "Quản lý CRUD và kiểm toán dung lượng GitHub Gist",
     "edit": "Mở và chỉnh sửa nhanh cấu hình hoặc profile PowerShell",
@@ -88,6 +92,7 @@ TYPE_DESCRIPTIONS = {
     "toast": "Gửi Windows Toast notification kèm âm thanh tùy chỉnh",
     "py": "Thiết lập môi trường ảo Python (venv) cho dự án",
     "init": "Dọn dẹp các tiến trình Windows chạy ngầm và khởi động Unikey",
+    "keep": "Giữ màn hình Windows luôn sáng (alias rút gọn của 'run keep-screen')",
 }
 
 SORTED_TYPES = sorted(TYPE_ACTION_MAP.keys())

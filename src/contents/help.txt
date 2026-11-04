@@ -34,6 +34,8 @@ git               :to run git command.
 gdrive            :to operate with Google Drive via rclone.
 gist              :to manage and audit GitHub Gists.
 init              :to run init.cmd script.
+keep              :keep Windows screen awake (alias of 'mod run keep-screen').
+find              :to find files or folders in project by name.
 
 py                :to run python helpers.
 tunnel            :to run cloudflare tunnel wrapper.
@@ -55,6 +57,7 @@ notify            :to send multi-channel notifications (ntfy, telegram, toast).
    appdata        :open mod AppData folder in File Explorer.
    mcp            :open MCP servers folder in File Explorer.
    skills         :open AI Skills folder in File Explorer.
+   src-files [-c] :open Source-Files folder in File Explorer (or IDE with -c/--code).
    agy-mcp-conf   :open Antigravity MCP config file in Notepad.
    codex-mcp-conf :open OpenAI Codex MCP config file in Notepad.
    clau-mcp-conf  :open Claude Code MCP config file in Notepad.
@@ -83,6 +86,21 @@ notify            :to send multi-channel notifications (ntfy, telegram, toast).
 ## git:
    commit -m "msg":add all files and commit with a message and push with upstream.
    remote         :print git remote URL (git remote -v).
+   dl-folder <url> [dest]
+                  :download folder and all its contents recursively from GitHub repo (without .git).
+                  // Example: mod git dl-folder "https://github.com/obra/superpowers/tree/main/skills/systematic-debugging" .
+   dl-file <url> [dest]
+                  :download single file from GitHub repo.
+                  // Example: mod git dl-file "https://github.com/obra/superpowers/blob/main/skills/systematic-debugging/SKILL.md" .
+   stash [list, ls]
+                  :show list of git stashes in mod tool repository.
+                  // Example: mod git stash list
+                  // Example: mod git stash ls
+   drop [stash_idx]
+                  :drop a git stash interactively (like mod skill set) or by index/ref.
+                  // Example: mod git drop
+                  // Example: mod git drop 1
+                  // Example: mod git stash drop
 ## run:
    unikey         :run unikey.
    gen-qr         :generate QR code image from input data.
@@ -95,6 +113,9 @@ notify            :to send multi-channel notifications (ntfy, telegram, toast).
                   // Example: mod run srt-count-line "path/to/file.srt"
 ## file:
    create         :create files in standing folder in CLI.
+   add-src <file> [--folder <name>]
+                  :add file to centralized source-files template folder (supports recursive subfolder).
+                  // Example: mod file add-src "D:/test.py" --folder "coding/farm"
    rename <folder_path> [prefix]
                   :rename files in specified folder with specified prefix.
                   // Example: mod file rename "D:/D-Documents/Làm về TikTok" "tiktok"
@@ -206,13 +227,42 @@ notify            :to send multi-channel notifications (ntfy, telegram, toast).
                   // Example: mod mcp open-config claude
 
 ## skill:
-   set [skill_name] [dest_folder_path] [--ai, --llm, --agent <name>]
+   set [skill_name] [dest_folder_path] [--ai, --llm, --agent <name>] [--filter, -f <on-invocation|off-invocation>]
                   :copy a folder from SKILLS_FOLDER_PATH to dest_folder_path or into AI Agent global skills directory (agy, codex, claude, all).
                   // Example: mod skill set split-code .
                   // Example: mod skill set watch-video --ai agy
                   // Example: mod skill set playwright --agent claude
                   // Example: mod skill set diagram-design --llm codex
                   // Example: mod skill set diagram-design --ai all
+                  // Example: mod skill set --filter on-invocation
+   remove, rm [skill_name] [--ai, --llm, --agent <name>] [--include-agent <name>] [--filter, -f <on-invocation|off-invocation>]
+                  :remove skill from central repo (no flag), AI Agent only (--agent), or both (--include-agent).
+                  // Example: mod skill remove split-code
+                  // Example: mod skill rm --agent agy
+                  // Example: mod skill rm --include-agent all
+                  // Example: mod skill rm --filter on-invocation
+   off-invocation, off-invo [skill_name] [--ai, --llm, --agent <name>] [--include-agent <name>] [--filter, -f <on-invocation|off-invocation>]
+                  :disable AI auto-invocation by adding 'disable-model-invocation: true' to SKILL.md.
+                  // Example: mod skill off-invocation access-web-fresh-data
+                  // Example: mod skill off-invo --agent agy
+                  // Example: mod skill off-invo --include-agent all
+                  // Example: mod skill off-invo --filter on-invocation
+   on-invocation, on-invo [skill_name] [--ai, --llm, --agent <name>] [--include-agent <name>] [--filter, -f <on-invocation|off-invocation>]
+                  :enable AI auto-invocation by removing 'disable-model-invocation: true' from SKILL.md.
+                  // Example: mod skill on-invocation access-web-fresh-data
+                  // Example: mod skill on-invo --agent agy
+                  // Example: mod skill on-invo --include-agent all
+                  // Example: mod skill on-invo --filter off-invocation
+   list, ls [--ai, --llm, --agent <name>] [--include-agent <name>]
+                  :list skills in central repo (no flag), AI Agent only (--agent), or both (--include-agent).
+                  // Example: mod skill list
+                  // Example: mod skill ls --agent agy
+                  // Example: mod skill list --include-agent all
+   list-project, list-prj [dest_folder_path]
+                  :list all skills in specified project folder or current working directory.
+                  // Example: mod skill list-project
+                  // Example: mod skill list-project "D:/my-project"
+                  // Example: mod skill list-prj .
 
 ## toast:
    <title> [msg...] [--audio <path>]
@@ -251,6 +301,9 @@ The command `mod open ws` will open the working workspaces in system folder.
 The command `mod compress` will compress current project to "mod-{timestamp}.zip" in root folder.
 The command `mod compress folder --info` will explain how to use the command "mod compress folder".
 The command `mod git commit -m "update"` will execute git add, commit and push.
+The command `mod git dl-folder "<github_folder_url>" .` will download specified folder from GitHub without .git folder.
+The command `mod git stash list` will show all stashes in mod repository.
+The command `mod git drop` will prompt you to select a stash to drop.
 The command `mod file delete "D:/path" "txt,jpg"` will delete files with specified extensions "txt" and "jpg".
 The command `mod gdrive list "mac_sync" -d` will list all folders recursively.
 The command `mod gdrive dl "https://example.com/file.zip"` will download file to current directory.

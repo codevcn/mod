@@ -50,11 +50,11 @@ Tree view of: D:\D-Documents\TOOLs\mod
 │   ├── contents
 │   │   ├── app_features.yml
 │   │   ├── cURL.txt
-│   │   ├── files_source.txt
 │   │   ├── help.txt
 │   │   ├── note.txt
 │   │   └── statuses.txt
 │   ├── features
+│   │   ├── add_source_file.py
 │   │   ├── cloudflare
 │   │   │   └── cloudflared_wrapper.py
 │   │   ├── compress_project.py
@@ -63,6 +63,7 @@ Tree view of: D:\D-Documents\TOOLs\mod
 │   │   ├── create_linear_path.py
 │   │   ├── delete_files.py
 │   │   ├── edit_to_command.py
+│   │   ├── find_items.py
 │   │   ├── gen_qr_image.py
 │   │   ├── gist
 │   │   │   ├── README.md
@@ -70,6 +71,8 @@ Tree view of: D:\D-Documents\TOOLs\mod
 │   │   │   ├── gist_auditor.py
 │   │   │   ├── gist_cli.py
 │   │   │   └── gist_manager.py
+│   │   ├── git_download.py
+│   │   ├── git_stash.py
 │   │   ├── keep_files_with_ext.py
 │   │   ├── keep_screen.py
 │   │   ├── keep_server_awake.py
@@ -90,6 +93,9 @@ Tree view of: D:\D-Documents\TOOLs\mod
 │   │   ├── send_toast.py
 │   │   ├── set_download_path_in_chrome.py
 │   │   ├── setup_venv_in_project.py
+│   │   ├── skill_invocation.py
+│   │   ├── skill_list.py
+│   │   ├── skill_remove.py
 │   │   ├── skill_set.py
 │   │   ├── srt_count_line.py
 │   │   ├── sync-to-gdrive
