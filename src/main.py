@@ -144,6 +144,11 @@ MOD_MCP_SET = "set"
 MOD_MCP_OPEN_CONFIG = "open-config"
 # skill
 MOD_SKILL_SET = "set"
+MOD_SKILL_REMOVE = "remove"
+MOD_SKILL_OFF_INVO = "off-invocation"
+MOD_SKILL_ON_INVO = "on-invocation"
+MOD_SKILL_LIST = "list"
+MOD_SKILL_LIST_PROJECT = "list-project"
 # compress
 MOD_COMPRESS_FOLDER = "folder"
 MOD_COMPRESS_INIT_IGNORE = "init-ignore"
@@ -711,12 +716,21 @@ def cmd_mcp(action, remaining_args):
 
 
 def cmd_skill(action, remaining_args):
+    act_lower = action.lower() if action else ""
+    if act_lower in ("remove", "rm"):
+        feature_file = "skill_remove.py"
+    elif act_lower in ("off-invocation", "off-invo", "on-invocation", "on-invo"):
+        feature_file = "skill_invocation.py"
+    elif act_lower in ("list", "ls", "list-project", "list-prj"):
+        feature_file = "skill_list.py"
+    else:
+        feature_file = "skill_set.py"
+
     cmd_args = [
         "python",
-        get_feature_path("skill_set.py"),
+        get_feature_path(feature_file),
+        action,
     ]
-    if action is not None:
-        cmd_args.append(action)
     cmd_args.extend(remaining_args)
 
     result = subprocess.run(
@@ -874,10 +888,28 @@ def dispatch_command(
             raise InvalidActionError(type_included, action_included, valid_actions)
         cmd_mcp(action_included, remaining_args)
     elif type_included == MOD_TYPE_SKILL:
-        valid_actions = [MOD_SKILL_SET]
+        valid_actions = [
+            MOD_SKILL_SET,
+            MOD_SKILL_REMOVE,
+            MOD_SKILL_OFF_INVO,
+            MOD_SKILL_ON_INVO,
+            MOD_SKILL_LIST,
+            MOD_SKILL_LIST_PROJECT,
+        ]
         if action_included is None:
             raise MissingActionError(type_included, valid_actions)
-        if action_included != MOD_SKILL_SET:
+        clean_act = action_included.lower()
+        if clean_act == "rm":
+            clean_act = MOD_SKILL_REMOVE
+        elif clean_act == "off-invo":
+            clean_act = MOD_SKILL_OFF_INVO
+        elif clean_act == "on-invo":
+            clean_act = MOD_SKILL_ON_INVO
+        elif clean_act == "ls":
+            clean_act = MOD_SKILL_LIST
+        elif clean_act == "list-prj":
+            clean_act = MOD_SKILL_LIST_PROJECT
+        if clean_act not in valid_actions:
             raise InvalidActionError(type_included, action_included, valid_actions)
         cmd_skill(action_included, remaining_args)
     elif type_included == MOD_TYPE_TOAST:
