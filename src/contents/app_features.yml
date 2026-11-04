@@ -567,7 +567,7 @@ mod_tool:
           conditions: "Đường dẫn SKILLS_FOLDER_PATH hoặc thư mục của AI Agent phải tồn tại."
         - id: "ACTION 48f"
           title: "Liệt Kê Skill Trong Dự Án (List-Project)"
-          command: "mod skill list-project [dest_folder_path] | mod skill list-prj [...]"
+          command: "mod skill list-project [dest_folder_path] | mod skill list-prj [...] | mod skill ls-prj [...] | mod skill ls-project [...]"
           summary: "Liệt kê tất cả các AI Skill hiện có trong thư mục dự án chỉ định hoặc thư mục hiện tại."
           details: "Quét và phát hiện tất cả các thư mục chứa trực tiếp file SKILL.md trong `dest_folder_path` (mặc định lấy thư mục làm việc hiện tại CWD nếu không truyền). Hiển thị tên skill, đường dẫn tương đối, trạng thái tự động gọi và mô tả. Nếu không tìm thấy skill nào, in thông báo rõ ràng kèm gợi ý cài đặt."
           conditions: "Thư mục chỉ định (nếu truyền) phải tồn tại."

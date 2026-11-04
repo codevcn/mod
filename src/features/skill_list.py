@@ -6,6 +6,7 @@ skill_list.py - Liệt kê các AI Skill trong kho lưu trữ, trong AI Agent Gl
 - mod skill list --agent <name|all>          : CHỈ liệt kê các skill global của AI Agent chỉ định (không in kho gốc).
 - mod skill list --include-agent <name|all>  : Liệt kê CẢ HAI (kho lưu trữ trung tâm VÀ các AI Agent).
 - mod skill list-project [dest_folder_path]  : Liệt kê các skill trong thư mục dự án (mặc định CWD).
+  Alias: 'mod skill list-prj', 'mod skill ls-prj', 'mod skill ls-project'.
 """
 
 import os
@@ -226,7 +227,7 @@ def handle_list_action(ai_choice: str | None, include_choice: str | None):
 
 
 def handle_list_project_action(target_dir_input: str | None):
-    """Xử lý lệnh 'mod skill list-project' / 'mod skill list-prj'."""
+    """Xử lý lệnh 'mod skill list-project' / 'mod skill list-prj' / 'mod skill ls-prj' / 'mod skill ls-project'."""
     if target_dir_input:
         target_dir = os.path.abspath(target_dir_input)
         if not os.path.isdir(target_dir):
@@ -314,7 +315,7 @@ def main():
 
     if action in ("list", "ls"):
         handle_list_action(ai_choice, include_choice)
-    elif action in ("list-project", "list-prj"):
+    elif action in ("list-project", "list-prj", "ls-prj", "ls-project"):
         target_dir_input = positional_args[0] if positional_args else None
         handle_list_project_action(target_dir_input)
     else:

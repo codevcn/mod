@@ -258,7 +258,7 @@ notify            :to send multi-channel notifications (ntfy, telegram, toast).
                   // Example: mod skill list
                   // Example: mod skill ls --agent agy
                   // Example: mod skill list --include-agent all
-   list-project, list-prj [dest_folder_path]
+   list-project, list-prj, ls-prj, ls-project [dest_folder_path]
                   :list all skills in specified project folder or current working directory.
                   // Example: mod skill list-project
                   // Example: mod skill list-project "D:/my-project"

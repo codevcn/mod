@@ -721,7 +721,7 @@ def cmd_skill(action, remaining_args):
         feature_file = "skill_remove.py"
     elif act_lower in ("off-invocation", "off-invo", "on-invocation", "on-invo"):
         feature_file = "skill_invocation.py"
-    elif act_lower in ("list", "ls", "list-project", "list-prj"):
+    elif act_lower in ("list", "ls", "list-project", "list-prj", "ls-prj", "ls-project"):
         feature_file = "skill_list.py"
     else:
         feature_file = "skill_set.py"
@@ -907,7 +907,7 @@ def dispatch_command(
             clean_act = MOD_SKILL_ON_INVO
         elif clean_act == "ls":
             clean_act = MOD_SKILL_LIST
-        elif clean_act == "list-prj":
+        elif clean_act in ("list-prj", "ls-prj", "ls-project"):
             clean_act = MOD_SKILL_LIST_PROJECT
         if clean_act not in valid_actions:
             raise InvalidActionError(type_included, action_included, valid_actions)

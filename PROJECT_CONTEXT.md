@@ -258,7 +258,7 @@ Cú pháp tổng quát: `mod <type> <action> [args...] [-a] [--info]`
 | `skill` | `off-invo` / `off-invocation` | `[skill_name] [--agent <name>] [--include-agent <name>] [--filter <on|off>]` | Tắt tự động gọi bằng cách thêm `disable-model-invocation: true` vào file `SKILL.md`. |
 | `skill` | `on-invo` / `on-invocation` | `[skill_name] [--agent <name>] [--include-agent <name>] [--filter <on|off>]` | Bật tự động gọi bằng cách xóa `disable-model-invocation: true` khỏi file `SKILL.md`. |
 | `skill` | `list` / `ls` | `[--ai, --agent <name>] [--include-agent <name>]` | Liệt kê các skill trong kho trung tâm, trong AI Agent, hoặc cả hai. |
-| `skill` | `list-project` / `list-prj` | `[dest_folder_path]` | Liệt kê toàn bộ các skill có trong thư mục dự án hoặc CWD. |
+| `skill` | `list-project` / `list-prj` / `ls-prj` / `ls-project` | `[dest_folder_path]` | Liệt kê toàn bộ các skill có trong thư mục dự án hoặc CWD. |
 | `find` | `file` | `[project_path] --name <pattern> [--exact, -e] [--all, -a] [--depth, -d <N>] [--limit, -l <N>]` | Tìm kiếm tập tin theo tên/wildcard trong dự án với DFS cắt tỉa thư mục rác. |
 | `find` | `folder` | `[project_path] --name <pattern> [--exact, -e] [--all, -a] [--depth, -d <N>] [--limit, -l <N>]` | Tìm kiếm thư mục theo tên/wildcard trong dự án với DFS cắt tỉa thư mục rác. |
 | `compress` | *(không có)* | `[output_path]` | Nén toàn bộ dự án thành file `mod-{dd}-{mm}-{yyyy}-{hh}-{mm}-{ss}.zip` tại thư mục gốc dự án (hoặc output_path), áp dụng bộ lọc `.compressignore`. |
