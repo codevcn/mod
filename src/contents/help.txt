@@ -227,20 +227,23 @@ notify            :to send multi-channel notifications (ntfy, telegram, toast).
                   // Example: mod mcp open-config claude
 
 ## skill:
-   set [skill_name] [dest_folder_path] [--ai, --llm, --agent <name>] [--project, --prj, -p [project_root]] [--filter, -f <on-invocation|off-invocation>]
+   set [skill_name] [dest_folder_path] [--ai, --llm, --agent <name>] [--project, --prj, -p [project_root]] [--keyword, --key, -k <keyword>] [--filter, -f <on-invocation|off-invocation>]
                   :copy a folder from SKILLS_FOLDER_PATH to dest_folder_path, AI Agent global skills directory (agy, codex, claude, all), or project standard .agents/skills folder.
                   // Example: mod skill set split-code .
                   // Example: mod skill set split-code --project "D:/my-project"
                   // Example: mod skill set split-code --prj
+                  // Example: mod skill set --key ssr
+                  // Example: mod skill set --keyword outside --prj
                   // Example: mod skill set watch-video --ai agy
                   // Example: mod skill set playwright --agent claude
                   // Example: mod skill set diagram-design --llm codex
                   // Example: mod skill set diagram-design --ai all
                   // Example: mod skill set --filter on-invocation
-   project, prj, p [skill_name] [project_root] [--filter, -f <on-invocation|off-invocation>]
+   project, prj, p [skill_name] [project_root] [--keyword, --key, -k <keyword>] [--filter, -f <on-invocation|off-invocation>]
                   :copy skill directly into project's standard .agents/skills directory (defaults to CWD).
                   // Example: mod skill project split-code "D:/my-project"
                   // Example: mod skill prj split-code
+                  // Example: mod skill prj --key ssr
    remove, rm [skill_name] [--ai, --llm, --agent <name>] [--include-agent <name>] [--filter, -f <on-invocation|off-invocation>]
                   :remove skill from central repo (no flag), AI Agent only (--agent), or both (--include-agent).
                   // Example: mod skill remove split-code

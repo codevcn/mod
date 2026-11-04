@@ -221,6 +221,7 @@ def main():
     project_root = None
     ai_choice = None
     filter_choice = None
+    keyword_choice = None
     positional_args = []
 
     # Parse arguments
@@ -248,6 +249,19 @@ def main():
         elif arg.startswith(("--project=", "--prj=")):
             is_project_mode = True
             project_root = arg.split("=", 1)[1]
+            i += 1
+        elif arg in ("--keyword", "--key", "-k"):
+            if i + 1 < len(sys.argv) and not sys.argv[i + 1].startswith("-"):
+                keyword_choice = sys.argv[i + 1].strip()
+                i += 2
+            else:
+                print(f"{Fore.RED}❌ Lỗi: Thiếu từ khóa sau cờ {arg}. (Ví dụ: --keyword ssr, --key outside, -k react){Style.RESET_ALL}")
+                sys.exit(1)
+        elif arg.startswith(("--keyword=", "--key=", "-k=")):
+            keyword_choice = arg.split("=", 1)[1].strip()
+            if not keyword_choice:
+                print(f"{Fore.RED}❌ Lỗi: Từ khóa không được để trống.{Style.RESET_ALL}")
+                sys.exit(1)
             i += 1
         elif arg in ("--filter", "-f"):
             if i + 1 < len(sys.argv):
@@ -346,12 +360,23 @@ def main():
         print(f"{Fore.YELLOW}>>> Không tìm thấy thư mục SKILL nào có chứa file SKILL.md trong {SKILLS_FOLDER_PATH}.{Style.RESET_ALL}")
         sys.exit(0)
 
-    # Áp dụng bộ lọc --filter nếu có
+    # Áp dụng bộ lọc từ khóa đường dẫn --keyword nếu có
+    if keyword_choice:
+        kw_lower = keyword_choice.lower()
+        keyword_filtered = [f for f in folders if kw_lower in f.lower()]
+        if not keyword_filtered:
+            print(f"\n{Fore.YELLOW}ℹ️ Không tìm thấy Skill nào trong kho chứa từ khóa '--keyword {keyword_choice}' trong đường dẫn.{Style.RESET_ALL}")
+            print(f"   Kho lưu trữ: {SKILLS_FOLDER_PATH}\n")
+            sys.exit(0)
+        folders = keyword_filtered
+
+    # Áp dụng bộ lọc trạng thái invocation --filter nếu có
     if filter_choice:
         filtered_folders = [f for f in folders if get_skill_invocation_state(os.path.join(SKILLS_FOLDER_PATH, f)) == filter_choice]
         if not filtered_folders:
             lbl = "BẬT" if filter_choice == "on-invocation" else "TẮT"
-            print(f"\n{Fore.YELLOW}ℹ️ Không tìm thấy Skill nào trong kho khớp với bộ lọc '--filter {filter_choice}' (không có skill nào đang {lbl}).{Style.RESET_ALL}")
+            kw_msg = f" và từ khóa '{keyword_choice}'" if keyword_choice else ""
+            print(f"\n{Fore.YELLOW}ℹ️ Không tìm thấy Skill nào trong kho khớp với bộ lọc '--filter {filter_choice}' (không có skill nào đang {lbl}{kw_msg}).{Style.RESET_ALL}")
             sys.exit(0)
         folders = filtered_folders
 
@@ -366,6 +391,10 @@ def main():
             if not src_path:
                 print(f"{Fore.RED}>>> Lỗi: Không tìm thấy Skill '{skill_folder_name}' hợp lệ (chứa SKILL.md) trong {SKILLS_FOLDER_PATH}{Style.RESET_ALL}")
                 sys.exit(1)
+            # Kiểm tra xem skill này có thỏa mãn keyword không
+            if keyword_choice and keyword_choice.lower() not in src_path.lower():
+                print(f"\n{Fore.YELLOW}⚠️ Bỏ qua Skill '{skill_folder_name}' vì đường dẫn không chứa từ khóa '--keyword {keyword_choice}'.{Style.RESET_ALL}")
+                sys.exit(0)
             # Kiểm tra xem skill này có thỏa mãn filter không
             if filter_choice:
                 state = get_skill_invocation_state(src_path)
@@ -377,7 +406,12 @@ def main():
             selected_src_paths = [src_path]
     else:
         # Chế độ tương tác: Hiển thị danh sách đánh số trực quan
-        filter_tag = f" {Fore.CYAN}[Đã lọc: --filter {filter_choice}]{Style.RESET_ALL}" if filter_choice else ""
+        filter_tags = []
+        if keyword_choice:
+            filter_tags.append(f"--key '{keyword_choice}'")
+        if filter_choice:
+            filter_tags.append(f"--filter '{filter_choice}'")
+        filter_tag = f" {Fore.CYAN}[Đã lọc: {', '.join(filter_tags)}]{Style.RESET_ALL}" if filter_tags else ""
         print(f">>> Đang quét thư mục SKILLs...{filter_tag}")
         print("\nDanh sách các thư mục SKILL có sẵn:")
         for idx, f in enumerate(folders, 1):
