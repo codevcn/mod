@@ -10,6 +10,7 @@ skill_invocation.py - Quản lý trạng thái tự động gọi (Auto-Invocati
 - mod skill on-invocation [...]                               : Tương tự, bật tự động gọi (xóa field).
 - Alias: 'off-invo' tương đương 'off-invocation', 'on-invo' tương đương 'on-invocation'.
 - Cờ lọc: --filter <on-invocation|off-invocation> (hoặc -f)  : Chỉ tác động & hiển thị các skill khớp với trạng thái chỉ định.
+- Cờ từ khóa: --keyword <kw> (hoặc --key, -k)              : Lọc các skill có chứa từ khóa trong đường dẫn/tên.
 """
 
 import os
@@ -183,6 +184,7 @@ def parse_cli_args():
     ai_choice = None
     include_choice = None
     filter_choice = None
+    keyword_choice = None
     force_overwrite = False
     is_project_mode = False
     project_root = None
@@ -205,6 +207,19 @@ def parse_cli_args():
         elif arg.startswith(("--project=", "--prj=")):
             is_project_mode = True
             project_root = arg.split("=", 1)[1].strip()
+            i += 1
+        elif arg in ("--keyword", "--key", "-k"):
+            if i + 1 < len(sys.argv) and not sys.argv[i + 1].startswith("-"):
+                keyword_choice = sys.argv[i + 1].strip()
+                i += 2
+            else:
+                print(f"{Fore.RED}❌ Lỗi: Thiếu từ khóa sau cờ {arg}. (Ví dụ: --keyword ssr, --key outside, -k react){Style.RESET_ALL}")
+                sys.exit(1)
+        elif arg.startswith(("--keyword=", "--key=", "-k=")):
+            keyword_choice = arg.split("=", 1)[1].strip()
+            if not keyword_choice:
+                print(f"{Fore.RED}❌ Lỗi: Từ khóa không được để trống.{Style.RESET_ALL}")
+                sys.exit(1)
             i += 1
         elif arg in ("--ai", "--llm", "--agent"):
             if i + 1 < len(sys.argv):
@@ -266,7 +281,7 @@ def parse_cli_args():
         sys.exit(1)
 
     skill_name = positional_args[0] if positional_args else None
-    return action, skill_name, ai_choice, include_choice, filter_choice, force_overwrite, is_project_mode, project_root
+    return action, skill_name, ai_choice, include_choice, filter_choice, force_overwrite, is_project_mode, project_root, keyword_choice
 
 
 def resolve_targets(agent_choice: str) -> list[tuple[str, str]]:
@@ -309,7 +324,7 @@ def apply_action_to_file(action: str, file_path: str, label: str) -> bool:
     return True
 
 
-def execute_agent_only_mode(action: str, skill_name_input: str | None, ai_choice: str, filter_choice: str | None):
+def execute_agent_only_mode(action: str, skill_name_input: str | None, ai_choice: str, filter_choice: str | None, keyword_choice: str | None = None):
     """
     Mode A: Agent-Only mode.
     CHỈ thao tác trực tiếp trên các thư mục của AI Agent.
@@ -317,13 +332,22 @@ def execute_agent_only_mode(action: str, skill_name_input: str | None, ai_choice
     """
     targets = resolve_targets(ai_choice)
     action_title = "TẮT TỰ ĐỘNG GỌI (OFF-INVOCATION) [AGENT-ONLY]" if action == "off-invocation" else "BẬT TỰ ĐỘNG GỌI (ON-INVOCATION) [AGENT-ONLY]"
-    filter_tag = f" {Fore.CYAN}[Đã lọc: --filter {filter_choice}]{Style.RESET_ALL}" if filter_choice else ""
+    tags = []
+    if keyword_choice:
+        tags.append(f"--key '{keyword_choice}'")
+    if filter_choice:
+        tags.append(f"--filter {filter_choice}")
+    filter_tag = f" {Fore.CYAN}[Đã lọc: {', '.join(tags)}]{Style.RESET_ALL}" if tags else ""
     print(f"\n{Fore.MAGENTA}=== {action_title}{filter_tag} ==={Style.RESET_ALL}")
 
     target_items = []  # List of dict: {"name": str, "agent_label": str, "dir": str, "md": str}
 
     if skill_name_input:
         target_name_lower = skill_name_input.strip().lower()
+        if keyword_choice and keyword_choice.lower() not in target_name_lower:
+            print(f"{Fore.YELLOW}⚠️ Bỏ qua Skill '{skill_name_input}' vì không khớp với từ khóa (--key {keyword_choice}).{Style.RESET_ALL}")
+            sys.exit(0)
+
         found_any = False
         for agent_label, agent_path in targets:
             if not os.path.isdir(agent_path):
@@ -349,7 +373,7 @@ def execute_agent_only_mode(action: str, skill_name_input: str | None, ai_choice
             else:
                 print(f"{Fore.YELLOW}⚠️ Skill '{skill_name_input}' chưa được cài đặt trong {agent_label} ({agent_path}).{Style.RESET_ALL}")
 
-        if not found_any and not filter_choice:
+        if not found_any and not filter_choice and not keyword_choice:
             print(f"{Fore.RED}❌ Lỗi: Không tìm thấy Skill '{skill_name_input}' trong bất kỳ Agent nào được chỉ định.{Style.RESET_ALL}")
             sys.exit(1)
         elif not target_items:
@@ -364,13 +388,17 @@ def execute_agent_only_mode(action: str, skill_name_input: str | None, ai_choice
                 print(f"{Fore.YELLOW}⚠️ Chưa có Skill nào được cài đặt trong {agent_label} ({agent_path}).{Style.RESET_ALL}")
                 sys.exit(0)
 
+            # Lọc theo keyword_choice nếu có
+            if keyword_choice:
+                skills = [s for s in skills if keyword_choice.lower() in s.lower()]
+
             # Lọc theo filter_choice nếu có
             if filter_choice:
                 skills = [s for s in skills if get_skill_invocation_state(os.path.join(agent_path, s)) == filter_choice]
-                if not skills:
-                    lbl = "BẬT" if filter_choice == "on-invocation" else "TẮT"
-                    print(f"{Fore.YELLOW}ℹ️ Không tìm thấy Skill nào trong {agent_label} khớp với bộ lọc '--filter {filter_choice}' (không có skill nào đang {lbl}).{Style.RESET_ALL}")
-                    sys.exit(0)
+
+            if not skills:
+                print(f"{Fore.YELLOW}ℹ️ Không tìm thấy Skill nào trong {agent_label} khớp với bộ lọc.{Style.RESET_ALL}")
+                sys.exit(0)
 
             print(f">>> Đang quét danh sách Skill trong {Fore.MAGENTA}{agent_label}{Style.RESET_ALL} ({len(skills)} skills):")
             print()
@@ -410,6 +438,8 @@ def execute_agent_only_mode(action: str, skill_name_input: str | None, ai_choice
             aggregated = {}
             for agent_label, agent_path in targets:
                 for s in get_agent_skills(agent_path):
+                    if keyword_choice and keyword_choice.lower() not in s.lower():
+                        continue
                     s_dir = os.path.join(agent_path, s)
                     if filter_choice and get_skill_invocation_state(s_dir) != filter_choice:
                         continue
@@ -418,9 +448,7 @@ def execute_agent_only_mode(action: str, skill_name_input: str | None, ai_choice
                         aggregated.setdefault(s, []).append((agent_label, s_dir, s_md))
 
             if not aggregated:
-                lbl = "BẬT" if filter_choice == "on-invocation" else "TẮT"
-                filter_info = f" khớp với bộ lọc '--filter {filter_choice}' (không có skill nào đang {lbl})" if filter_choice else ""
-                print(f"{Fore.YELLOW}⚠️ Không tìm thấy Skill nào trên cả 3 AI Agent{filter_info}.{Style.RESET_ALL}")
+                print(f"{Fore.YELLOW}⚠️ Không tìm thấy Skill nào trên cả 3 AI Agent khớp với bộ lọc.{Style.RESET_ALL}")
                 sys.exit(0)
 
             sorted_names = sorted(aggregated.keys(), key=lambda s: s.lower())
@@ -469,7 +497,7 @@ def execute_agent_only_mode(action: str, skill_name_input: str | None, ai_choice
     print(f"{Fore.CYAN}ℹ️ Kho lưu trữ trung tâm ({SKILLS_FOLDER_PATH}) không bị thay đổi.{Style.RESET_ALL}\n")
 
 
-def execute_project_mode(action: str, skill_name_input: str | None, project_root: str, filter_choice: str | None):
+def execute_project_mode(action: str, skill_name_input: str | None, project_root: str, filter_choice: str | None, keyword_choice: str | None = None):
     """
     Mode D: Project mode (--project, --prj, -p).
     Tác động trực tiếp lên Skill bên trong thư mục dự án cục bộ (.agents/skills, .agent/skills, hoặc chính dự án).
@@ -492,6 +520,10 @@ def execute_project_mode(action: str, skill_name_input: str | None, project_root
         print(f"   - Dùng lệnh 'mod skill set <tên_skill> {target_project}' để cài đặt skill vào dự án.")
         sys.exit(0)
 
+    # Áp dụng bộ lọc keyword_choice nếu có
+    if keyword_choice:
+        available_skills = [s for s in available_skills if keyword_choice.lower() in s.lower()]
+
     # Áp dụng bộ lọc filter_choice nếu có
     if filter_choice:
         filtered_available = []
@@ -500,10 +532,10 @@ def execute_project_mode(action: str, skill_name_input: str | None, project_root
             if get_skill_invocation_state(full_dir) == filter_choice:
                 filtered_available.append(s)
         available_skills = filtered_available
-        if not available_skills:
-            lbl = "BẬT" if filter_choice == "on-invocation" else "TẮT"
-            print(f"\n{Fore.YELLOW}ℹ️ Không tìm thấy Skill nào trong dự án khớp với bộ lọc '--filter {filter_choice}' (không có skill nào đang {lbl}).{Style.RESET_ALL}")
-            sys.exit(0)
+
+    if not available_skills:
+        print(f"\n{Fore.YELLOW}ℹ️ Không tìm thấy Skill nào trong dự án khớp với bộ lọc.{Style.RESET_ALL}")
+        sys.exit(0)
 
     selected_skills = []
 
@@ -521,13 +553,18 @@ def execute_project_mode(action: str, skill_name_input: str | None, project_root
                     matched.append(s)
 
             if not matched:
-                print(f"{Fore.RED}❌ Lỗi: Không tìm thấy Skill '{skill_name_input}' trong dự án {target_project}.{Style.RESET_ALL}")
+                print(f"{Fore.RED}❌ Lỗi: Không tìm thấy Skill '{skill_name_input}' trong dự án {target_project} (hoặc không khớp bộ lọc).{Style.RESET_ALL}")
                 sys.exit(1)
 
             selected_skills = matched
     else:
         action_title = "TẮT TỰ ĐỘNG GỌI (OFF-INVOCATION) [DỰ ÁN]" if action == "off-invocation" else "BẬT TỰ ĐỘNG GỌI (ON-INVOCATION) [DỰ ÁN]"
-        filter_tag = f" {Fore.CYAN}[Đã lọc: --filter {filter_choice}]{Style.RESET_ALL}" if filter_choice else ""
+        tags = []
+        if keyword_choice:
+            tags.append(f"--key '{keyword_choice}'")
+        if filter_choice:
+            tags.append(f"--filter {filter_choice}")
+        filter_tag = f" {Fore.CYAN}[Đã lọc: {', '.join(tags)}]{Style.RESET_ALL}" if tags else ""
         print(f"\n{Fore.GREEN}=== {action_title}{filter_tag} ==={Style.RESET_ALL}")
         print(f"📂 Thư mục dự án: {Fore.WHITE}{target_project}{Style.RESET_ALL}")
         print(f">>> Đang quét danh sách Skill trong dự án ({len(available_skills)} skills):")
@@ -597,7 +634,7 @@ def execute_project_mode(action: str, skill_name_input: str | None, project_root
     print(f"{Fore.CYAN}ℹ️ Kho lưu trữ trung tâm ({SKILLS_FOLDER_PATH}) và Global AI Agents không bị thay đổi.{Style.RESET_ALL}\n")
 
 
-def execute_repo_mode(action: str, skill_name_input: str | None, include_choice: str | None, force_overwrite: bool, filter_choice: str | None):
+def execute_repo_mode(action: str, skill_name_input: str | None, include_choice: str | None, force_overwrite: bool, filter_choice: str | None, keyword_choice: str | None = None):
     """
     Mode B & C: Tác động lên kho lưu trữ trung tâm.
     Nếu include_choice != None: Đồng bộ sang AI Agent sau khi sửa kho.
@@ -611,13 +648,17 @@ def execute_repo_mode(action: str, skill_name_input: str | None, include_choice:
         print(f"{Fore.YELLOW}⚠️ Không tìm thấy Skill hợp lệ nào trong kho {SKILLS_FOLDER_PATH}.{Style.RESET_ALL}")
         sys.exit(0)
 
+    # Áp dụng bộ lọc keyword_choice nếu có
+    if keyword_choice:
+        available_skills = [s for s in available_skills if keyword_choice.lower() in s.lower()]
+
     # Áp dụng bộ lọc filter_choice nếu có
     if filter_choice:
         available_skills = [s for s in available_skills if get_skill_invocation_state(os.path.join(SKILLS_FOLDER_PATH, s)) == filter_choice]
-        if not available_skills:
-            lbl = "BẬT" if filter_choice == "on-invocation" else "TẮT"
-            print(f"\n{Fore.YELLOW}ℹ️ Không tìm thấy Skill nào trong kho khớp với bộ lọc '--filter {filter_choice}' (không có skill nào đang {lbl}).{Style.RESET_ALL}")
-            sys.exit(0)
+
+    if not available_skills:
+        print(f"\n{Fore.YELLOW}ℹ️ Không tìm thấy Skill nào trong kho khớp với bộ lọc.{Style.RESET_ALL}")
+        sys.exit(0)
 
     selected_skill_dirs = []
 
@@ -637,6 +678,10 @@ def execute_repo_mode(action: str, skill_name_input: str | None, include_choice:
                 print(f"{Fore.RED}❌ Lỗi: Không tìm thấy Skill '{skill_name_input}' hợp lệ trong {SKILLS_FOLDER_PATH}.{Style.RESET_ALL}")
                 sys.exit(1)
 
+            if keyword_choice and keyword_choice.lower() not in os.path.normpath(found_dir).lower():
+                print(f"\n{Fore.YELLOW}⚠️ Bỏ qua Skill '{skill_name_input}' vì không khớp với từ khóa (--key {keyword_choice}).{Style.RESET_ALL}")
+                sys.exit(0)
+
             if filter_choice:
                 state = get_skill_invocation_state(found_dir)
                 if state != filter_choice:
@@ -653,7 +698,12 @@ def execute_repo_mode(action: str, skill_name_input: str | None, include_choice:
         else:
             action_title += " [KHO LƯU TRỮ GỐC]"
 
-        filter_tag = f" {Fore.CYAN}[Đã lọc: --filter {filter_choice}]{Style.RESET_ALL}" if filter_choice else ""
+        tags = []
+        if keyword_choice:
+            tags.append(f"--key '{keyword_choice}'")
+        if filter_choice:
+            tags.append(f"--filter {filter_choice}")
+        filter_tag = f" {Fore.CYAN}[Đã lọc: {', '.join(tags)}]{Style.RESET_ALL}" if tags else ""
         print(f"\n{Fore.CYAN}=== {action_title}{filter_tag} ==={Style.RESET_ALL}")
         print(f">>> Đang quét danh sách Skill trong kho lưu trữ ({len(available_skills)} skills):")
         print()
@@ -736,17 +786,17 @@ def execute_repo_mode(action: str, skill_name_input: str | None, include_choice:
 
 def main():
     try:
-        action, skill_name_input, ai_choice, include_choice, filter_choice, force_overwrite, is_project_mode, project_root = parse_cli_args()
+        action, skill_name_input, ai_choice, include_choice, filter_choice, force_overwrite, is_project_mode, project_root, keyword_choice = parse_cli_args()
 
         if is_project_mode:
             # Case 4: Project mode (--project / --prj / -p)
-            execute_project_mode(action, skill_name_input, project_root, filter_choice)
+            execute_project_mode(action, skill_name_input, project_root, filter_choice, keyword_choice)
         elif ai_choice is not None:
             # Case 1: Agent-Only mode
-            execute_agent_only_mode(action, skill_name_input, ai_choice, filter_choice)
+            execute_agent_only_mode(action, skill_name_input, ai_choice, filter_choice, keyword_choice)
         else:
             # Case 2 & 3: Repo mode (Repo-only hoặc Include-agent)
-            execute_repo_mode(action, skill_name_input, include_choice, force_overwrite, filter_choice)
+            execute_repo_mode(action, skill_name_input, include_choice, force_overwrite, filter_choice, keyword_choice)
 
     except KeyboardInterrupt:
         print("\n\n>>> Đã hủy thao tác (Ctrl+C).")

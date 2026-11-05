@@ -193,11 +193,11 @@ mod skill prj [name]                # Alias cài đặt nhanh vào .agents/skill
 mod skill set [name] --agent agy    # Cài đặt vào thư mục Global của AI Agent (agy, codex, claude, all)
 mod skill set --key ssr             # Lọc skill theo từ khóa trước khi cài đặt
 mod skill find <keyword>            # Tìm kiếm skill trong kho theo tên hoặc đường dẫn (alias: mod skill search)
-mod skill list                      # Liệt kê skill trong kho trung tâm (alias: mod skill ls)
-mod skill list-project              # Liệt kê skill đang có trong project hiện tại (alias: mod skill ls-prj)
+mod skill list [-k key] [-f filter] # Liệt kê skill trong kho trung tâm (alias: mod skill ls, hỗ trợ lọc keyword & filter)
+mod skill list-project [-k] [-f]    # Liệt kê skill đang có trong project hiện tại (alias: mod skill ls-prj)
 mod skill open [-c]                 # Mở thư mục kho AI Skills trong Explorer (hoặc IDE với -c)
-mod skill on-invo [skill] [--prj]   # Bật tự động gọi skill bằng AI (trong kho, agent --agent, hoặc project --prj)
-mod skill off-invo [skill] [--prj]  # Tắt tự động gọi skill bằng AI (trong kho, agent --agent, hoặc project --prj)
+mod skill on-invo [s] [-k] [-f]     # Bật tự động gọi skill (trong kho, agent --agent, hoặc project --prj, hỗ trợ -k/-f)
+mod skill off-invo [s] [-k] [-f]    # Tắt tự động gọi skill (trong kho, agent --agent, hoặc project --prj, hỗ trợ -k/-f)
 mod skill remove [skill_name]       # Xóa skill khỏi kho hoặc khỏi AI Agent (alias: mod skill rm)
 ```
 

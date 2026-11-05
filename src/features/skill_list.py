@@ -9,6 +9,8 @@ skill_list.py - Liệt kê các AI Skill trong kho lưu trữ, trong AI Agent Gl
   Alias: 'mod skill list-prj', 'mod skill ls-prj', 'mod skill ls-project'.
 - mod skill find <keyword>                   : Tìm kiếm các skill có chứa keyword trong skill path.
   Alias: 'mod skill search <keyword>'.
+- Cờ lọc: --filter <on-invocation|off-invocation> (hoặc -f) : Chỉ liệt kê các skill khớp với trạng thái chỉ định.
+- Cờ từ khóa: --keyword <kw> (hoặc --key, -k)              : Lọc các skill có chứa từ khóa trong đường dẫn/tên.
 """
 
 import os
@@ -39,6 +41,8 @@ from features.skill_set import (
     LLM_TARGETS,
     list_skill_folders,
     has_direct_skill_file,
+    get_skill_invocation_state,
+    parse_filter_arg,
 )
 from features.skill_remove import get_agent_skills
 
@@ -126,10 +130,38 @@ def find_project_skills(base_path: str) -> list[str]:
     return list_skill_folders(base_path)
 
 
-def render_central_skills(skills: list[str], base_path: str):
+def filter_skills_list(skills: list[str], base_path: str, keyword: str | None, filter_choice: str | None) -> list[str]:
+    """Lọc danh sách skill theo keyword trong tên/đường dẫn và filter trạng thái invocation."""
+    result = skills
+    if keyword:
+        kw_lower = keyword.strip().lower()
+        result = [s for s in result if kw_lower in s.lower()]
+    if filter_choice:
+        filtered = []
+        for s in result:
+            full_p = base_path if s == "." else os.path.normpath(os.path.join(base_path, s))
+            if get_skill_invocation_state(full_p) == filter_choice:
+                filtered.append(s)
+        result = filtered
+    return result
+
+
+def build_filter_tag(keyword: str | None, filter_choice: str | None) -> str:
+    """Tạo tag hiển thị các bộ lọc đang áp dụng."""
+    tags = []
+    if keyword:
+        tags.append(f"--key '{keyword}'")
+    if filter_choice:
+        tags.append(f"--filter {filter_choice}")
+    if tags:
+        return f" {Fore.CYAN}[Đã lọc: {', '.join(tags)}]{Style.RESET_ALL}"
+    return ""
+
+
+def render_central_skills(skills: list[str], base_path: str, filter_tag: str = ""):
     """In danh sách skill trong kho trung tâm."""
     norm_base = os.path.normpath(base_path)
-    print(f"\n{Fore.CYAN}📦 KHO LƯU TRỮ SKILLS ({len(skills)} skills):{Style.RESET_ALL}")
+    print(f"\n{Fore.CYAN}📦 KHO LƯU TRỮ SKILLS ({len(skills)} skills){filter_tag}:{Style.RESET_ALL}")
     print(f"   Đường dẫn: {norm_base}")
     print("─" * 76)
 
@@ -145,24 +177,33 @@ def render_central_skills(skills: list[str], base_path: str):
             print(f"       {Fore.LIGHTBLACK_EX}└─ {desc}{Style.RESET_ALL}")
 
 
-def render_agent_skills(agent_label: str, agent_path: str):
+def render_agent_skills(agent_label: str, agent_path: str, keyword: str | None = None, filter_choice: str | None = None):
     """In danh sách skill global của một AI Agent cụ thể."""
     norm_path = os.path.normpath(agent_path)
     skills = get_agent_skills(agent_path)
-
-    print(f"\n{Fore.MAGENTA}🤖 SKILL GLOBAL CỦA {agent_label.upper()} ({len(skills)} skills):{Style.RESET_ALL}")
-    print(f"   Đường dẫn: {norm_path}")
-    print("─" * 76)
+    filter_tag = build_filter_tag(keyword, filter_choice)
 
     if not os.path.isdir(agent_path):
+        print(f"\n{Fore.MAGENTA}🤖 SKILL GLOBAL CỦA {agent_label.upper()}:{Style.RESET_ALL}")
+        print(f"   Đường dẫn: {norm_path}")
+        print("─" * 76)
         print(f"   {Fore.YELLOW}⚠️ Thư mục chưa tồn tại trên máy tính.{Style.RESET_ALL}")
         return
+
+    filtered_skills = filter_skills_list(skills, agent_path, keyword, filter_choice)
+    print(f"\n{Fore.MAGENTA}🤖 SKILL GLOBAL CỦA {agent_label.upper()} ({len(filtered_skills)}/{len(skills)} skills){filter_tag}:{Style.RESET_ALL}")
+    print(f"   Đường dẫn: {norm_path}")
+    print("─" * 76)
 
     if not skills:
         print(f"   {Fore.YELLOW}ℹ️ Chưa có Skill nào được cài đặt trong Agent này.{Style.RESET_ALL}")
         return
 
-    for idx, s in enumerate(skills, 1):
+    if not filtered_skills:
+        print(f"   {Fore.YELLOW}ℹ️ Không tìm thấy Skill nào trong Agent này khớp với bộ lọc.{Style.RESET_ALL}")
+        return
+
+    for idx, s in enumerate(filtered_skills, 1):
         full_dir = os.path.join(norm_path, s)
         info = get_skill_info(full_dir)
         print(f"  [{idx:2d}] {Fore.WHITE}{Style.BRIGHT}{s:<44}{Style.RESET_ALL} {info['invocation_label']}")
@@ -174,7 +215,7 @@ def render_agent_skills(agent_label: str, agent_path: str):
             print(f"       {Fore.LIGHTBLACK_EX}└─ {desc}{Style.RESET_ALL}")
 
 
-def print_agent_target_skills(target_choice: str):
+def print_agent_target_skills(target_choice: str, keyword: str | None = None, filter_choice: str | None = None):
     """In danh sách skill của agent theo lựa chọn (tên agent hoặc 'all')."""
     if target_choice == "all":
         all_agents = [
@@ -183,10 +224,10 @@ def print_agent_target_skills(target_choice: str):
             ("Claude Code", CLAUDE_SKILLS_PATH),
         ]
         for agent_label, agent_path in all_agents:
-            render_agent_skills(agent_label, agent_path)
+            render_agent_skills(agent_label, agent_path, keyword, filter_choice)
     elif target_choice in LLM_TARGETS:
         agent_label, agent_path = LLM_TARGETS[target_choice]
-        render_agent_skills(agent_label, agent_path)
+        render_agent_skills(agent_label, agent_path, keyword, filter_choice)
     else:
         print(f"\n{Fore.RED}❌ Lỗi: Tên AI/LLM '{target_choice}' không hợp lệ.{Style.RESET_ALL}")
         print("Các lựa chọn hợp lệ:")
@@ -197,16 +238,19 @@ def print_agent_target_skills(target_choice: str):
         sys.exit(1)
 
 
-def handle_list_action(ai_choice: str | None, include_choice: str | None):
+def handle_list_action(ai_choice: str | None, include_choice: str | None, keyword_choice: str | None, filter_choice: str | None):
     """
     Xử lý lệnh 'mod skill list' / 'mod skill ls':
     1. ai_choice != None      : CHỈ liệt kê AI Agent chỉ định (KHÔNG in kho lưu trữ).
     2. include_choice != None : Liệt kê CẢ HAI (Kho lưu trữ trung tâm VÀ AI Agent).
     3. Không cờ               : CHỈ liệt kê Kho lưu trữ trung tâm.
+    Hỗ trợ kết hợp cờ lọc --keyword và --filter.
     """
+    filter_tag = build_filter_tag(keyword_choice, filter_choice)
+
     # Case 1: Agent-Only mode
     if ai_choice is not None:
-        print_agent_target_skills(ai_choice)
+        print_agent_target_skills(ai_choice, keyword_choice, filter_choice)
         print()
         return
 
@@ -219,11 +263,19 @@ def handle_list_action(ai_choice: str | None, include_choice: str | None):
     if not central_skills:
         print(f"\n{Fore.YELLOW}⚠️ Kho lưu trữ rỗng: Chưa có skill nào trong {SKILLS_FOLDER_PATH}.{Style.RESET_ALL}")
     else:
-        render_central_skills(central_skills, SKILLS_FOLDER_PATH)
+        matched = filter_skills_list(central_skills, SKILLS_FOLDER_PATH, keyword_choice, filter_choice)
+        if not matched and (keyword_choice or filter_choice):
+            norm_base = os.path.normpath(SKILLS_FOLDER_PATH)
+            print(f"\n{Fore.CYAN}📦 KHO LƯU TRỮ SKILLS (0/{len(central_skills)} skills){filter_tag}:{Style.RESET_ALL}")
+            print(f"   Đường dẫn: {norm_base}")
+            print("─" * 76)
+            print(f"   {Fore.YELLOW}ℹ️ Không tìm thấy Skill nào trong kho khớp với bộ lọc.{Style.RESET_ALL}")
+        else:
+            render_central_skills(matched, SKILLS_FOLDER_PATH, filter_tag)
 
     # Nếu truyền --include-agent: Liệt kê thêm Agent
     if include_choice is not None:
-        print_agent_target_skills(include_choice)
+        print_agent_target_skills(include_choice, keyword_choice, filter_choice)
 
     print()
 
@@ -274,7 +326,7 @@ def handle_find_action(keyword: str | None):
     print(f"   - Cài đặt vào Agent   : mod skill set {matched[0]} --agent agy{Style.RESET_ALL}\n")
 
 
-def handle_list_project_action(target_dir_input: str | None):
+def handle_list_project_action(target_dir_input: str | None, keyword_choice: str | None = None, filter_choice: str | None = None):
     """Xử lý lệnh 'mod skill list-project' / 'mod skill list-prj' / 'mod skill ls-prj' / 'mod skill ls-project'."""
     if target_dir_input:
         target_dir = os.path.abspath(target_dir_input)
@@ -286,6 +338,7 @@ def handle_list_project_action(target_dir_input: str | None):
 
     norm_target = os.path.normpath(target_dir)
     skills = find_project_skills(target_dir)
+    filter_tag = build_filter_tag(keyword_choice, filter_choice)
 
     if not skills:
         print(f"\n{Fore.YELLOW}⚠️ Không tìm thấy Skill nào trong thư mục:{Style.RESET_ALL}")
@@ -295,11 +348,16 @@ def handle_list_project_action(target_dir_input: str | None):
         print(f"   - Dùng lệnh 'mod skill set <tên_skill> {norm_target}' để cài đặt skill vào thư mục này.{Style.RESET_ALL}\n")
         sys.exit(0)
 
-    print(f"\n{Fore.BLUE}📁 CÁC SKILL TRONG DỰ ÁN ({len(skills)} skills):{Style.RESET_ALL}")
+    matched = filter_skills_list(skills, target_dir, keyword_choice, filter_choice)
+    print(f"\n{Fore.BLUE}📁 CÁC SKILL TRONG DỰ ÁN ({len(matched)}/{len(skills)} skills){filter_tag}:{Style.RESET_ALL}")
     print(f"   Thư mục: {norm_target}")
     print("─" * 76)
 
-    for idx, s in enumerate(skills, 1):
+    if not matched:
+        print(f"   {Fore.YELLOW}ℹ️ Không tìm thấy Skill nào trong dự án khớp với bộ lọc.{Style.RESET_ALL}\n")
+        return
+
+    for idx, s in enumerate(matched, 1):
         if s == ".":
             display_name = os.path.basename(norm_target)
             full_dir = norm_target
@@ -327,6 +385,8 @@ def main():
     action = sys.argv[1].lower()
     ai_choice = None
     include_choice = None
+    keyword_choice = None
+    filter_choice = None
     positional_args = []
 
     i = 2
@@ -352,6 +412,37 @@ def main():
         elif arg.startswith(("--include-agent=", "--include-ai=", "--include-llm=")):
             include_choice = arg.split("=", 1)[1].strip().lower()
             i += 1
+        elif arg in ("--keyword", "--key", "-k"):
+            if i + 1 < len(sys.argv) and not sys.argv[i + 1].startswith("-"):
+                keyword_choice = sys.argv[i + 1].strip()
+                i += 2
+            else:
+                print(f"{Fore.RED}❌ Lỗi: Thiếu từ khóa sau cờ {arg}. (Ví dụ: --keyword ssr, --key outside, -k react){Style.RESET_ALL}")
+                sys.exit(1)
+        elif arg.startswith(("--keyword=", "--key=", "-k=")):
+            keyword_choice = arg.split("=", 1)[1].strip()
+            if not keyword_choice:
+                print(f"{Fore.RED}❌ Lỗi: Từ khóa không được để trống.{Style.RESET_ALL}")
+                sys.exit(1)
+            i += 1
+        elif arg in ("--filter", "-f"):
+            if i + 1 < len(sys.argv):
+                raw_filter = sys.argv[i + 1]
+                filter_choice = parse_filter_arg(raw_filter)
+                if not filter_choice:
+                    print(f"{Fore.RED}❌ Lỗi: Giá trị filter '{raw_filter}' không hợp lệ. Chỉ chấp nhận 'on-invocation' (hoặc 'on') và 'off-invocation' (hoặc 'off').{Style.RESET_ALL}")
+                    sys.exit(1)
+                i += 2
+            else:
+                print(f"{Fore.RED}❌ Lỗi: Thiếu giá trị sau cờ {arg}. (Ví dụ: --filter on-invocation hoặc --filter off-invocation){Style.RESET_ALL}")
+                sys.exit(1)
+        elif arg.startswith(("--filter=", "-f=")):
+            raw_filter = arg.split("=", 1)[1]
+            filter_choice = parse_filter_arg(raw_filter)
+            if not filter_choice:
+                print(f"{Fore.RED}❌ Lỗi: Giá trị filter '{raw_filter}' không hợp lệ. Chỉ chấp nhận 'on-invocation' (hoặc 'on') và 'off-invocation' (hoặc 'off').{Style.RESET_ALL}")
+                sys.exit(1)
+            i += 1
         else:
             positional_args.append(arg)
             i += 1
@@ -362,13 +453,14 @@ def main():
         sys.exit(1)
 
     if action in ("list", "ls"):
-        handle_list_action(ai_choice, include_choice)
+        handle_list_action(ai_choice, include_choice, keyword_choice, filter_choice)
     elif action in ("list-project", "list-prj", "ls-prj", "ls-project"):
         target_dir_input = positional_args[0] if positional_args else None
-        handle_list_project_action(target_dir_input)
+        handle_list_project_action(target_dir_input, keyword_choice, filter_choice)
     elif action in ("find", "search"):
         kw_input = positional_args[0] if positional_args else None
-        handle_find_action(kw_input)
+        effective_kw = kw_input or keyword_choice
+        handle_find_action(effective_kw)
     else:
         print(f"{Fore.RED}❌ Lỗi: Action '{action}' không hợp lệ.{Style.RESET_ALL}")
         sys.exit(1)
