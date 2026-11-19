@@ -27,7 +27,7 @@
 
 - 🚀 **Quản lý AI Skills & MCP Servers:** Quản lý kho AI Skills tập trung (`mod skill`), cài đặt trực tiếp vào project theo chuẩn Open Agent Skills (`.agents/skills`), cài đặt vào Global AI Agent (`Antigravity`, `OpenAI Codex`, `Claude Code`), tìm kiếm skill theo từ khóa (`mod skill find`), bật/tắt tự động gọi (`on-invo`/`off-invo`) và mở nhanh cấu hình MCP (`mod mcp open-config`).
 - 📂 **Kiểm Tra & Quản Lý Đường Dẫn Tập Trung:** Lệnh `mod paths` (alias `mod path`) in toàn bộ danh sách đường dẫn cấu hình trong `paths.py`, lọc nhanh theo từ khóa (`-k`, `--key`), kiểm tra trạng thái tồn tại trên máy (`[TỒN TẠI]` / `[CHƯA TẠO]`).
-- 📁 **Mở Tài Nguyên & Workspace Siêu Tốc:** Mở nhanh các workspace lập trình, thư mục dự án, biến môi trường Windows, kho template, hoặc tự đăng ký và quản lý alias đường dẫn cá nhân (`mod open add/list/rm/<alias>`) với hỗ trợ mở trực tiếp trong VSCode hoặc Antigravity IDE (`-c` / `-a`).
+- 📁 **Mở Tài Nguyên & Workspace Siêu Tốc:** Mở nhanh các workspace lập trình, thư mục dự án, biến môi trường Windows, kho template, hoặc tự đăng ký và quản lý alias đường dẫn cá nhân (`mod open add/list/rm/<alias>`) với hỗ trợ mở trực tiếp trong VSCode (`-c` / `--code`).
 - 🔄 **Tự Động Hóa Git Nâng Cao:** `mod git commit` (tự động add, commit và push), tải thư mục hoặc file đơn lẻ từ bất kỳ GitHub repo nào mà không cần clone cả repo (`mod git dl-folder`, `mod git dl-file`), và quản lý danh sách Git Stash kèm menu drop tương tác an toàn (`mod git stash list`, `mod git drop`).
 - ☁️ **Tích Hợp Google Drive & GitHub Gist:** Đồng bộ tự động và lấy link web chia sẻ qua rclone (`mod gdrive sync/list/dl`), quản lý toàn diện GitHub Gists cá nhân kèm tính năng kiểm toán dung lượng, cảnh báo file lớn và kiểm tra rate limit API (`mod gist`).
 - 🗜️ **Nén Mã Nguồn Dự Án Thông Minh:** Nén dự án theo timestamp (`mod compress`), nén thư mục bất kỳ hỗ trợ bộ lọc `.compressignore` hoặc cấu hình JSON (`include-items`, `exclude-items`).
@@ -61,7 +61,7 @@
 - **Hệ điều hành:** Windows 10 hoặc Windows 11 (64-bit).
 - **Python:** Phiên bản 3.12 trở lên (đã tích hợp vào `PATH`).
 - **Git:** Đã cài đặt và có trong `PATH` (phục vụ nhóm lệnh `mod git`).
-- **VSCode hoặc Antigravity IDE:** Đã cấu hình lệnh CLI `code` hoặc `anti` trong `PATH`.
+- **VSCode:** Đã cấu hình lệnh CLI `code` trong `PATH`.
 - **rclone (Tùy chọn):** Cần thiết nếu sử dụng các tính năng Google Drive (`mod gdrive`).
 - **BurntToast (Tùy chọn):** Module PowerShell hỗ trợ Toast Notification (`Install-Module -Name BurntToast -Scope CurrentUser`).
 
@@ -140,7 +140,7 @@ mod.cmd  (Wrapper cực mỏng: @py "%~dp0src\main.py" %*)
     ▼
 src/main.py (Central Dispatcher)
     ├── Tự động thiết lập UTF-8 Console
-    ├── Tách các Dispatcher Flags (--version / -v, --info / --des, -a / --antigravity-IDE)
+    ├── Tách các Dispatcher Flags (--version / -v, --info / --des)
     ├── Nếu không có tham số: Khởi chạy Interactive REPL (src/utils/interactive_cli.py)
     ├── Xác định type & action hợp lệ
     ├── Forward nguyên vẹn toàn bộ remaining_args
@@ -162,7 +162,7 @@ src/main.py (Central Dispatcher)
 ## Cú Pháp & Quy Tắc Dòng Lệnh
 
 ```bash
-mod <type> [action] [arguments...] [-a] [--info]
+mod <type> [action] [arguments...] [--info]
 ```
 
 ### Cờ Điều Phối Toàn Cục (Dispatcher Flags):
@@ -170,7 +170,6 @@ mod <type> [action] [arguments...] [-a] [--info]
 | :--- | :--- |
 | `-v`, `--version` | In thông tin phiên bản chính thức và mô tả công cụ. |
 | `--info`, `--des` | In mô tả chi tiết, cú pháp, tóm tắt và điều kiện thực thi của lệnh lấy từ catalog YAML. |
-| `-a`, `--antigravity-IDE` | Sử dụng IDE `anti` (Google Antigravity) thay vì `code` (VSCode mặc định). |
 | `-h`, `--help` | In bảng trợ giúp tóm tắt toàn bộ câu lệnh của hệ thống. |
 
 ---
@@ -199,6 +198,7 @@ mod skill open [-c]                 # Mở thư mục kho AI Skills trong Explor
 mod skill on-invo [s] [-k] [-f]     # Bật tự động gọi skill (trong kho, agent --agent, hoặc project --prj, hỗ trợ -k/-f)
 mod skill off-invo [s] [-k] [-f]    # Tắt tự động gọi skill (trong kho, agent --agent, hoặc project --prj, hỗ trợ -k/-f)
 mod skill remove [skill_name]       # Xóa skill khỏi kho hoặc khỏi AI Agent (alias: mod skill rm)
+mod skill git-commit -m "msg"       # Đóng gói và đẩy thay đổi của kho AI Skills lên Git (nhánh hiện tại)
 ```
 
 ### 3. Nhóm `open` - Mở Nhanh Thư Mục & Quản Lý Alias
@@ -229,7 +229,7 @@ mod git commit -m "feat: my commit" # Tự động: git add . -> git commit -m -
 mod git dl-folder <github_url> [d]  # Tải đệ quy 1 thư mục từ GitHub repo về máy (không kèm .git)
 mod git dl-file <github_url> [d]    # Tải 1 file đơn lẻ từ GitHub repo về máy
 mod git stash list                  # Liệt kê các stash trong kho lưu trữ mod (alias: mod git stash ls)
-mod git drop [stash_index] [-y]     # Xóa stash theo menu tương tác hoặc chỉ định trực tiếp (alias: mod git stash drop)
+mod git drop [stash_index] [--all] [-y] # Xóa stash theo menu tương tác, số thứ tự hoặc xóa tất cả với --all
 mod git remote                      # In danh sách Git Remote URL hiện tại (git remote -v)
 ```
 
@@ -294,11 +294,12 @@ mod toast --syntax                  # In cú pháp 1 dòng của mod toast để
 ### 11. Nhóm `code` & `edit` - Workspace & IDE
 ```bash
 mod code                            # Mở thư mục mod trong IDE
-mod code ws <ptb|tool> [-p]         # Mở workspace lập trình thiết lập sẵn (-p chỉ mở terminal)
+mod code ws                         # Mở file workspace (*.code-workspace) trong main-ws folder bằng VSCode
 mod code test / ts / js / py / ext  # Mở nhanh các thư mục testing/template tương ứng trong IDE
 mod edit to                         # Mở file PowerShell Profile ($PROFILE) trong Notepad
 mod edit note                       # Mở sổ tay ghi chú câu lệnh note.txt trong Notepad
 mod edit proms                      # Mở thư mục prompts của Template Replacer Extension
+mod edit ssh                        # Mở file cấu hình SSH (~/.ssh/config) trong Notepad
 ```
 
 ### 12. Nhóm Tiện Ích Khác (`run`, `print`, `tunnel`, `proxy`, `py`, `init`, `keep`)
@@ -316,6 +317,14 @@ mod tunnel [port]                   # Mở Cloudflare Quick Tunnel trỏ tới l
 mod proxy test <ip:port:user:pass>  # Kiểm tra kết nối proxy qua Python, cURL và lấy IP thật qua ipify
 mod py env                          # Thiết lập toàn diện venv Python, nâng cấp pip và tạo file kích hoạt nhanh
 mod init                            # Chạy batch script dọn dẹp task Windows ngầm và bật Unikey
+```
+
+### 13. Tra Cứu & Liệt Kê Lệnh Siêu Tốc (`seek`, `list`, `ls`)
+```bash
+mod seek <keyword>                  # Tìm kiếm các type & action chứa từ khóa kèm ý nghĩa (case-insensitive)
+mod ls                              # Liệt kê danh sách tất cả các type và action hiện có (chỉ tên)
+mod ls -k <keyword>                 # Lọc danh sách type và action theo từ khóa (chỉ tên, hỗ trợ -k, --key)
+mod list --key <keyword>            # Alias của mod ls
 ```
 
 ---

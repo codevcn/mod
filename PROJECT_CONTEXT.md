@@ -21,7 +21,7 @@
 Dự án áp dụng mô hình **Dispatcher - Feature Script Pattern**:
 
 ```text
-User Input: mod <type> <action> [args...] [-a] [--info]
+User Input: mod <type> <action> [args...] [--info]
     │
     ▼
 mod.cmd  (Wrapper cực mỏng: @py "%~dp0src\main.py" %*)
@@ -29,7 +29,7 @@ mod.cmd  (Wrapper cực mỏng: @py "%~dp0src\main.py" %*)
     ▼
 src/main.py (Central Dispatcher)
     ├── Tự parse sys.argv (Tuyệt đối KHÔNG dùng argparse ở dispatcher)
-    ├── Tách Dispatcher Flags (--version / -v, --info / --des, -a / --antigravity-IDE)
+    ├── Tách Dispatcher Flags (--version / -v, --info / --des)
     ├── Nếu không có tham số: Khởi chạy Interactive REPL (src/utils/interactive_cli.py)
     ├── Xác định type & action hợp lệ
     ├── Forward nguyên vẹn toàn bộ tham số còn lại (remaining_args)
@@ -125,7 +125,7 @@ Hệ thống phân định rõ ràng 3 nhóm đường dẫn:
 2. **Đường dẫn ngoài máy cục bộ (Cần kiểm tra/cập nhật khi chuyển sang máy khác):**
    - `APPDATA_FOLDER`: `D:/D-AppData/me-mod` (lưu QR code, alias mở nhanh thư mục).
    - `OPEN_ALIASES_FILE_PATH`: `<APPDATA_FOLDER>/open_aliases.json`.
-   - `LOCAL_ABSOLUTE_FOLDER_PATH` / `MCP_FOLDER_PATH`: Kho chứa MCP Server templates.
+   - `LOCAL_ABSOLUTE_FOLDER_PATH`: Kho chứa MCP Server templates.
    - `SKILLS_FOLDER_PATH`: Kho chứa các AI Skills tập trung.
    - `VSCODE_WORKSPACES_FOLDER`: Thư mục lưu các file `.code-workspace`.
    - `SOURCE_FILES_FOLDER`: Kho chứa các tệp mã nguồn mẫu/template tái sử dụng.

@@ -22,14 +22,12 @@ SRC_DIR = Path(__file__).resolve().parents[2]
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from configs.paths import PROJECT_ROOT
 from utils.errors import ModCLIError, handle_cli_error, MissingActionError, InvalidActionError
 from utils.notifications import (
     get_notifier,
     get_channel_statuses,
     SUPPORTED_CHANNELS,
     DEFAULT_NTFY_TOPIC,
-    DEFAULT_NTFY_SERVER,
 )
 
 # Mã màu ANSI cơ bản

@@ -26,7 +26,6 @@ SRC_DIR = Path(__file__).resolve().parents[2]
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from configs.paths import PROJECT_ROOT
 from features.gist.gist_manager import GistManager
 from features.gist.gist_auditor import GistStorageAuditor
 

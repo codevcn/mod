@@ -17,7 +17,6 @@ import tempfile
 import subprocess
 import urllib.request
 import urllib.error
-from pathlib import Path
 from colorama import init, Fore, Style
 
 # Cấu hình UTF-8 cho Windows Console

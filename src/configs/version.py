@@ -1,4 +1,4 @@
-﻿"""
+"""
 Standardized Version & Metadata Management for Mod CLI.
 """
 

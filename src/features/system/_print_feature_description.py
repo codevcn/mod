@@ -1,4 +1,4 @@
-﻿import sys
+import sys
 import os
 import argparse
 from pathlib import Path
@@ -186,6 +186,14 @@ def print_feature_description(cmd_type: str | None, action: str | None):
         if not cmd_type and not action:
             render_global_overview(data)
             sys.exit(0)
+
+        # Chuẩn hóa alias cho type
+        TYPE_ALIASES = {
+            "path": "paths",
+            "ls": "list",
+        }
+        if cmd_type in TYPE_ALIASES:
+            cmd_type = TYPE_ALIASES[cmd_type]
 
         # Tìm type trong danh sách
         target_type = None

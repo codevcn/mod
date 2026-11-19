@@ -28,7 +28,6 @@ from configs.version import get_version_info
 from utils.errors import (
     handle_cli_error,
     InvalidTypeError,
-    MissingTypeError,
     InvalidActionError,
     MissingActionError,
     ModCLIError,
@@ -40,9 +39,6 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
-
-# --- Status ---
-MOD_STATUS = "OK"
 
 # --- Types ---
 MOD_TYPE_OPEN = "open"
@@ -66,6 +62,10 @@ MOD_TYPE_GIST = "gist"
 MOD_TYPE_NOTIFY = "notify"
 MOD_TYPE_PATHS = "paths"
 MOD_TYPE_KEEP = "keep"
+MOD_TYPE_FIND = "find"
+MOD_TYPE_SEEK = "seek"
+MOD_TYPE_LIST = "list"
+MOD_TYPE_LS = "ls"
 
 
 # --- Actions ---
@@ -137,6 +137,7 @@ MOD_FOLDER_TREE = "tree"
 MOD_EDIT_PROMPTS = "proms"
 MOD_EDIT_TO_COMMAND = "to"
 MOD_EDIT_NOTE = "note"
+MOD_EDIT_SSH = "ssh"
 # git
 MOD_GIT_COMMIT_AND_PUSH = "commit"
 MOD_GIT_DL_FOLDER = "dl-folder"
@@ -168,9 +169,13 @@ MOD_SKILL_LIST = "list"
 MOD_SKILL_LIST_PROJECT = "list-project"
 MOD_SKILL_PROJECT = "project"
 MOD_SKILL_FIND = "find"
+MOD_SKILL_GIT_COMMIT = "git-commit"
 # compress
 MOD_COMPRESS_FOLDER = "folder"
 MOD_COMPRESS_INIT_IGNORE = "init-ignore"
+# find
+MOD_FIND_FILE = "file"
+MOD_FIND_FOLDER = "folder"
 
 
 
@@ -782,6 +787,8 @@ def cmd_skill(action, remaining_args, default_ide_prefix="code"):
         feature_file = "skill_remove.py"
     elif act_lower in ("off-invocation", "off-invo", "on-invocation", "on-invo"):
         feature_file = "skill_invocation.py"
+    elif act_lower in ("git-commit", "commit"):
+        feature_file = "skill_git_commit.py"
     elif act_lower in ("list", "ls", "list-project", "list-prj", "ls-prj", "ls-project", "find", "search"):
         feature_file = "skill_list.py"
     else:
@@ -807,6 +814,46 @@ def cmd_paths(args: list[str]):
         get_feature_path("print_paths.py"),
     ]
     cmd_args.extend(args)
+    result = subprocess.run(
+        cmd_args,
+        check=False,
+    )
+    sys.exit(result.returncode)
+
+
+def cmd_seek(args: list[str]):
+    cmd_args = [
+        "python",
+        get_feature_path("seek_features.py"),
+    ]
+    cmd_args.extend(args)
+    result = subprocess.run(
+        cmd_args,
+        check=False,
+    )
+    sys.exit(result.returncode)
+
+
+def cmd_list(args: list[str]):
+    cmd_args = [
+        "python",
+        get_feature_path("list_features.py"),
+    ]
+    cmd_args.extend(args)
+    result = subprocess.run(
+        cmd_args,
+        check=False,
+    )
+    sys.exit(result.returncode)
+
+
+def cmd_find(action: str, remaining_args: list[str]):
+    cmd_args = [
+        "python",
+        get_feature_path("find_items.py"),
+        action,
+    ]
+    cmd_args.extend(remaining_args)
     result = subprocess.run(
         cmd_args,
         check=False,
@@ -880,7 +927,6 @@ def cmd_notify(action, remaining_args):
 def dispatch_command(
     feature_args: list[str],
     info_flag: bool = False,
-    antigravity_flag: bool = False,
 ):
     type_included = feature_args[0] if len(feature_args) > 0 else None
     action_included = feature_args[1] if len(feature_args) > 1 else None
@@ -893,8 +939,8 @@ def dispatch_command(
         cmd_action = pos_args[1] if len(pos_args) > 1 else None
         print_feature_description(cmd_type, cmd_action)
 
-    # --- IDE prefix ---
-    default_ide_prefix: str = "anti" if antigravity_flag else "code"
+    # --- IDE prefix (Mặc định: VSCode) ---
+    default_ide_prefix: str = "code"
 
     # --- Dispatch ---
     if type_included == MOD_TYPE_GIST:
@@ -922,13 +968,15 @@ def dispatch_command(
 
 
     elif type_included == MOD_TYPE_EDIT:
-        valid_actions = [MOD_EDIT_PROMPTS, MOD_EDIT_TO_COMMAND, MOD_EDIT_NOTE]
+        valid_actions = [MOD_EDIT_NOTE, MOD_EDIT_PROMPTS, MOD_EDIT_SSH, MOD_EDIT_TO_COMMAND]
         if action_included == MOD_EDIT_PROMPTS:
             edit_prompts()
         elif action_included == MOD_EDIT_TO_COMMAND:
             edit_to_command()
         elif action_included == MOD_EDIT_NOTE:
             edit_useful_commands()
+        elif action_included == MOD_EDIT_SSH:
+            open_ssh_config()
         elif action_included is None:
             raise MissingActionError(type_included, valid_actions)
         else:
@@ -972,6 +1020,7 @@ def dispatch_command(
             MOD_SKILL_LIST_PROJECT,
             MOD_SKILL_PROJECT,
             MOD_SKILL_FIND,
+            MOD_SKILL_GIT_COMMIT,
         ]
         if action_included is None:
             raise MissingActionError(type_included, valid_actions)
@@ -990,6 +1039,8 @@ def dispatch_command(
             clean_act = MOD_SKILL_PROJECT
         elif clean_act in ("search",):
             clean_act = MOD_SKILL_FIND
+        elif clean_act == "commit":
+            clean_act = MOD_SKILL_GIT_COMMIT
         if clean_act not in valid_actions:
             raise InvalidActionError(type_included, action_included, valid_actions)
         cmd_skill(action_included, remaining_args, default_ide_prefix)
@@ -997,6 +1048,17 @@ def dispatch_command(
         cmd_paths(feature_args[1:])
     elif type_included == MOD_TYPE_KEEP:
         keep_screen()
+    elif type_included == MOD_TYPE_SEEK:
+        cmd_seek(feature_args[1:])
+    elif type_included in (MOD_TYPE_LIST, MOD_TYPE_LS):
+        cmd_list(feature_args[1:])
+    elif type_included == MOD_TYPE_FIND:
+        valid_actions = [MOD_FIND_FILE, MOD_FIND_FOLDER]
+        if action_included is None:
+            raise MissingActionError(type_included, valid_actions)
+        if action_included not in valid_actions:
+            raise InvalidActionError(type_included, action_included, valid_actions)
+        cmd_find(action_included, remaining_args)
     elif type_included == MOD_TYPE_TOAST:
         cmd_toast(action_included, remaining_args)
     elif type_included == MOD_TYPE_NOTIFY:
@@ -1278,12 +1340,6 @@ def dispatch_command(
     else:
         raise InvalidTypeError(type_included)
 
-    # Nếu chạy đến đây (không rẽ nhánh nào) thì báo lỗi.
-    global MOD_STATUS
-    MOD_STATUS = "OUT-OF-MAIN-SECTION"
-    print(">>> These commands end up with mod-status: " + MOD_STATUS)
-    sys.exit(1)
-
 
 # --- Main ---
 
@@ -1291,16 +1347,13 @@ if __name__ == "__main__":
     try:
         raw_args = sys.argv[1:]
 
-        # --- Tách dispatcher flags (chỉ giữ --info / --des và -a) ---
+        # --- Tách dispatcher flags (chỉ giữ --info / --des) ---
         info_flag = False
-        antigravity_flag = False
         feature_args = []
 
         for arg in raw_args:
             if arg in ("--info", "--des"):
                 info_flag = True
-            elif arg in ("-a", "--antigravity-IDE"):
-                antigravity_flag = True
             else:
                 feature_args.append(arg)
 
@@ -1322,7 +1375,7 @@ if __name__ == "__main__":
             print_help()
 
         # --- Thực thi lệnh trực tiếp ---
-        dispatch_command(feature_args, info_flag, antigravity_flag)
+        dispatch_command(feature_args, info_flag)
 
     except KeyboardInterrupt:
         print("\n\n>>> Tiến trình đã bị hủy bởi người dùng (KeyboardInterrupt).")

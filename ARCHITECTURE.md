@@ -98,17 +98,16 @@ Không nên đặt logic nghiệp vụ trong wrapper.
 - Khối dispatch chính.
 - Cơ chế gọi script con bằng `subprocess`.
 
-Dispatcher chỉ xử lý 2 flag riêng:
+Dispatcher chỉ xử lý flag riêng:
 
 - `--info`: in mô tả tính năng từ `app_features.yml`.
-- `-a` / `--antigravity-IDE`: chọn IDE prefix.
 
 Mọi args sau `action` được gom vào `remaining_args` và forward nguyên vẹn cho feature script.
 
 Mẫu command grammar:
 
 ```text
-<tool> <type> <action> [args...] [--info] [-a]
+<tool> <type> <action> [args...] [--info]
 ```
 
 Ví dụ generic:
@@ -207,14 +206,13 @@ Quy ước:
 
 ### 4.3. Flag constants
 
-Dispatcher chỉ giữ 2 flag riêng. Các flag khác thuộc về feature script.
+Dispatcher chỉ giữ flag riêng (`--info`). Các flag khác thuộc về feature script.
 
 Mẫu dispatcher flags:
 
 ```python
 # Dispatcher flags (xử lý bởi main.py)
 APP_FLAG_DESCRIPTION = "--info"
-APP_FLAG_ANTIGRAVITY = "-a"
 ```
 
 Feature-level flags (ví dụ, xử lý bởi script con):
@@ -222,9 +220,6 @@ Feature-level flags (ví dụ, xử lý bởi script con):
 ```python
 # Trong _git.py
 "-m", "--message"   # commit message
-
-# Trong open_main_ws.py
-"-p"                # powershell only
 
 # Trong sync_to_gdrive.py
 "-d", "--deep"      # deep recursive

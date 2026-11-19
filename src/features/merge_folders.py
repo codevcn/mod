@@ -14,7 +14,6 @@ if hasattr(sys.stderr, "reconfigure"):
 
 # Add project root to sys.path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from configs.paths import PROJECT_ROOT
 
 # ANSI Colors
 RESET = "\033[0m"

@@ -5,20 +5,18 @@
 # Help for mod command:
 
 # Usage:
-mod <type> <action> [args...] [-a] [--info]
+mod <type> <action> [args...] [--info]
 
-Dispatcher chỉ xử lý 2 flag: --info và -a.
+Dispatcher chỉ xử lý flag: --info.
 Mọi args sau <action> được forward nguyên vẹn cho feature script tự xử lý.
 
 # Dispatcher flags:
 -h, --help        :print this help.
 -v, --version     :print version info (v0.1.0) and short description in English.
--a                :using Antigravity IDE instead of VSCode.
 --info, --des     :print description of typing commands.
 
 # Feature-level flags (truyền sau action, do feature tự xử lý):
 -m, --message     :input message for external script (git commit).
--p                :only open in PowerShell, not IDE (code ws).
 -d, --deep        :deep recursive action (gdrive list).
 -f, --file        :list files instead of folders (gdrive list) or open in File Explorer (open).
 
@@ -46,6 +44,8 @@ toast             :to send Windows desktop toast notification.
 compress          :to compress project into a zip file.
 notify            :to send multi-channel notifications (ntfy, telegram, toast).
 paths             :to print all configured paths in paths.py (supports -k/--key/--keyword).
+seek              :to search types and actions by keyword with meanings.
+list, ls          :to list all available types and actions (names only, supports -k/--key).
 
 
 # Available actions:
@@ -73,7 +73,7 @@ paths             :to print all configured paths in paths.py (supports -k/--key/
 ## code:
                   :open mod files in vscode.
    test           :open testing folder in vscode.
-   ws <value> [-p]:open working workspace in vscode and cd to working folder in CLI.
+   ws             :open workspace file in main-ws folder in VSCode.
    ts-template    :open typescript template in vscode.
    js             :open testing javascript folder in vscode.
    ts             :open testing typescript folder in vscode.
@@ -84,6 +84,7 @@ paths             :to print all configured paths in paths.py (supports -k/--key/
    proms          :edit prompts in prompts folder in notepad (Template Replacer Extension).
    to             :edit to command in notepad (Template Replacer Extension).
    note           :edit useful commands in notepad.
+   ssh            :edit SSH config file (~/.ssh/config) in notepad.
 ## git:
    commit -m "msg":add all files and commit with a message and push with upstream.
    remote         :print git remote URL (git remote -v).
@@ -97,10 +98,11 @@ paths             :to print all configured paths in paths.py (supports -k/--key/
                   :show list of git stashes in mod tool repository.
                   // Example: mod git stash list
                   // Example: mod git stash ls
-   drop [stash_idx]
-                  :drop a git stash interactively (like mod skill set) or by index/ref.
+   drop [stash_idx] [--all, -a]
+                  :drop a git stash interactively (like mod skill set), by index/ref, or drop all with --all.
                   // Example: mod git drop
                   // Example: mod git drop 1
+                  // Example: mod git drop --all
                   // Example: mod git stash drop
 ## run:
    unikey         :run unikey.
@@ -299,6 +301,9 @@ paths             :to print all configured paths in paths.py (supports -k/--key/
    open [-c]      :open AI Skills folder in File Explorer (or IDE with -c/--code). (Alias of 'mod open skills')
                   // Example: mod skill open
                   // Example: mod skill open -c
+   git-commit, commit -m "msg"
+                  :stage all changes, commit and push to current branch of skills repo.
+                  // Example: mod skill git-commit -m "feat: add design skills"
 
 ## toast:
    <title> [msg...] [--audio <path>]
@@ -336,6 +341,18 @@ paths             :to print all configured paths in paths.py (supports -k/--key/
                   // Example: mod paths -k skill
                   // Example: mod paths --key "Program Files"
                   // Example: mod paths --keyword "me-mod"
+
+## seek:
+   <keyword>      :search all types and actions containing keyword with descriptions.
+                  // Example: mod seek git
+                  // Example: mod seek ssh
+                  // Example: mod seek commit
+
+## list, ls:
+   [-k, --key <kw>] :list all types and actions without descriptions, optionally filtered by keyword.
+                  // Example: mod ls
+                  // Example: mod list -k ssh
+                  // Example: mod ls --key git
 
 
 # Example:

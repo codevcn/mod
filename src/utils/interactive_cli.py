@@ -14,7 +14,7 @@ if hasattr(sys.stdout, "reconfigure"):
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
-from configs.paths import PROJECT_ROOT, MOD_HISTORY_FILE_PATH
+from configs.paths import MOD_HISTORY_FILE_PATH
 from configs.version import get_version_info
 
 class Colors:
@@ -32,7 +32,7 @@ class Colors:
 TYPE_ACTION_MAP = {
     "code": ["ext", "js", "nestjs", "py", "test", "ts", "ts-template", "ws"],
     "compress": ["folder", "init-ignore"],
-    "edit": ["note", "proms", "to"],
+    "edit": ["note", "proms", "ssh", "to"],
     "file": ["add-src", "create", "delete", "keep", "open", "open-src", "rename"],
     "find": ["file", "folder"],
     "folder": ["cr-linear", "create", "dld-path", "merge", "tree"],
@@ -41,6 +41,8 @@ TYPE_ACTION_MAP = {
     "git": ["commit", "dl-file", "dl-folder", "drop", "remote", "stash"],
     "init": [],
     "keep": [],
+    "list": [],
+    "ls": [],
     "mcp": ["open-config", "set"],
     "notify": ["channels", "config", "send", "test"],
     "open": [
@@ -67,7 +69,8 @@ TYPE_ACTION_MAP = {
     "py": ["env"],
     "paths": [],
     "run": ["gen-qr", "keep-awake", "keep-screen", "srt-count-line", "unikey"],
-    "skill": ["find", "list", "list-project", "list-prj", "ls", "ls-prj", "ls-project", "off-invo", "off-invocation", "on-invo", "on-invocation", "open", "p", "prj", "project", "remove", "rm", "search", "set"],
+    "seek": [],
+    "skill": ["commit", "find", "git-commit", "list", "list-project", "list-prj", "ls", "ls-prj", "ls-project", "off-invo", "off-invocation", "on-invo", "on-invocation", "open", "p", "prj", "project", "remove", "rm", "search", "set"],
     "toast": ["--syntax"],
     "tunnel": [],
 }
@@ -95,6 +98,9 @@ TYPE_DESCRIPTIONS = {
     "init": "Dọn dẹp các tiến trình Windows chạy ngầm và khởi động Unikey",
     "keep": "Giữ màn hình Windows luôn sáng (alias rút gọn của 'run keep-screen')",
     "paths": "In danh sách các đường dẫn cấu hình tập trung trong paths.py",
+    "seek": "Tìm kiếm các nhóm lệnh (type) và hành động (action) kèm ý nghĩa theo từ khóa",
+    "list": "Liệt kê danh sách tất cả các type và action hiện có (hỗ trợ cờ -k/--key)",
+    "ls": "Liệt kê danh sách tất cả các type và action hiện có (alias của 'list')",
 }
 
 SORTED_TYPES = sorted(TYPE_ACTION_MAP.keys())
@@ -481,22 +487,19 @@ def run_interactive_session(
         if not args:
             continue
 
-        # Tách dispatcher flags
+        # Tách dispatcher flags (chỉ giữ --info / --des)
         info_flag = False
-        antigravity_flag = False
         feature_args = []
 
         for arg in args:
             if arg in ("--info", "--des"):
                 info_flag = True
-            elif arg in ("-a", "--antigravity-IDE"):
-                antigravity_flag = True
             else:
                 feature_args.append(arg)
 
         print()
         try:
-            dispatch_callback(feature_args, info_flag, antigravity_flag)
+            dispatch_callback(feature_args, info_flag)
         except SystemExit:
             # Khi subprocess hoặc lệnh con gọi sys.exit(0), quay lại prompt tiếp tục session
             pass

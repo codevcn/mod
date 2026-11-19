@@ -58,8 +58,6 @@ mod_tool:
       description: "In thông tin phiên bản (v0.1.0) và mô tả công cụ bằng tiếng Anh."
     - flag: "--info / --des"
       description: "In mô tả chi tiết command."
-    - flag: "-a / --antigravity-IDE"
-      description: "Dùng Antigravity IDE thay vì VSCode."
 
   # 2. Danh mục 19 nhóm lệnh (Types) và các hành động (Actions)
   types:
@@ -100,14 +98,11 @@ def main():
 
     # 1. Bóc tách Dispatcher Flags toàn cục trước
     info_flag = False
-    antigravity_flag = False
     feature_args = []
 
     for arg in raw_args:
         if arg in ("--info", "--des"):
             info_flag = True
-        elif arg in ("-a", "--antigravity-IDE"):
-            antigravity_flag = True
         else:
             feature_args.append(arg)
 
@@ -120,7 +115,7 @@ def main():
         sys.exit(0)
 
     # 3. Điều phối qua dispatch_command
-    dispatch_command(feature_args, info_flag, antigravity_flag)
+    dispatch_command(feature_args, info_flag)
 ```
 
 Trong `dispatch_command()`:
@@ -128,7 +123,6 @@ Trong `dispatch_command()`:
 def dispatch_command(
     feature_args: list[str],
     info_flag: bool = False,
-    antigravity_flag: bool = False,
 ):
     # Trích xuất pos_args bất kể vị trí của flags
     if info_flag:
@@ -175,7 +169,6 @@ graph TD
 Các cờ điều phối toàn cục (Dispatcher Flags):
   -v / --version         : In thông tin phiên bản (v0.1.0) và mô tả công cụ bằng tiếng Anh.
   --info / --des         : In mô tả chi tiết command.
-  -a / --antigravity-IDE : Dùng Antigravity IDE thay vì VSCode.
 
 Danh sách nhóm lệnh (Types):
   open       : Mở trong System Explorer

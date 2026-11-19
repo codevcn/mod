@@ -214,7 +214,7 @@ flowchart TD
     CheckSpecial -->|"cls" / "clear"| ClearScreen["Xóa màn hình & in lại types"] --> InputLoop
     CheckSpecial -->|"type" / "list" / "ls"| PrintTypes["In lại bảng danh mục Types"] --> InputLoop
     
-    CheckSpecial -->|Lệnh thực thi| ExecCmd["1. append_history(history, line)\n2. save_history(history)\n3. Loại bỏ prefix 'mod '\n4. shlex.split(line)\n5. dispatch_callback(feature_args, info_flag, antigravity_flag)"]
+    CheckSpecial -->|Lệnh thực thi| ExecCmd["1. append_history(history, line)\n2. save_history(history)\n3. Loại bỏ prefix 'mod '\n4. shlex.split(line)\n5. dispatch_callback(feature_args, info_flag)"]
     
     ExecCmd --> InputLoop
 ```
@@ -354,8 +354,8 @@ Khi người dùng xác nhận một câu lệnh bằng phím `Enter`:
 1. Ghi nhận vào `history` và lưu vào file `.mod_history`.
 2. Kiểm tra nếu người dùng vô tình gõ thừa từ khóa `mod ` ở đầu (ví dụ: `mod gdrive sync ...`), hàm tự động cắt bỏ thành `gdrive sync ...`.
 3. Phân tách tham số an toàn bằng `shlex.split(line, posix=False)` (giữ nguyên cặp dấu nháy kép trên Windows).
-4. Tách dispatcher flags (`--info`, `-a` / `--antigravity-IDE`).
-5. Gọi `dispatch_callback(feature_args, info_flag, antigravity_flag)`:
+4. Tách dispatcher flags (`--info`).
+5. Gọi `dispatch_callback(feature_args, info_flag)`:
    - Bọc trong khối `try...except SystemExit` để khi subprocess hoặc lệnh con gọi `sys.exit(0)`, session vẫn tiếp tục vòng lặp mới mà không bị thoát ra ngoài terminal.
    - Bắt `KeyboardInterrupt` để hủy lệnh hiện tại an toàn.
 

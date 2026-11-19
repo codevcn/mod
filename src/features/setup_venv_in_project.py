@@ -89,11 +89,6 @@ def get_venv_python(venv_dir: Path) -> Path:
     return venv_dir / "Scripts" / "python.exe"
 
 
-def get_venv_pip(venv_dir: Path) -> Path:
-    """Trả về đường dẫn pip.exe bên trong venv."""
-    return venv_dir / "Scripts" / "pip.exe"
-
-
 # ─────────────────────────────────────────────
 #  Các bước setup
 # ─────────────────────────────────────────────

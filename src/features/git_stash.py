@@ -4,6 +4,7 @@
 git_stash.py - Quản lý và xử lý Git Stash trong Mod CLI:
 - mod git stash list (hoặc mod git stash ls) : Liệt kê các stash trong kho lưu trữ mod.
 - mod git drop [stash_index]                 : Xóa 1 stash khỏi kho lưu trữ (menu tương tác hoặc chỉ định trực tiếp).
+- mod git drop --all                         : Xóa toàn bộ stash khỏi kho lưu trữ (có hỏi xác nhận an toàn).
 - mod git stash drop [stash_index]           : Alias tương đương mod git drop.
 """
 
@@ -142,18 +143,67 @@ def run_drop_interactive(args: list[str]):
         print(f"\n{Fore.YELLOW}ℹ️ Hiện không có stash nào trong kho lưu trữ để drop.{Style.RESET_ALL}\n")
         sys.exit(0)
 
-    # 1. Kiểm tra cờ --yes / -y
+    # 1. Kiểm tra cờ --yes / -y và --all / -a
     force_yes = False
+    drop_all = False
     clean_args = []
     for a in args:
         if a in ("-y", "--yes"):
             force_yes = True
+        elif a in ("--all", "-a"):
+            drop_all = True
         else:
             clean_args.append(a)
 
+    # 2. Xử lý cờ --all: Xóa toàn bộ stash sau khi hỏi xác nhận người dùng
+    if drop_all:
+        print(f"\n{Fore.YELLOW}{Style.BRIGHT}⚠️  CẢNH BÁO XÓA TOÀN BỘ GIT STASH CỦA MOD TOOL:{Style.RESET_ALL}")
+        print(f"   Kho lưu trữ: {Fore.CYAN}{PROJECT_ROOT}{Style.RESET_ALL}")
+        print(f"   Tổng số stash hiện có: {Fore.RED}{Style.BRIGHT}{count}{Style.RESET_ALL}")
+        print("─" * 76)
+        for idx, s in enumerate(stashes, 1):
+            ref = s["ref"]
+            time_str = f" ({s['time']})" if s["time"] else ""
+            msg = s["msg"]
+            print(f"  [{Fore.GREEN}{idx:2d}{Style.RESET_ALL}] {Fore.CYAN}{Style.BRIGHT}{ref}{Style.RESET_ALL}{Fore.LIGHTBLACK_EX}{time_str}{Style.RESET_ALL}")
+            print(f"       └─ {msg}")
+        print("─" * 76)
+
+        try:
+            prompt_text = f"\n{Fore.RED}{Style.BRIGHT}⚠️  Bạn có chắc chắn muốn xóa hết TẤT CẢ ({count}) stash của Mod không? [y/N]: {Style.RESET_ALL}"
+            confirm = input(prompt_text).strip().lower()
+        except EOFError:
+            confirm = "n"
+
+        if confirm not in ("y", "yes"):
+            print(">>> Đã hủy thao tác. Toàn bộ stash vẫn được giữ nguyên.\n")
+            sys.exit(0)
+
+        try:
+            cmd = ["git", "stash", "clear"]
+            result = subprocess.run(
+                cmd,
+                cwd=str(PROJECT_ROOT),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                check=False,
+            )
+            if result.returncode == 0:
+                print(f"\n{Fore.GREEN}✅ Đã xóa toàn bộ {count} Git stash của Mod thành công!{Style.RESET_ALL}\n")
+                sys.exit(0)
+            else:
+                print(f"\n{Fore.RED}❌ Lỗi khi xóa Git stash:{Style.RESET_ALL} {result.stderr.strip()}\n")
+                sys.exit(result.returncode)
+        except Exception as e:
+            print(f"\n{Fore.RED}❌ Lỗi không xác định khi xóa Git stash:{Style.RESET_ALL} {e}\n")
+            sys.exit(1)
+
     target_stash = None
 
-    # 2. Nếu người dùng truyền tham số trực tiếp (ví dụ: `mod git drop 1` hoặc `mod git drop stash@{0}`)
+    # 3. Nếu người dùng truyền tham số trực tiếp (ví dụ: `mod git drop 1` hoặc `mod git drop stash@{0}`)
     if clean_args:
         user_param = clean_args[0].strip()
         # Trường hợp 1: Nhập số thứ tự 1..N

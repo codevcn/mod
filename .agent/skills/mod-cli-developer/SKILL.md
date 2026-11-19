@@ -23,7 +23,7 @@ Tài liệu này là **Quy chuẩn tác nghiệp chuẩn (SOP)** dành cho AI Ag
 ## 1. Kiến Trúc & Các Nguyên Tắc Bất Di Bất Dịch
 
 ```text
-User: mod <type> <action> [args...] [-a] [--info]
+User: mod <type> <action> [args...] [--info]
   │
   ├── mod.cmd (Wrapper mỏng) ──► src/main.py (Central Dispatcher)
   │                                    │
@@ -42,7 +42,7 @@ User: mod <type> <action> [args...] [-a] [--info]
    - Luôn chạy `git stash push -u -m "checkpoint: <mô_tả_chi_tiết>"` trước khi can thiệp vào codebase nếu có uncommitted changes.
    - Tuyệt đối không để xảy ra tình trạng checkout/restore làm mất công sức chưa commit của người dùng hoặc phiên làm việc trước.
 2. **Phân định cờ (Flag Separation):** 
-   - Central Dispatcher (`src/main.py`) **CHỈ xử lý 2 cờ toàn cục**: `--info` (in mô tả YAML) và `-a` / `--antigravity-IDE` (chọn IDE).
+   - Central Dispatcher (`src/main.py`) **CHỈ xử lý cờ toàn cục**: `--info` (in mô tả YAML) (cùng `--version` và `--help`).
    - Mọi cờ tính năng khác (`-m`, `-p`, `-d`, `-f`, `--audio`, `--protocol`...) **BẮT BUỘC** do script trong `src/features/` tự parse từ `remaining_args`.
 3. **Không hardcode đường dẫn:** Mọi đường dẫn thư mục/tập tin phải lấy từ [`src/configs/paths.py`](file:///d:/D-Documents/TOOLs/mod/src/configs/paths.py).
 4. **Mã hóa UTF-8 Console:** Luôn đặt `PYTHONIOENCODING=utf-8` và `sys.stdout.reconfigure(encoding='utf-8')` ở đầu các script để tránh lỗi vỡ font tiếng Việt trên Windows.
