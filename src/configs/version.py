@@ -2,7 +2,7 @@
 Standardized Version & Metadata Management for Mod CLI.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.3.1"
 APP_NAME = "Mod CLI"
 APP_ALIAS = "mod"
 APP_DESCRIPTION = "A modular automation and developer productivity CLI tool."

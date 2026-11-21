@@ -1,5 +1,4 @@
 ===========================================
-# Update at 09/05/2026
 # Repo Link: https://github.com/codevcn/tools-box.git
 ===========================================
 # Help for mod command:
@@ -12,7 +11,7 @@ Mọi args sau <action> được forward nguyên vẹn cho feature script tự x
 
 # Dispatcher flags:
 -h, --help        :print this help.
--v, --version     :print version info (v0.1.0) and short description in English.
+-v, --version     :print version info and short description in English.
 --info, --des     :print description of typing commands.
 
 # Feature-level flags (truyền sau action, do feature tự xử lý):
@@ -46,6 +45,7 @@ notify            :to send multi-channel notifications (ntfy, telegram, toast).
 paths             :to print all configured paths in paths.py (supports -k/--key/--keyword).
 seek              :to search types and actions by keyword with meanings.
 list, ls          :to list all available types and actions (names only, supports -k/--key).
+doctor            :to run environment, dependencies, .env, paths, and registry sync diagnostics.
 
 
 # Available actions:
@@ -304,6 +304,12 @@ list, ls          :to list all available types and actions (names only, supports
    git-commit, commit -m "msg"
                   :stage all changes, commit and push to current branch of skills repo.
                   // Example: mod skill git-commit -m "feat: add design skills"
+   import [skill_name] [--from-ai agy|claude|codex] [--to-folder <folder>] [--keyword, --key, -k <keyword>] [--filter, -f <on-invocation|off-invocation>]
+                  :import (copy) skill(s) from an AI Agent into central skills repo (if <skill_name> is omitted, --from-ai is required to list skills for multi-select; --to-folder filters '*-skill' folders & supports shorthand like 'outside').
+                  // Example: mod skill import diagram-design --from-ai agy --to-folder outside
+                  // Example: mod skill import diagram-design --to-folder outside-skill
+                  // Example: mod skill import --from-ai agy -k diagram
+                  // Example: mod skill import --from-ai claude -f off --to-folder my
 
 ## toast:
    <title> [msg...] [--audio <path>]
@@ -353,6 +359,13 @@ list, ls          :to list all available types and actions (names only, supports
                   // Example: mod ls
                   // Example: mod list -k ssh
                   // Example: mod ls --key git
+
+## doctor:
+   [--strict] [--verbose]
+                  :run environment, dependency, external CLI, .env, paths, and registry sync diagnostics.
+                  // Example: mod doctor
+                  // Example: mod doctor --verbose
+                  // Example: mod doctor --strict
 
 
 # Example:

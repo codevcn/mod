@@ -18,7 +18,7 @@ class Colors:
 VALID_TYPES = [
     "open", "code", "run", "print", "git", "gdrive", "gist",
     "init", "py", "edit", "file", "folder", "tunnel", "proxy", "mcp", "skill", "toast", "compress", "notify", "keep", "find", "paths", "path",
-    "seek", "list", "ls"
+    "seek", "list", "ls", "doctor"
 ]
 
 

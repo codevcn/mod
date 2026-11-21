@@ -32,6 +32,7 @@ class Colors:
 TYPE_ACTION_MAP = {
     "code": ["ext", "js", "nestjs", "py", "test", "ts", "ts-template", "ws"],
     "compress": ["folder", "init-ignore"],
+    "doctor": [],
     "edit": ["note", "proms", "ssh", "to"],
     "file": ["add-src", "create", "delete", "keep", "open", "open-src", "rename"],
     "find": ["file", "folder"],
@@ -70,7 +71,7 @@ TYPE_ACTION_MAP = {
     "paths": [],
     "run": ["gen-qr", "keep-awake", "keep-screen", "srt-count-line", "unikey"],
     "seek": [],
-    "skill": ["commit", "find", "git-commit", "list", "list-project", "list-prj", "ls", "ls-prj", "ls-project", "off-invo", "off-invocation", "on-invo", "on-invocation", "open", "p", "prj", "project", "remove", "rm", "search", "set"],
+    "skill": ["commit", "find", "git-commit", "import", "list", "list-project", "list-prj", "ls", "ls-prj", "ls-project", "off-invo", "off-invocation", "on-invo", "on-invocation", "open", "p", "prj", "project", "remove", "rm", "search", "set"],
     "toast": ["--syntax"],
     "tunnel": [],
 }
@@ -101,6 +102,7 @@ TYPE_DESCRIPTIONS = {
     "seek": "Tìm kiếm các nhóm lệnh (type) và hành động (action) kèm ý nghĩa theo từ khóa",
     "list": "Liệt kê danh sách tất cả các type và action hiện có (hỗ trợ cờ -k/--key)",
     "ls": "Liệt kê danh sách tất cả các type và action hiện có (alias của 'list')",
+    "doctor": "Kiểm tra sức khỏe môi trường, dependencies và đồng bộ nội bộ của Mod CLI",
 }
 
 SORTED_TYPES = sorted(TYPE_ACTION_MAP.keys())

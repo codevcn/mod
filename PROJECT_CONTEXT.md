@@ -66,7 +66,8 @@ d:\D-Documents\TOOLs\mod\
 ├── data/                               # Dữ liệu runtime nội bộ của công cụ
 │   ├── credentials/.mod_history        # Lịch sử câu lệnh nhập trong interactive REPL
 │   └── media/audio/                    # Âm thanh thông báo mặc định (burnttoast sound MP3)
-├── doc/ / docs/                        # Tài liệu kỹ thuật chi tiết theo chuyên đề và sơ đồ hệ thống
+├── docs/                               # Tài liệu kỹ thuật chi tiết theo chuyên đề và sơ đồ hệ thống
+│   └── diagrams/                       # Sơ đồ kiến trúc hệ thống trực quan (HTML)
 └── src/
     ├── main.py                         # Central Dispatcher (Bộ điều phối trung tâm)
     ├── cmd/                            # Batch script tiện ích hệ điều hành (init.cmd...)

@@ -63,6 +63,7 @@ MOD_TYPE_NOTIFY = "notify"
 MOD_TYPE_PATHS = "paths"
 MOD_TYPE_KEEP = "keep"
 MOD_TYPE_FIND = "find"
+MOD_TYPE_DOCTOR = "doctor"
 MOD_TYPE_SEEK = "seek"
 MOD_TYPE_LIST = "list"
 MOD_TYPE_LS = "ls"
@@ -170,6 +171,7 @@ MOD_SKILL_LIST_PROJECT = "list-project"
 MOD_SKILL_PROJECT = "project"
 MOD_SKILL_FIND = "find"
 MOD_SKILL_GIT_COMMIT = "git-commit"
+MOD_SKILL_IMPORT = "import"
 # compress
 MOD_COMPRESS_FOLDER = "folder"
 MOD_COMPRESS_INIT_IGNORE = "init-ignore"
@@ -789,6 +791,8 @@ def cmd_skill(action, remaining_args, default_ide_prefix="code"):
         feature_file = "skill_invocation.py"
     elif act_lower in ("git-commit", "commit"):
         feature_file = "skill_git_commit.py"
+    elif act_lower == "import":
+        feature_file = "skill_import.py"
     elif act_lower in ("list", "ls", "list-project", "list-prj", "ls-prj", "ls-project", "find", "search"):
         feature_file = "skill_list.py"
     else:
@@ -854,6 +858,19 @@ def cmd_find(action: str, remaining_args: list[str]):
         action,
     ]
     cmd_args.extend(remaining_args)
+    result = subprocess.run(
+        cmd_args,
+        check=False,
+    )
+    sys.exit(result.returncode)
+
+
+def cmd_doctor(args: list[str]):
+    cmd_args = [
+        "python",
+        get_feature_path("doctor.py"),
+    ]
+    cmd_args.extend(args)
     result = subprocess.run(
         cmd_args,
         check=False,
@@ -1021,6 +1038,7 @@ def dispatch_command(
             MOD_SKILL_PROJECT,
             MOD_SKILL_FIND,
             MOD_SKILL_GIT_COMMIT,
+            MOD_SKILL_IMPORT,
         ]
         if action_included is None:
             raise MissingActionError(type_included, valid_actions)
@@ -1059,6 +1077,8 @@ def dispatch_command(
         if action_included not in valid_actions:
             raise InvalidActionError(type_included, action_included, valid_actions)
         cmd_find(action_included, remaining_args)
+    elif type_included == MOD_TYPE_DOCTOR:
+        cmd_doctor(feature_args[1:])
     elif type_included == MOD_TYPE_TOAST:
         cmd_toast(action_included, remaining_args)
     elif type_included == MOD_TYPE_NOTIFY:

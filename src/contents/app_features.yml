@@ -2,7 +2,7 @@ mod_tool:
   # Dispatcher chỉ xử lý flag --info, mọi args sau action được forward cho feature.
   dispatcher_flags:
     - flag: "-v / --version"
-      description: "In thông tin phiên bản (v0.1.0) và mô tả công cụ bằng tiếng Anh."
+      description: "In thông tin phiên bản hiện tại và mô tả công cụ bằng tiếng Anh."
     - flag: "--info / --des"
       description: "In mô tả chi tiết command."
 
@@ -417,7 +417,7 @@ mod_tool:
         - id: "ACTION 29b"
           title: "In thông tin phiên bản (Version)"
           command: "mod -v | mod --version | mod version"
-          summary: "In ra thông tin phiên bản chính thức (v0.1.0) và mô tả ngắn cho Mod CLI bằng tiếng Anh."
+          summary: "In ra thông tin phiên bản chính thức và mô tả ngắn cho Mod CLI bằng tiếng Anh."
           details: "Đọc cấu hình từ `src/configs/version.py` và in ra chuỗi định dạng version."
           conditions: "Không có điều kiện đặc biệt."
 
@@ -597,6 +597,12 @@ mod_tool:
           summary: "Chạy tuần tự `git add -A`, `git commit` và `git push` lên nhánh hiện tại của thư mục kho AI Skills."
           details: "Tự động xác định nhánh hiện tại (branch đang đứng) của kho AI Skills (`SKILLS_FOLDER_PATH`), kiểm tra trạng thái thay đổi, sau đó thực hiện `git add -A`, commit với thông điệp từ cờ `-m`/`--message` và đẩy mã nguồn lên remote `origin`."
           conditions: "Yêu cầu bắt buộc cờ `-m \"{message}\"`. Thư mục `SKILLS_FOLDER_PATH` phải là Git repository hợp lệ."
+        - id: "ACTION 48j"
+          title: "Import Skill Từ AI Agent Về Kho Chung (Import)"
+          command: "mod skill import [skill_name] [--from-ai agy|claude|codex] [--to-folder <folder>] [--keyword, --key, -k <keyword>] [--filter, -f <on-invocation|off-invocation>]"
+          summary: "Sao chép một hoặc nhiều AI Skill đang cài đặt tại Antigravity, Claude Code hoặc Codex về thư mục phân loại trong kho SKILLS_FOLDER_PATH."
+          details: "Nếu bỏ trống `skill_name`, bắt buộc phải truyền `--from-ai` để hệ thống quét AI Agent đó, liệt kê danh sách skill kèm trạng thái invocation (hỗ trợ lọc `--key`/`-k` và `--filter`/`-f`) cho phép chọn nhiều theo số thứ tự (`1 2 4`) hoặc `'a'` (tất cả) tương tự `mod skill on-invo`. Tự động lọc các thư mục con cấp 1 có hậu tố '-skill' trong SKILLS_FOLDER_PATH làm giá trị hợp lệ cho `--to-folder` (hỗ trợ gõ tắt bỏ hậu tố như `outside` -> `outside-skill`). Kiểm tra trùng lặp trên toàn kho trước khi copy."
+          conditions: "Phải truyền `skill_name` hoặc `--from-ai <agy|claude|codex>`. Skill nguồn phải có file SKILL.md và `--to-folder` phải khớp thư mục '*-skill' hợp lệ."
 
     - name: "toast"
       description: "Thông báo Desktop Windows"
@@ -778,6 +784,16 @@ mod_tool:
           command: "mod list [--key <keyword>] [-k <keyword>] | mod ls [...]"
           summary: "Liệt kê danh sách tất cả các type và action hiện có (chỉ tên, không giải thích ý nghĩa), hỗ trợ lọc theo từ khóa."
           details: "Hiển thị danh mục toàn bộ nhóm lệnh (type) và danh sách tên các hành động (action) theo dạng bảng rút gọn. Nếu truyền thêm cờ `--key` hoặc `-k` (hoặc từ khóa trực tiếp), hệ thống sẽ lọc và chỉ in ra các type/action có chứa từ khóa (case-insensitive)."
+          conditions: "Không có điều kiện đặc biệt."
+
+    - name: "doctor"
+      description: "Chẩn đoán sức khỏe môi trường & đồng bộ nội bộ"
+      actions:
+        - id: "ACTION 68"
+          title: "Kiểm tra tổng thể sức khỏe Mod CLI (Doctor)"
+          command: "mod doctor [--strict] [--verbose]"
+          summary: "Kiểm tra Python runtime, các gói trong requirements.txt, CLI ngoài, biến .env, paths.py và tính đồng bộ giữa các registry."
+          details: "Chạy chuỗi kiểm tra read-only gồm 5 nhóm: (1) Python >= 3.12, UTF-8, mod/py/python trong PATH và tệp lõi; (2) Toàn bộ dependencies trong requirements.txt; (3) Công cụ CLI ngoài (git, powershell, code, cloudflared, rclone); (4) File .env và các khóa tích hợp (không lộ secret); (5) Tóm tắt paths.py và đối chiếu đồng bộ VALID_TYPES, TYPE_ACTION_MAP, TYPE_DESCRIPTIONS và app_features.yml. Dùng `--verbose` để xem chi tiết đường dẫn chưa tồn tại và `--strict` để trả về exit code 1 khi có cảnh báo."
           conditions: "Không có điều kiện đặc biệt."
 
 config:
